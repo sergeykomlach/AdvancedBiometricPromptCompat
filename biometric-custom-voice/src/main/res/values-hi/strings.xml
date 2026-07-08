@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">वॉइस सैंपल %1$d / %2$d सहेजा गया</string>
     <string name="biometriccompat_voice_status_recording">वॉइस सैंपल रिकॉर्ड किया जा रहा है...</string>
     <string name="biometriccompat_voice_status_checking">आवाज़ की जाँच की जा रही है</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">अपनी आवाज़ पंजीकृत करने के लिए, अपनी कोड वाक्यांश को 2-4 सेकंड तक स्वाभाविक रूप से बोलें। प्रयास %1$d / %2$d.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">उसी कोड वाक्यांश को एक बार फिर दोहराएँ। प्रयास %1$d / %2$d.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">अपनी कोड वाक्यांश को स्वाभाविक रूप से बोलें।</string>
+    <string name="biometriccompat_voice_prompt_processing">वॉइस सैंपल संसाधित किया जा रहा है</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">कोई आवाज़ नहीं मिली। वही वाक्यांश फिर से बोलने का प्रयास करें।</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">वाक्यांश बहुत छोटा था। वही वाक्यांश एक बार फिर दोहराएँ।</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">वाक्यांश बहुत धीमा था। माइक्रोफ़ोन के पास जाएँ और फिर से प्रयास करें।</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">वाक्यांश को और स्पष्ट बोलें और फिर से प्रयास करें।</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">छोटा वाक्यांश बोलें और फिर से प्रयास करें।</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">एक नया स्वाभाविक वाक्यांश बोलें और फिर से प्रयास करें।</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">रिकॉर्डिंग विफल हुई। वही वाक्यांश फिर से बोलने का प्रयास करें।</string>
 </resources>
-
-
-
-
-
-

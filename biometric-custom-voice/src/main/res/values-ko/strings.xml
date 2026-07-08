@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">음성 샘플 %1$d/%2$d 저장됨</string>
     <string name="biometriccompat_voice_status_recording">음성 샘플 녹음 중...</string>
     <string name="biometriccompat_voice_status_checking">음성을 확인하는 중</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">음성을 등록하려면 코드 문구를 2-4초 동안 자연스럽게 말하세요. %2$d회 중 %1$d번째 시도입니다.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">같은 코드 문구를 한 번 더 반복해 주세요. %2$d회 중 %1$d번째 시도입니다.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">코드 문구를 자연스럽게 말하세요.</string>
+    <string name="biometriccompat_voice_prompt_processing">음성 샘플 처리 중</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">음성이 감지되지 않았습니다. 같은 문구를 다시 말해 보세요.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">문구가 너무 짧았습니다. 같은 문구를 한 번 더 반복해 주세요.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">문구가 너무 작았습니다. 마이크에 더 가까이 다가가서 다시 시도하세요.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">문구를 더 또렷하게 말하고 다시 시도하세요.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">더 짧은 문구로 다시 시도하세요.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">새롭고 자연스러운 문구를 말하고 다시 시도하세요.</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">녹음에 실패했습니다. 같은 문구를 다시 말해 보세요.</string>
 </resources>
-
-
-
-
-
-

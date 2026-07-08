@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:BehaviorSample.kt$BehaviorSample.Companion$!x.isFinite() || !y.isFinite() || !timestamp.isFinite() || !pressure.isFinite() || !size.isFinite() || !stroke.isFinite() || kotlin.math.abs(x) &gt; MAX_COORDINATE_ABS || kotlin.math.abs(y) &gt; MAX_COORDINATE_ABS || timestamp &lt; 0f</ID>
+    <ID>ComplexCondition:BehaviorTemplateStore.kt$BehaviorTemplateStore$!x.isFinite() || !y.isFinite() || kotlin.math.abs(x) &gt; MAX_COORDINATE_ABS || kotlin.math.abs(y) &gt; MAX_COORDINATE_ABS || timestamp &lt; 0L</ID>
+    <ID>CyclomaticComplexMethod:BehaviorCaptureController.kt$BehaviorCaptureController$private fun createOverlay(container: FrameLayout): View</ID>
+    <ID>CyclomaticComplexMethod:BehaviorSample.kt$BehaviorSample.Companion$private fun parsePoints(raw: FloatArray?, requestedStride: Int): List&lt;BehaviorPoint&gt;</ID>
+    <ID>CyclomaticComplexMethod:BehaviorTemplateStore.kt$BehaviorTemplateStore$private fun parsePoints(raw: String): List&lt;BehaviorPoint&gt;</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorBiometricManager.kt$BehaviorBiometricManager : AbstractSoftwareBiometricManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorMode.kt$BehaviorMode</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorPromptFactory.kt$BehaviorPromptFactory : SoftwareBiometricPromptFactory</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorProvider.kt$BehaviorProvider : SoftwareBiometricProvider</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorSample.kt$BehaviorPoint</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorSample.kt$BehaviorQualityIssue</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorSample.kt$BehaviorSample</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorSample.kt$BehaviorSampleMetrics</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorScorer.kt$BehaviorScore</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorScorer.kt$BehaviorScoreReason</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorTemplateStore.kt$BehaviorTemplateStore</ID>
+    <ID>LongMethod:BehaviorBiometricManager.kt$BehaviorBiometricManager$override fun authenticate( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
+    <ID>LongMethod:BehaviorCaptureController.kt$BehaviorCaptureController$private fun createOverlay(container: FrameLayout): View</ID>
+    <ID>LongParameterList:BehaviorPromptData.kt$( existing: Bundle?, mode: BehaviorMode, phrase: CharSequence?, keyDownTimesMs: LongArray, keyUpTimesMs: LongArray, strokePoints: FloatArray, enroll: Boolean )</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$10f</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$12</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$13f</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$14f</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$16</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$16f</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$180</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$18f</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$42</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$48</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$8</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController$8f</ID>
+    <ID>MagicNumber:BehaviorCaptureController.kt$BehaviorCaptureController.SignaturePad$2.5f</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample$100</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample$100.0</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample$1000</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample$250</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample$250.0</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample$50</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample$50.0</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample$500</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample$500.0</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample.Companion$3</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample.Companion$4</ID>
+    <ID>MagicNumber:BehaviorSample.kt$BehaviorSample.Companion$5</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$0.04</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$0.08</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$0.18</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$0.22f</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$0.78f</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$1_000_000.0</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$3</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$4</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$4.0</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$5</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$6.0</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$8</ID>
+    <ID>MagicNumber:BehaviorScorer.kt$BehaviorScorer$8.0</ID>
+    <ID>MagicNumber:BehaviorTemplateStore.kt$BehaviorTemplateStore$3</ID>
+    <ID>MagicNumber:BehaviorTemplateStore.kt$BehaviorTemplateStore$4</ID>
+    <ID>MagicNumber:BehaviorTemplateStore.kt$BehaviorTemplateStore$5</ID>
+    <ID>MagicNumber:BehaviorTemplateStore.kt$BehaviorTemplateStore$6</ID>
+    <ID>ReturnCount:BehaviorBiometricManager.kt$BehaviorBiometricManager$override fun authenticate( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
+    <ID>ReturnCount:BehaviorCaptureController.kt$BehaviorCaptureController$private fun prepareExtras()</ID>
+    <ID>ReturnCount:BehaviorCaptureController.kt$BehaviorCaptureController.SignaturePad$override fun onTouchEvent(event: MotionEvent): Boolean</ID>
+    <ID>ReturnCount:BehaviorSample.kt$BehaviorSample$private fun signatureQualityIssue(): BehaviorQualityIssue</ID>
+    <ID>ReturnCount:BehaviorSample.kt$BehaviorSample$private fun typingQualityIssue(): BehaviorQualityIssue</ID>
+    <ID>ReturnCount:BehaviorSample.kt$BehaviorSample.Companion$private fun parsePoints(raw: FloatArray?, requestedStride: Int): List&lt;BehaviorPoint&gt;</ID>
+    <ID>ReturnCount:BehaviorScorer.kt$BehaviorScorer$fun scoreDetails(enrolled: BehaviorSample, probe: BehaviorSample): BehaviorScore</ID>
+    <ID>ReturnCount:BehaviorScorer.kt$BehaviorScorer$private fun normalize(points: List&lt;BehaviorPoint&gt;): List&lt;BehaviorPoint&gt;</ID>
+    <ID>ReturnCount:BehaviorScorer.kt$BehaviorScorer$private fun resampleByPathLength(points: List&lt;BehaviorPoint&gt;): List&lt;BehaviorPoint&gt;</ID>
+    <ID>ReturnCount:BehaviorTemplateStore.kt$BehaviorTemplateStore$private fun deserializeSample(parts: List&lt;String&gt;): BehaviorSample?</ID>
+    <ID>ReturnCount:BehaviorTemplateStore.kt$BehaviorTemplateStore$private fun deserializeTemplates(raw: String): List&lt;BehaviorSample&gt;</ID>
+    <ID>TooManyFunctions:BehaviorBiometricManager.kt$BehaviorBiometricManager : AbstractSoftwareBiometricManager</ID>
+    <ID>TooManyFunctions:BehaviorCaptureController.kt$BehaviorCaptureController</ID>
+    <ID>TooManyFunctions:BehaviorScorer.kt$BehaviorScorer</ID>
+    <ID>TooManyFunctions:BehaviorTemplateStore.kt$BehaviorTemplateStore</ID>
+  </CurrentIssues>
+</SmellBaseline>

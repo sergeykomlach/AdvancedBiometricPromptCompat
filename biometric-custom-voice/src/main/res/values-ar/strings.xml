@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">تم حفظ العينة الصوتية %1$d من %2$d</string>
     <string name="biometriccompat_voice_status_recording">جارٍ تسجيل العينة الصوتية...</string>
     <string name="biometriccompat_voice_status_checking">جارٍ التحقق من الصوت</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">لتسجيل صوتك، قل عبارة الرمز الخاصة بك بشكل طبيعي لمدة 2-4 ثوانٍ. المحاولة %1$d من %2$d.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">أعد تكرار عبارة الرمز نفسها مرة أخرى. المحاولة %1$d من %2$d.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">قل عبارة الرمز الخاصة بك بشكل طبيعي.</string>
+    <string name="biometriccompat_voice_prompt_processing">جارٍ معالجة العينة الصوتية</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">لم يتم اكتشاف أي كلام. حاول قول العبارة نفسها مرة أخرى.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">كانت العبارة قصيرة جدًا. أعد تكرار العبارة نفسها مرة أخرى.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">كانت العبارة منخفضة جدًا. اقترب من الميكروفون وحاول مرة أخرى.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">انطق العبارة بوضوح أكبر وحاول مرة أخرى.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">قل عبارة أقصر وحاول مرة أخرى.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">قل عبارة جديدة وطبيعية وحاول مرة أخرى.</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">فشل التسجيل. حاول قول العبارة نفسها مرة أخرى.</string>
 </resources>
-
-
-
-
-
-

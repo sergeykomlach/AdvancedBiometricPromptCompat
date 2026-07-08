@@ -23,15 +23,15 @@ internal object VoicePromptMessageResolver {
         fallback = "Say your code phrase naturally."
     )
     private val phraseTemplate = PromptTemplate(
-        resourceId = R.string.biometriccompat_voice_prompt_phrase,
+        resourceId = R.string.biometriccompat_voice_overlay_phrase,
         fallback = "Phrase: %1\$s"
     )
     private val listening = PromptTemplate(
-        resourceId = R.string.biometriccompat_voice_prompt_listening,
+        resourceId = R.string.biometriccompat_voice_auto_auth_start,
         fallback = "Listening for voice"
     )
     private val speechDetected = PromptTemplate(
-        resourceId = R.string.biometriccompat_voice_prompt_detected,
+        resourceId = R.string.biometriccompat_voice_auto_detected,
         fallback = "Voice detected"
     )
     private val processingCapture = PromptTemplate(
@@ -39,15 +39,15 @@ internal object VoicePromptMessageResolver {
         fallback = "Processing voice sample"
     )
     private val matching = PromptTemplate(
-        resourceId = R.string.biometriccompat_voice_prompt_matching,
+        resourceId = R.string.biometriccompat_voice_status_checking,
         fallback = "Checking voice"
     )
     private val timeout = PromptTemplate(
-        resourceId = R.string.biometriccompat_voice_prompt_timeout,
+        resourceId = R.string.biometriccompat_voice_help_timeout,
         fallback = "Voice authentication timed out"
     )
     private val lockout = PromptTemplate(
-        resourceId = R.string.biometriccompat_voice_prompt_lockout,
+        resourceId = R.string.biometriccompat_voice_help_lockout,
         fallback = "Voice authentication is temporarily locked"
     )
     private val retryNoSpeech = PromptTemplate(

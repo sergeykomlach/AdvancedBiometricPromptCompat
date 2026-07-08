@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">Sprachprobe %1$d von %2$d gespeichert</string>
     <string name="biometriccompat_voice_status_recording">Sprachprobe wird aufgenommen...</string>
     <string name="biometriccompat_voice_status_checking">Stimme wird geprüft</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">Um Ihre Stimme zu registrieren, sprechen Sie Ihre Codephrase 2-4 Sekunden lang natürlich. Versuch %1$d von %2$d.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">Wiederholen Sie dieselbe Codephrase noch einmal. Versuch %1$d von %2$d.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">Sprechen Sie Ihre Codephrase natürlich.</string>
+    <string name="biometriccompat_voice_prompt_processing">Sprachprobe wird verarbeitet</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">Keine Sprache erkannt. Versuchen Sie, dieselbe Phrase noch einmal zu sprechen.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">Die Phrase war zu kurz. Wiederholen Sie dieselbe Phrase noch einmal.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">Die Phrase war zu leise. Gehen Sie näher an das Mikrofon heran und versuchen Sie es erneut.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">Sprechen Sie die Phrase deutlicher und versuchen Sie es erneut.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">Sprechen Sie die Phrase kürzer und versuchen Sie es erneut.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">Sprechen Sie eine neue natürliche Phrase und versuchen Sie es erneut.</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">Die Aufnahme ist fehlgeschlagen. Versuchen Sie, dieselbe Phrase noch einmal zu sprechen.</string>
 </resources>
-
-
-
-
-
-

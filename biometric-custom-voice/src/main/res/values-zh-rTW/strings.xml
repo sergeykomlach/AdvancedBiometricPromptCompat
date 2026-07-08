@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">語音樣本 %1$d/%2$d 已儲存</string>
     <string name="biometriccompat_voice_status_recording">正在錄製語音樣本...</string>
     <string name="biometriccompat_voice_status_checking">正在檢查語音</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">要註冊你的聲音，請自然地說出你的口令短語，持續 2 到 4 秒。第 %1$d / %2$d 次嘗試。</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">請再次重複同一句口令短語。第 %1$d / %2$d 次嘗試。</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">請自然地說出你的口令短語。</string>
+    <string name="biometriccompat_voice_prompt_processing">正在處理語音樣本</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">未偵測到語音。請再次說出同一句短語。</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">這句短語太短了。請再次重複同一句口令短語。</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">這句短語太小聲了。請靠近麥克風後再試一次。</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">請更清楚地說出這句短語後再試一次。</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">請說一句更短的短語後再試一次。</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">請說一句新的自然短語後再試一次。</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">錄音失敗。請再次說出同一句短語。</string>
 </resources>
-
-
-
-
-
-

@@ -1,0 +1,461 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:DeviceInfo.kt$s.contains("face") &amp;&amp; (s.contains(" id") || s.contains(" scan") || s.contains(" recognition") || s.contains( " unlock" ) || s.contains( " lock" ) || s.contains( " auth" ) )</ID>
+    <ID>ComplexCondition:DeviceInfo.kt$s.contains("heartrate") &amp;&amp; (s.contains(" id") || s.contains(" scan") || s.contains(" recognition") || s.contains( " unlock" ) || s.contains( " lock" ) || s.contains( " auth" ) )</ID>
+    <ID>ComplexCondition:DeviceInfo.kt$s.contains("iris") &amp;&amp; (s.contains(" id") || s.contains(" scan") || s.contains(" recognition") || s.contains( " unlock" ) || s.contains( " lock" ) || s.contains( " auth" ) )</ID>
+    <ID>ComplexCondition:DeviceInfo.kt$s.contains("palm") &amp;&amp; (s.contains(" id") || s.contains(" scan") || s.contains(" recognition") || s.contains( " unlock" ) || s.contains( " lock" ) || s.contains( " auth" ) )</ID>
+    <ID>ComplexCondition:DeviceInfo.kt$s.contains("voice") &amp;&amp; (s.contains(" id") || s.contains(" scan") || s.contains(" recognition") || s.contains( " unlock" ) || s.contains( " lock" ) || s.contains( " auth" ) )</ID>
+    <ID>ComplexCondition:HookDetection.kt$HookDetection$mapLine.contains("frida") || mapLine.contains("gum-js-loop") || mapLine.contains("gmain") || mapLine.contains("xposed") || mapLine.contains("substrate") || mapLine.contains("com.saurik.substrate")</ID>
+    <ID>ComplexCondition:LocalizationHelper.kt$LocalizationHelper$responseCode == HttpURLConnection.HTTP_MOVED_TEMP || responseCode == HttpURLConnection.HTTP_MOVED_PERM || responseCode == HttpURLConnection.HTTP_SEE_OTHER || responseCode == 307 || responseCode == 308</ID>
+    <ID>ComplexCondition:StatusBarTools.kt$StatusBarTools$(now.equals(start) || now.equals(end)) || (now.isAfter(start) &amp;&amp; now.isBefore( end ))</ID>
+    <ID>ComplexCondition:SystemMonetDialogs.kt$SystemMonetDialogs.DarkLightThemes$(now.equals(start) || now.equals(end)) || (now.isAfter(start) &amp;&amp; now.isBefore( end ))</ID>
+    <ID>CyclomaticComplexMethod:DeviceModelManager.kt$DeviceModelManager$private fun buildEmulatorMarketingName(): String?</ID>
+    <ID>CyclomaticComplexMethod:DeviceModelManager.kt$DeviceModelManager$private fun getMarketingName(): String?</ID>
+    <ID>CyclomaticComplexMethod:DeviceModelManager.kt$DeviceModelManager$private fun isAmazonKindleDevice(): Boolean</ID>
+    <ID>CyclomaticComplexMethod:DeviceParser.kt$DeviceParser$fun findDeviceSpecInJson( fullJson: String, deviceModel: DeviceModel ): DeviceSpec?</ID>
+    <ID>CyclomaticComplexMethod:DeviceSpecManager.kt$DeviceSpecManager$private fun findGsmarenaSpec( fullJson: String, deviceModel: DeviceModel ): DeviceSpec?</ID>
+    <ID>CyclomaticComplexMethod:EmuExt.kt$EmulatorDetector$private fun checkBuildProps(): EmulatorKind?</ID>
+    <ID>CyclomaticComplexMethod:EmuExt.kt$internal fun smartCapitalize(text: String?): String</ID>
+    <ID>CyclomaticComplexMethod:EncryptedSharedPreferences.kt$EncryptedSharedPreferences$@Throws(SecurityException::class) private fun getDecryptedObject(key: String?): Any?</ID>
+    <ID>CyclomaticComplexMethod:FastBlur.kt$FastBlur$private fun stack(sentBitmap: Bitmap, r: Int, canReuseInBitmap: Boolean): Bitmap</ID>
+    <ID>CyclomaticComplexMethod:HookDetection.kt$HookDetection$private fun checkMemoryMappings(): Boolean</ID>
+    <ID>CyclomaticComplexMethod:LocaleHelper.kt$LocaleHelper$private fun guessDefaultRegionFallback(lang: String): String</ID>
+    <ID>CyclomaticComplexMethod:LocalizationHelper.kt$LocalizationHelper$private fun fetchFromWebWithRedirects( url: String, redirectCount: Int, retryCount: Int = 0 ): String?</ID>
+    <ID>CyclomaticComplexMethod:LocalizationHelper.kt$LocalizationHelper$private fun translate(text: String, fromLang: Locale, toLang: Locale): String</ID>
+    <ID>CyclomaticComplexMethod:MultiWindowSupport.kt$MultiWindowSupport$fun hasNavBar(): Boolean</ID>
+    <ID>CyclomaticComplexMethod:PermissionUtils.kt$PermissionUtils$fun getPermissions(targetPermissionsKes: List&lt;String?&gt;): HashMap&lt;String, String&gt;</ID>
+    <ID>CyclomaticComplexMethod:ReflectionTools.kt$ReflectionTools$fun callGetOrCreateInstance(target: Class&lt;*&gt;): Any?</ID>
+    <ID>CyclomaticComplexMethod:ReflectionTools.kt$ReflectionTools$fun checkBooleanMethodForSignature( clazz: Class&lt;*&gt;, managerObject: Any?, vararg keywords: String? ): Boolean</ID>
+    <ID>CyclomaticComplexMethod:StatusBarTools.kt$StatusBarTools$private fun getNightMode(context: Context): Int</ID>
+    <ID>CyclomaticComplexMethod:SystemMonetDialogs.kt$SystemMonetDialogs.DarkLightThemes$private fun getNightMode(context: Context): Int</ID>
+    <ID>EmptyCatchBlock:DeviceSpecManager.kt$DeviceSpecManager${ }</ID>
+    <ID>EmptyCatchBlock:HookDetection.kt$HookDetection${ }</ID>
+    <ID>EmptyCatchBlock:LastUpdatedTs.kt$LastUpdatedTs${ }</ID>
+    <ID>EmptyCatchBlock:SettingsHelper.kt$SettingsHelper${ }</ID>
+    <ID>EmptyCatchBlock:SystemStringsHelper.kt$SystemStringsHelper${ }</ID>
+    <ID>EmptyFunctionBlock:AndroidContext.kt$AndroidContext.&lt;no name provided&gt;${ }</ID>
+    <ID>EmptyFunctionBlock:AndroidContext.kt$AndroidContext.&lt;no name provided&gt;${}</ID>
+    <ID>ForbiddenComment:BlurUtil.kt$BlurUtil$// TODO: handle boundsInWindow</ID>
+    <ID>ForbiddenComment:ReflectionTools.kt$ReflectionTools$//FIXME:</ID>
+    <ID>ForbiddenComment:StatusBarTools.kt$StatusBarTools$/* //FIXME: Display cutout support * https://github.com/QMUI/QMUI_Android/tree/2689199dda27a6c9163fe54faa05e2d3a8447416/qmui/src/main/java/com/qmuiteam/qmui/util * https://open.oppomobile.com/wiki/doc#id=10159 * https://mini.eastday.com/bdmip/180411011257629.html * https://com-it.tech/archives/55704 * https://blog.csdn.net/sinat_29874521/article/details/80224447 * https://developer.huawei.com/consumer/en/devservice/doc/30210 * * http://thoughtnerds.com/2018/03/10-things-you-should-know-about-android-p/ * */</ID>
+    <ID>ForbiddenPublicDataClass:DeviceInfo.kt$DeviceInfo</ID>
+    <ID>ForbiddenPublicDataClass:DeviceModelManager.kt$DeviceModel</ID>
+    <ID>ForbiddenPublicDataClass:DeviceParser.kt$Device</ID>
+    <ID>ForbiddenPublicDataClass:DeviceParser.kt$Specs</ID>
+    <ID>ForbiddenPublicDataClass:FastBlurConfig.kt$FastBlurConfig</ID>
+    <ID>ForbiddenPublicDataClass:GsmarenaSpecRecord.kt$DeviceSpec</ID>
+    <ID>ForbiddenPublicDataClass:LinearSrgb.kt$LinearSrgb : Color</ID>
+    <ID>ForbiddenPublicDataClass:SharedPreferenceProvider.kt$SharedPreferenceProvider$EncryptionConfig</ID>
+    <ID>ForbiddenPublicDataClass:Srgb.kt$Srgb : Color</ID>
+    <ID>FunctionParameterNaming:BlurUtil.kt$BlurUtil.ReflectiveMethod$`object`: Any?</ID>
+    <ID>ImplicitDefaultLocale:BlurUtil.kt$BlurUtil$String.format( "PixelCopy failed: %d", result )</ID>
+    <ID>InstanceOfCheckForException:BlurUtil.kt$BlurUtil$e is CancellationException</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:A11yDetection.kt$A11yDetection$A11ySettingsObserver : ContentObserver</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BarType.kt$BarType</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BlurUtil.kt$BlurUtil$OnPublishListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BlurUtil.kt$BlurUtil$OnScreenshotListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BlurUtil.kt$BlurUtil$ReflectionException : Exception</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BlurUtil.kt$BlurUtil$ReflectiveMethod&lt;T&gt;</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:Color.kt$Color</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:Connection.kt$Connection$NetworkListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:ConnectionStateListener.kt$ConnectionStateListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:ContextOnApi30.kt$fun Context.animationsDisabled(): Boolean</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:ContextOnApi30.kt$fun Context.getFixedContext( type: Int = WindowManager.LayoutParams.TYPE_APPLICATION ): Context</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DarkLightThemeDetection.kt$fun getIsOsDarkTheme(context: Context): DarkThemeCheckResult</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DarkThemeCheckResult.kt$DarkThemeCheckResult</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfo.kt$DeviceInfo</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfo.kt$PotentialNonAnsiiContent</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfo.kt$fun DeviceInfo.hasBiometricSensors(): Boolean</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfo.kt$fun DeviceInfo.hasFaceID(): Boolean</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfo.kt$fun DeviceInfo.hasFingerprint(): Boolean</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfo.kt$fun DeviceInfo.hasHeartrateID(): Boolean</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfo.kt$fun DeviceInfo.hasIrisScanner(): Boolean</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfo.kt$fun DeviceInfo.hasPalmID(): Boolean</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfo.kt$fun DeviceInfo.hasUnderDisplayFingerprint(): Boolean</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfo.kt$fun DeviceInfo.hasVoiceID(): Boolean</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceInfoManager.kt$DeviceInfoManager$OnDeviceInfoListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceModelManager.kt$DeviceModel</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceParser.kt$Device</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceParser.kt$Specs</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceParser.kt$fun extractJsonFragment(text: String, startIndex: Int, openChar: Char, closeChar: Char): String?</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceParser.kt$fun fixModelAsAnsi(ua: String): String</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:EmuExt.kt$EmulatorKind</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:EmuExt.kt$fun capitalize(text: String?): String</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:EncryptedSharedPreferences.kt$EncryptedSharedPreferences : SharedPreferences</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:ExecutorHelper.kt$ExecutorHelper$HandlerExecutor : Executor</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:Extension+Color.kt$fun MonetColor.toArgb(): Int</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FastBlurConfig.kt$FastBlurConfig</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:GsmarenaSpecRecord.kt$DeviceSpec</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:GsmarenaSpecRecord.kt$fun manualParseDeviceSpec(json: String): DeviceSpec</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HookDetection.kt$HookDetection$HookDetectionListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:InstallerID.kt$InstallerID</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:LinearSrgb.kt$LinearSrgb : Color</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:LocaleHelper.kt$fun Locale.languageCompat(): String</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:MultiWindowSupport.kt$MultiWindowSupport</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:NotificationPermissionsFragment.kt$NotificationPermissionsFragment : Fragment</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:PermissionRequestController.kt$PermissionRequestController$PermissionGrantedCallback</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:PermissionRequestController.kt$PermissionRequestController$PermissionType</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:PermissionUiLabels.kt$fun resolveApplicationTitle(fragment: Fragment): CharSequence</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:PermissionUtils.kt$PermissionUtils</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:PermissionsFragment.kt$PermissionsFragment : Fragment</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SharedPreferenceProvider.kt$SharedPreferenceProvider$EncryptionConfig</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SingleLiveEvent.kt$SingleLiveEvent&lt;T&gt; : MediatorLiveData</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SingleLiveEvent.kt$fun SingleLiveEvent&lt;Unit&gt;.post()</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:Srgb.kt$Srgb : Color</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SystemColorScheme.kt$SystemColorScheme</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TranslateResult.kt$TranslateResult</ID>
+    <ID>LongMethod:DeviceSettings.kt$DeviceSettings$private fun printSetting()</ID>
+    <ID>LongMethod:FastBlur.kt$FastBlur$private fun stack(sentBitmap: Bitmap, r: Int, canReuseInBitmap: Boolean): Bitmap</ID>
+    <ID>LongMethod:LocalizationHelper.kt$LocalizationHelper$private fun fetchFromWebWithRedirects( url: String, redirectCount: Int, retryCount: Int = 0 ): String?</ID>
+    <ID>LongMethod:ReflectionTools.kt$ReflectionTools$fun callGetOrCreateInstance(target: Class&lt;*&gt;): Any?</ID>
+    <ID>LongParameterList:ColorUtil.kt$ColorUtil$( r1: Double, g1: Double, b1: Double, r2: Double, g2: Double, b2: Double )</ID>
+    <ID>LongParameterList:PermissionRequestController.kt$PermissionRequestController$( activity: Activity?, type: PermissionType, channelId: String?, permissionGrantedCallback: PermissionGrantedCallback, okResult: Runnable, failResult: Runnable )</ID>
+    <ID>LongParameterList:SystemMonetDialogs.kt$SystemMonetDialogs$( context: Activity, title: CharSequence? = null, message: CharSequence? = null, positiveText: CharSequence? = null, negativeText: CharSequence? = null, neutralText: CharSequence? = null, cancelable: Boolean = true, view: View? = null, onPositive: ((DialogInterface) -&gt; Unit)? = null, onNegative: ((DialogInterface) -&gt; Unit)? = null, onNeutral: ((DialogInterface) -&gt; Unit)? = null, onCancel: (() -&gt; Unit)? = null, onDismiss: (() -&gt; Unit)? = null, )</ID>
+    <ID>LoopWithTooManyJumpStatements:ConnectionStateListener.kt$ConnectionStateListener$for</ID>
+    <ID>LoopWithTooManyJumpStatements:PermissionUtils.kt$PermissionUtils$for</ID>
+    <ID>LoopWithTooManyJumpStatements:StatusBarIconsDarkMode.kt$StatusBarIconsDarkMode$for</ID>
+    <ID>MagicNumber:AndroidContext.kt$AndroidContext$448</ID>
+    <ID>MagicNumber:AppOpCompatConstants.kt$AppOpCompatConstants$23</ID>
+    <ID>MagicNumber:BlurUtil.kt$BlurUtil$26</ID>
+    <ID>MagicNumber:BlurUtil.kt$BlurUtil$29</ID>
+    <ID>MagicNumber:BlurUtil.kt$BlurUtil.HardwareRendererCompat$30</ID>
+    <ID>MagicNumber:ColorUtil.kt$ColorUtil$0.5</ID>
+    <ID>MagicNumber:ColorUtil.kt$ColorUtil$255.0f</ID>
+    <ID>MagicNumber:ConnectionStateListener.kt$ConnectionStateListener.&lt;no name provided&gt;$1_000</ID>
+    <ID>MagicNumber:ConnectionStateListener.kt$ConnectionStateListener.&lt;no name provided&gt;$3_000</ID>
+    <ID>MagicNumber:DarkLightThemeDetection.kt$3</ID>
+    <ID>MagicNumber:DarkLightThemeDetection.kt$6</ID>
+    <ID>MagicNumber:DataProviders.kt$DataProviders$1024</ID>
+    <ID>MagicNumber:DataProviders.kt$DataProviders$50</ID>
+    <ID>MagicNumber:DataProviders.kt$DataProviders$512</ID>
+    <ID>MagicNumber:DeviceModelManager.kt$DeviceModelManager$4</ID>
+    <ID>MagicNumber:EmuExt.kt$5</ID>
+    <ID>MagicNumber:EmuExt.kt$EmulatorDetector$5</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$EncryptedSharedPreferences$32</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$EncryptedSharedPreferences.EncryptedType.BOOLEAN$5</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$EncryptedSharedPreferences.EncryptedType.Companion$3</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$EncryptedSharedPreferences.EncryptedType.Companion$4</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$EncryptedSharedPreferences.EncryptedType.Companion$5</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$EncryptedSharedPreferences.EncryptedType.FLOAT$4</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$EncryptedSharedPreferences.EncryptedType.LONG$3</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$KeyNameCipher$12</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$KeyNameCipher$128</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$KeyNameCipher$16</ID>
+    <ID>MagicNumber:EncryptedSharedPreferences.kt$KeyNameCipher$3</ID>
+    <ID>MagicNumber:FastBlur.kt$FastBlur$0x0000ff</ID>
+    <ID>MagicNumber:FastBlur.kt$FastBlur$0x00ff00</ID>
+    <ID>MagicNumber:FastBlur.kt$FastBlur$0xff0000</ID>
+    <ID>MagicNumber:FastBlur.kt$FastBlur$16</ID>
+    <ID>MagicNumber:FastBlur.kt$FastBlur$256</ID>
+    <ID>MagicNumber:FastBlur.kt$FastBlur$3</ID>
+    <ID>MagicNumber:FastBlur.kt$FastBlur$8</ID>
+    <ID>MagicNumber:GsmarenaSpecRecord.kt$128</ID>
+    <ID>MagicNumber:GsmarenaSpecRecord.kt$16</ID>
+    <ID>MagicNumber:HelperTool.kt$HelperTool$100</ID>
+    <ID>MagicNumber:HexUtils.kt$HexUtils$0xFF</ID>
+    <ID>MagicNumber:HexUtils.kt$HexUtils$16</ID>
+    <ID>MagicNumber:HexUtils.kt$HexUtils$4</ID>
+    <ID>MagicNumber:HookDetection.kt$HookDetection$27042</ID>
+    <ID>MagicNumber:HookDetection.kt$HookDetection$27047</ID>
+    <ID>MagicNumber:LinearSrgb.kt$LinearSrgb.Companion$0.0031308</ID>
+    <ID>MagicNumber:LinearSrgb.kt$LinearSrgb.Companion$0.04045</ID>
+    <ID>MagicNumber:LinearSrgb.kt$LinearSrgb.Companion$0.055</ID>
+    <ID>MagicNumber:LinearSrgb.kt$LinearSrgb.Companion$1.055</ID>
+    <ID>MagicNumber:LinearSrgb.kt$LinearSrgb.Companion$12.92</ID>
+    <ID>MagicNumber:LinearSrgb.kt$LinearSrgb.Companion$2.4</ID>
+    <ID>MagicNumber:LocaleHelper.kt$LocaleHelper$3</ID>
+    <ID>MagicNumber:LocaleHelper.kt$LocaleHelper$4</ID>
+    <ID>MagicNumber:LocaleHelper.kt$LocaleHelper.UpdateLocaleDelegate$17</ID>
+    <ID>MagicNumber:LocaleHelper.kt$LocaleHelper.UpdateLocaleDelegate$32</ID>
+    <ID>MagicNumber:LocalizationHelper.kt$LocalizationHelper$1000</ID>
+    <ID>MagicNumber:LocalizationHelper.kt$LocalizationHelper$1024</ID>
+    <ID>MagicNumber:LocalizationHelper.kt$LocalizationHelper$17</ID>
+    <ID>MagicNumber:LocalizationHelper.kt$LocalizationHelper$3</ID>
+    <ID>MagicNumber:LocalizationHelper.kt$LocalizationHelper$307</ID>
+    <ID>MagicNumber:LocalizationHelper.kt$LocalizationHelper$308</ID>
+    <ID>MagicNumber:LocalizationHelper.kt$LocalizationHelper$32</ID>
+    <ID>MagicNumber:LocalizationHelper.kt$LocalizationHelper$429</ID>
+    <ID>MagicNumber:LocalizationHelper.kt$LocalizationHelper$5</ID>
+    <ID>MagicNumber:LocalizationHelper.kt$LocalizationHelper$5000</ID>
+    <ID>MagicNumber:MultiWindowSupport.kt$MultiWindowSupport$1.25</ID>
+    <ID>MagicNumber:MultiWindowSupport.kt$MultiWindowSupport$30</ID>
+    <ID>MagicNumber:MultiWindowSupport.kt$MultiWindowSupport.Companion$17</ID>
+    <ID>MagicNumber:MultiWindowSupport.kt$MultiWindowSupport.Companion$600</ID>
+    <ID>MagicNumber:NotificationPermissionsFragment.kt$6</ID>
+    <ID>MagicNumber:NotificationPermissionsFragment.kt$NotificationPermissionsFragment.Companion$100</ID>
+    <ID>MagicNumber:NotificationPermissionsFragment.kt$NotificationPermissionsFragment.Companion$10000</ID>
+    <ID>MagicNumber:NotificationPermissionsFragment.kt$NotificationPermissionsFragment.Companion$90000</ID>
+    <ID>MagicNumber:NotificationPermissionsFragment.kt$NotificationPermissionsFragment.Companion.&lt;no name provided&gt;.&lt;no name provided&gt;$250</ID>
+    <ID>MagicNumber:PermissionUtils.kt$PermissionUtils$19</ID>
+    <ID>MagicNumber:PermissionUtils.kt$PermissionUtils$21</ID>
+    <ID>MagicNumber:PermissionUtils.kt$PermissionUtils$23</ID>
+    <ID>MagicNumber:PermissionUtils.kt$PermissionUtils$250</ID>
+    <ID>MagicNumber:PermissionUtils.kt$PermissionUtils$26</ID>
+    <ID>MagicNumber:PermissionUtils.kt$PermissionUtils$28</ID>
+    <ID>MagicNumber:PermissionsFragment.kt$PermissionsFragment.Companion.&lt;no name provided&gt;.&lt;no name provided&gt;$250</ID>
+    <ID>MagicNumber:SharedPreferenceProvider.kt$SharedPreferenceProvider.EncryptionConfig.Companion$0x1077EFECC0B24D02L</ID>
+    <ID>MagicNumber:SharedPreferenceProvider.kt$SharedPreferenceProvider.EncryptionConfig.Companion$0x781AB030AF78D30EL</ID>
+    <ID>MagicNumber:SharedPreferenceProvider.kt$SharedPreferenceProvider.EncryptionConfig.Companion$128</ID>
+    <ID>MagicNumber:SharedPreferenceProvider.kt$SharedPreferenceProvider.EncryptionConfig.Companion$32</ID>
+    <ID>MagicNumber:Srgb.kt$Srgb$255.0</ID>
+    <ID>MagicNumber:Srgb.kt$Srgb.Companion$255</ID>
+    <ID>MagicNumber:Srgb.kt$Srgb.Companion$255.0</ID>
+    <ID>MagicNumber:StatusBarIconsDarkMode.kt$StatusBarIconsDarkMode$0x00000010</ID>
+    <ID>MagicNumber:StatusBarIconsDarkMode.kt$StatusBarIconsDarkMode$0x00002000</ID>
+    <ID>MagicNumber:StatusBarTools.kt$StatusBarTools$0.1</ID>
+    <ID>MagicNumber:StatusBarTools.kt$StatusBarTools$0.25</ID>
+    <ID>MagicNumber:StatusBarTools.kt$StatusBarTools$100</ID>
+    <ID>MagicNumber:StatusBarTools.kt$StatusBarTools$21</ID>
+    <ID>MagicNumber:StatusBarTools.kt$StatusBarTools.&lt;no name provided&gt;$100</ID>
+    <ID>MagicNumber:SystemColorScheme.kt$SystemColorScheme$31</ID>
+    <ID>MatchingDeclarationName:GsmarenaSpecRecord.kt$DeviceSpec</ID>
+    <ID>MatchingDeclarationName:PermissionRequestPolicy.kt$PermissionRequestDecision</ID>
+    <ID>MaxLineLength:A11yDetection.kt$A11yDetection$ComponentName.unflattenFromString("${service.resolveInfo.serviceInfo.packageName}/${service.resolveInfo.serviceInfo.name}")</ID>
+    <ID>MaxLineLength:A11yDetection.kt$A11yDetection$if</ID>
+    <ID>MaxLineLength:DeviceInfo.kt$PotentialNonAnsiiContent$message = "This field may contain Unicode characters. If you are using it for User-Agent or HTTP headers, it is better to use 'modelAsAnsi' or clean it of non-ASCII characters to avoid IllegalArgumentException/Crash"</ID>
+    <ID>MaxLineLength:DeviceInfo.kt$if</ID>
+    <ID>MaxLineLength:DeviceInfoManager.kt$DeviceInfoManager$DataProviders.checkCache("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")</ID>
+    <ID>MaxLineLength:DeviceInfoManager.kt$DeviceInfoManager$DataProviders.checkCache("https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true")</ID>
+    <ID>MaxLineLength:DeviceModelManager.kt$DeviceModelManager$DataProviders.getOrCacheJSON("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")</ID>
+    <ID>MaxLineLength:DeviceSpecManager.kt$DeviceSpecManager$"https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true"</ID>
+    <ID>MaxLineLength:DeviceSpecManager.kt$DeviceSpecManager$LogCat.log("getDeviceSpecCompat findDeviceSpecInJson lookup time ${System.currentTimeMillis() - ts}ms")</ID>
+    <ID>MaxLineLength:HelperTool.kt$HelperTool$/* * Note: * Next code very similar to "general" BUT used BitFlags not compatible with "general" API and leads to unexpected bugs. * - For example flags from MIUI set window in non-touchable mode :) * * See also: * https://www.programcreek.com/java-api-examples/?code=Lingzh0ng/BrotherWeather/BrotherWeather-master/weather/src/main/java/com/wearapay/brotherweather/common/utils/StatusBarTextColorUtils.java * https://dev.mi.com/doc/p=4769/ * */</ID>
+    <ID>MaxLineLength:HookDetection.kt$HookDetection$if (className == "de.robv.android.xposed.XposedBridge" &amp;&amp; methodName == "handleHookedMethod") return true</ID>
+    <ID>MaxLineLength:LocalizationHelper.kt$LocalizationHelper$"Mozilla/5.0 (Macintosh; Intel Mac OS X 14_7_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"</ID>
+    <ID>MaxLineLength:LocalizationHelper.kt$LocalizationHelper$"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"</ID>
+    <ID>MaxLineLength:LocalizationHelper.kt$LocalizationHelper$LogCat.log("LocalizationHelper: 429 Too Many Requests. Retrying in $delay ms... (Attempt ${retryCount + 1})")</ID>
+    <ID>MaxLineLength:MultiWindowSupport.kt$MultiWindowSupport$//Unlike Android N method, this one support also non-Nougat+ multiwindow modes (like Samsung/LG/Huawei/etc solutions)</ID>
+    <ID>MaxLineLength:MultiWindowSupport.kt$MultiWindowSupport$//general way - for OEM devices (Samsung, LG, Huawei) and/or in case API24 not fired for some reasons</ID>
+    <ID>MaxLineLength:MultiWindowSupport.kt$MultiWindowSupport$if</ID>
+    <ID>MaxLineLength:MultiWindowSupport.kt$MultiWindowSupport$if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_height" else "navigation_bar_height_landscape"</ID>
+    <ID>MaxLineLength:MultiWindowSupport.kt$MultiWindowSupport$if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_height" else "navigation_bar_width"</ID>
+    <ID>MaxLineLength:MultiWindowSupport.kt$MultiWindowSupport$if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_height_landscape" else "navigation_bar_height"</ID>
+    <ID>MaxLineLength:MultiWindowSupport.kt$MultiWindowSupport$if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_width" else "navigation_bar_height"</ID>
+    <ID>MaxLineLength:MultiWindowSupport.kt$MultiWindowSupport$}</ID>
+    <ID>MaxLineLength:MultiWindowSupport.kt$MultiWindowSupport.Companion$resources.getBoolean(R.bool.biometric_compat_is_tablet) || resources.configuration.screenWidthDp &gt;= 600</ID>
+    <ID>MaxLineLength:NotificationPermissionsFragment.kt$NotificationPermissionsFragment$startForResultForPermissions.launch(listOf("android.permission.POST_NOTIFICATIONS").toTypedArray())</ID>
+    <ID>MaxLineLength:NotificationPermissionsFragment.kt$NotificationPermissionsFragment.Companion$context.packageManager.hasSystemFeature("com.samsung.feature.samsung_experience_mobile_lite")</ID>
+    <ID>MaxLineLength:PermissionUtils.kt$PermissionUtils$"PermissionUtils.NotificationGroup " + notificationChannel.group + ":"</ID>
+    <ID>MaxLineLength:PermissionUtils.kt$PermissionUtils$(info.protection and PermissionInfo.PROTECTION_FLAG_APPOP) != 0 || (info.protectionLevel and PermissionInfo.PROTECTION_FLAG_APPOP) != 0</ID>
+    <ID>MaxLineLength:PermissionUtils.kt$PermissionUtils$if (info.protection == PermissionInfo.PROTECTION_NORMAL || info.protectionLevel == PermissionInfo.PROTECTION_NORMAL) continue</ID>
+    <ID>MaxLineLength:PermissionUtils.kt$PermissionUtils$logError("PermissionUtils.getPermissions: " + manifestPermission + " " + (if (VERSION.SDK_INT &gt;= 28) info.protection else info.protectionLevel))</ID>
+    <ID>MaxLineLength:PermissionUtils.kt$PermissionUtils$logError("PermissionUtils.isPermissionGranted - appOp permission - $permission - $permissionToOp - mode=$mode - allowed=$appOpAllowed")</ID>
+    <ID>MaxLineLength:PermissionUtils.kt$PermissionUtils$logError("PermissionUtils.isPermissionGranted - dangerous permission - $permission - $permissionToOp - $granted")</ID>
+    <ID>MaxLineLength:PermissionUtils.kt$PermissionUtils$notificationManager.getNotificationChannelGroup(notificationChannel.group)?.isBlocked == true || notificationChannel.importance != NotificationManager.IMPORTANCE_NONE</ID>
+    <ID>MaxLineLength:PermissionsFragment.kt$PermissionsFragment.Companion$TextUtilsCompat.getLayoutDirectionFromLocale(AndroidContext.systemLocale) == ViewCompat.LAYOUT_DIRECTION_LTR</ID>
+    <ID>MaxLineLength:ReflectionTools.kt$ReflectionTools$//Deal with Caused by: java.lang.SecurityException: Permission Denial: get/set setting for user asks to run as user -2 but is calling from user 0; this requires android.permission.INTERACT_ACROSS_USERS_FULL</ID>
+    <ID>MaxLineLength:ReflectionTools.kt$ReflectionTools$Boolean::class.javaPrimitiveType?.name == m.returnType.name || Boolean::class.java.name == m.returnType.name</ID>
+    <ID>MaxLineLength:ReflectionTools.kt$ReflectionTools$Int::class.javaPrimitiveType?.name == m.returnType.name || Int::class.java.name == m.returnType.name</ID>
+    <ID>MaxLineLength:WindowHelper.kt$WindowHelper$/* For some reasons exception happens on foldable devices if we use androidx.window.WindowManager(activity) Fatal Exception: java.lang.AbstractMethodError: abstract method "void androidx.window.sidecar.SidecarInterface$SidecarCallback.onDeviceStateChanged(androidx.window.sidecar.SidecarDeviceState)" at androidx.window.sidecar.SamsungSidecarImpl.updateDevicePosture(SamsungSidecarImpl.java:86) at androidx.window.sidecar.SamsungSidecarImpl.access$000(SamsungSidecarImpl.java:43) at androidx.window.sidecar.SamsungSidecarImpl$SamsungSidecarCallbackListener.onDeviceStateChanged(SamsungSidecarImpl.java:62) at android.view.WindowManagerGlobal.lambda$handleDeviceStateChangedEventIfNeedLocked$2$WindowManagerGlobal(WindowManagerGlobal.java:1150) at android.view.-$$Lambda$WindowManagerGlobal$jfB49vh4VxV3HJn7Ersg7WbshIM.run(-.java:2) at android.os.Handler.handleCallback(Handler.java:938) at android.os.Handler.dispatchMessage(Handler.java:99) at android.os.Looper.loop(Looper.java:246) at android.app.ActivityThread.main(ActivityThread.java:8506) at java.lang.reflect.Method.invoke(Method.java) at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:602) at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1130) And Fatal Exception: java.lang.AbstractMethodError: abstract method "void androidx.window.sidecar.SidecarInterface$SidecarCallback.onDeviceStateChanged(androidx.window.sidecar.SidecarDeviceState)" at androidx.window.sidecar.MicrosoftSurfaceSidecar.updateDeviceState(MicrosoftSurfaceSidecar.java:159) at androidx.window.sidecar.MicrosoftSurfaceSidecar$1.deviceStateChanged(MicrosoftSurfaceSidecar.java:192) at android.vendor.screenlayout.service.IWindowExtensionCallbackInterface$Stub.onTransact(IWindowExtensionCallbackInterface.java:94) at android.os.Binder.execTransactInternal(Binder.java:1021) at android.os.Binder.execTransact(Binder.java:994) * */</ID>
+    <ID>MayBeConst:DeviceInfoManager.kt$DeviceInfoManager$val PREF_NAME = "BiometricCompat_DeviceInfo"</ID>
+    <ID>MayBeConst:LocaleHelper.kt$LocaleHelper$private val TAG = "LocaleHelper"</ID>
+    <ID>NestedBlockDepth:A11yDetection.kt$A11yDetection$private fun isAccessibilityTool(context: Context, componentName: ComponentName): Boolean</ID>
+    <ID>NestedBlockDepth:A11yDetection.kt$A11yDetection.AssetsChecker$fun isAccessibilityTool(resId: Int): Boolean</ID>
+    <ID>NestedBlockDepth:ConnectionStateListener.kt$ConnectionStateListener$@Suppress("DEPRECATION") private fun detectConnectionState(): ConnectionState</ID>
+    <ID>NestedBlockDepth:DeviceSettings.kt$DeviceSettings$private fun printSetting()</ID>
+    <ID>NestedBlockDepth:DeviceSpecManager.kt$DeviceSpecManager$private fun findGsmarenaSpec( fullJson: String, deviceModel: DeviceModel ): DeviceSpec?</ID>
+    <ID>NestedBlockDepth:GsmarenaSpecRecord.kt$fun manualParseDeviceSpec(json: String): DeviceSpec</ID>
+    <ID>NestedBlockDepth:HookDetection.kt$HookDetection$private fun checkMemoryMappings(): Boolean</ID>
+    <ID>NestedBlockDepth:LastUpdatedTs.kt$LastUpdatedTs$private fun scanRecursivly(fileOrDirectory: File?, apks: MutableSet&lt;String&gt;)</ID>
+    <ID>NestedBlockDepth:LocaleHelper.kt$LocaleHelper$private fun isPerAppLocalesEnabled(context: Context): Boolean</ID>
+    <ID>NestedBlockDepth:LocalizationHelper.kt$LocalizationHelper$fun prefetch(context: Context, vararg formatArgs: Any?)</ID>
+    <ID>NestedBlockDepth:LocalizationHelper.kt$LocalizationHelper$private fun fetchFromWebWithRedirects( url: String, redirectCount: Int, retryCount: Int = 0 ): String?</ID>
+    <ID>NestedBlockDepth:LocalizationHelper.kt$LocalizationHelper$private fun translate(text: String, fromLang: Locale, toLang: Locale): String</ID>
+    <ID>NestedBlockDepth:LocalizationHelper.kt$LocalizationHelper$private fun translateUseFallbackApi(t: String, fromLang: Locale, toLang: Locale): String?</ID>
+    <ID>NestedBlockDepth:LocalizationHelper.kt$LocalizationHelper$private fun translateUseGoogleApi(t: String, fromLang: Locale, toLang: Locale): String?</ID>
+    <ID>NestedBlockDepth:PermissionUtils.kt$PermissionUtils$fun getPermissions(targetPermissionsKes: List&lt;String?&gt;): HashMap&lt;String, String&gt;</ID>
+    <ID>NestedBlockDepth:PermissionUtils.kt$PermissionUtils$private fun isPermissionExistsInTheSystem(permission: String): Boolean</ID>
+    <ID>NestedBlockDepth:PermissionsFragment.kt$PermissionsFragment.Companion$fun extractDescriptionsForPermissions(keys: List&lt;String&gt;): String?</ID>
+    <ID>NestedBlockDepth:ReflectionTools.kt$ReflectionTools$fun callGetOrCreateInstance(target: Class&lt;*&gt;): Any?</ID>
+    <ID>NestedBlockDepth:ReflectionTools.kt$ReflectionTools$fun checkBooleanMethodForSignature( clazz: Class&lt;*&gt;, managerObject: Any?, vararg keywords: String? ): Boolean</ID>
+    <ID>NestedBlockDepth:ReflectionTools.kt$ReflectionTools$fun checkIntMethodForSignature(clazz: Class&lt;*&gt;, managerObject: Any?, startWith: String): Int</ID>
+    <ID>NestedBlockDepth:SharedPreferenceProvider.kt$SharedPreferenceProvider.EncryptionConfig.Companion$private fun getDeviceIdEncryptionConfig(): EncryptionConfig?</ID>
+    <ID>NestedBlockDepth:StatusBarTools.kt$StatusBarTools$private fun getNightMode(context: Context): Int</ID>
+    <ID>NestedBlockDepth:SystemMonetDialogs.kt$SystemMonetDialogs.DarkLightThemes$private fun getNightMode(context: Context): Int</ID>
+    <ID>NewLineAtEndOfFile:AppOpCompatConstants.kt$dev.skomlach.common.permissions.AppOpCompatConstants.kt</ID>
+    <ID>NewLineAtEndOfFile:BarType.kt$dev.skomlach.common.statusbar.BarType.kt</ID>
+    <ID>NewLineAtEndOfFile:BroadcastTools.kt$dev.skomlach.common.misc.BroadcastTools.kt</ID>
+    <ID>NewLineAtEndOfFile:ColorUtil.kt$dev.skomlach.common.statusbar.ColorUtil.kt</ID>
+    <ID>NewLineAtEndOfFile:ContextOnApi30.kt$dev.skomlach.common.contextprovider.ContextOnApi30.kt</ID>
+    <ID>NewLineAtEndOfFile:DarkThemeCheckResult.kt$dev.skomlach.common.themes.DarkThemeCheckResult.kt</ID>
+    <ID>NewLineAtEndOfFile:DeviceInfoManager.kt$dev.skomlach.common.device.DeviceInfoManager.kt</ID>
+    <ID>NewLineAtEndOfFile:DeviceModelManager.kt$dev.skomlach.common.device.DeviceModelManager.kt</ID>
+    <ID>NewLineAtEndOfFile:DeviceParser.kt$dev.skomlach.common.device.DeviceParser.kt</ID>
+    <ID>NewLineAtEndOfFile:DeviceSettings.kt$dev.skomlach.common.misc.DeviceSettings.kt</ID>
+    <ID>NewLineAtEndOfFile:DeviceSpecManager.kt$dev.skomlach.common.device.DeviceSpecManager.kt</ID>
+    <ID>NewLineAtEndOfFile:Extension+Color.kt$dev.skomlach.common.themes.monet.Extension+Color.kt</ID>
+    <ID>NewLineAtEndOfFile:FastBlur.kt$dev.skomlach.common.blur.FastBlur.kt</ID>
+    <ID>NewLineAtEndOfFile:FastBlurConfig.kt$dev.skomlach.common.blur.FastBlurConfig.kt</ID>
+    <ID>NewLineAtEndOfFile:GsmarenaSpecRecord.kt$dev.skomlach.common.device.GsmarenaSpecRecord.kt</ID>
+    <ID>NewLineAtEndOfFile:HexUtils.kt$dev.skomlach.common.misc.HexUtils.kt</ID>
+    <ID>NewLineAtEndOfFile:InstallerID.kt$dev.skomlach.common.protection.InstallerID.kt</ID>
+    <ID>NewLineAtEndOfFile:LastUpdatedTs.kt$dev.skomlach.common.misc.LastUpdatedTs.kt</ID>
+    <ID>NewLineAtEndOfFile:LogCat.kt$dev.skomlach.common.logging.LogCat.kt</ID>
+    <ID>NewLineAtEndOfFile:MultiWindowSupport.kt$dev.skomlach.common.multiwindow.MultiWindowSupport.kt</ID>
+    <ID>NewLineAtEndOfFile:NotificationPermissionsHelper.kt$dev.skomlach.common.permissionui.notification.NotificationPermissionsHelper.kt</ID>
+    <ID>NewLineAtEndOfFile:PermissionRequestController.kt$dev.skomlach.common.permissionui.notification.PermissionRequestController.kt</ID>
+    <ID>NewLineAtEndOfFile:PermissionUtils.kt$dev.skomlach.common.permissions.PermissionUtils.kt</ID>
+    <ID>NewLineAtEndOfFile:ReflectionTools.kt$dev.skomlach.common.misc.ReflectionTools.kt</ID>
+    <ID>NewLineAtEndOfFile:ReflectionUtils.kt$dev.skomlach.common.misc.ReflectionUtils.kt</ID>
+    <ID>NewLineAtEndOfFile:SettingsHelper.kt$dev.skomlach.common.misc.SettingsHelper.kt</ID>
+    <ID>NewLineAtEndOfFile:SingleLiveEvent.kt$dev.skomlach.common.misc.SingleLiveEvent.kt</ID>
+    <ID>NewLineAtEndOfFile:StatusBarTools.kt$dev.skomlach.common.statusbar.StatusBarTools.kt</ID>
+    <ID>NewLineAtEndOfFile:SystemMonetDialogs.kt$dev.skomlach.common.themes.SystemMonetDialogs.kt</ID>
+    <ID>NewLineAtEndOfFile:SystemPropertiesProxy.kt$dev.skomlach.common.misc.SystemPropertiesProxy.kt</ID>
+    <ID>NewLineAtEndOfFile:TranslateResult.kt$dev.skomlach.common.translate.TranslateResult.kt</ID>
+    <ID>NewLineAtEndOfFile:WindowHelper.kt$androidx.window.WindowHelper.kt</ID>
+    <ID>ReturnCount:A11yDetection.kt$A11yDetection$fun hasWhiteListedService(cnt: Context): Boolean</ID>
+    <ID>ReturnCount:A11yDetection.kt$A11yDetection$fun shouldWeTrustA11y(cnt: Context): Boolean</ID>
+    <ID>ReturnCount:A11yDetection.kt$A11yDetection$private fun isAccessibilityTool(context: Context, componentName: ComponentName): Boolean</ID>
+    <ID>ReturnCount:A11yDetection.kt$A11yDetection.AssetsChecker$fun isAccessibilityTool(resId: Int): Boolean</ID>
+    <ID>ReturnCount:BlurUtil.kt$BlurUtil$private fun fallbackViewCapture(view: View): Bitmap?</ID>
+    <ID>ReturnCount:DarkLightThemeDetection.kt$fun getIsOsDarkTheme(context: Context): DarkThemeCheckResult</ID>
+    <ID>ReturnCount:DataProviders.kt$DataProviders$fun getOrCacheJSON(url: String): String?</ID>
+    <ID>ReturnCount:DeviceModelManager.kt$DeviceModelManager$@WorkerThread private fun getNameFromAssets(): String?</ID>
+    <ID>ReturnCount:DeviceModelManager.kt$DeviceModelManager$private fun buildEmulatorMarketingName(): String?</ID>
+    <ID>ReturnCount:DeviceModelManager.kt$DeviceModelManager$private fun getMarketingName(): String?</ID>
+    <ID>ReturnCount:DeviceParser.kt$DeviceParser$fun findDeviceSpecInJson( fullJson: String, deviceModel: DeviceModel ): DeviceSpec?</ID>
+    <ID>ReturnCount:DeviceSpecManager.kt$DeviceSpecManager$fun getDeviceSpecCompat(deviceModel: DeviceModel): DeviceSpec?</ID>
+    <ID>ReturnCount:DeviceSpecManager.kt$DeviceSpecManager$private fun findGsmarenaSpec( fullJson: String, deviceModel: DeviceModel ): DeviceSpec?</ID>
+    <ID>ReturnCount:EmuExt.kt$EmulatorDetector$fun detect(): EmulatorKind?</ID>
+    <ID>ReturnCount:EmuExt.kt$EmulatorDetector$private fun checkSystemProps(): EmulatorKind?</ID>
+    <ID>ReturnCount:EmuExt.kt$EmulatorDetector$private fun identifySpecificEmulator(): EmulatorKind?</ID>
+    <ID>ReturnCount:EmuExt.kt$NetworkEmulatorDetector$private fun identifySpecificByMac(mac: ByteArray?): EmulatorKind</ID>
+    <ID>ReturnCount:EncryptedSharedPreferences.kt$EncryptedSharedPreferences$@Throws(SecurityException::class) private fun getDecryptedObject(key: String?): Any?</ID>
+    <ID>ReturnCount:EncryptedSharedPreferences.kt$EncryptedSharedPreferences$private fun encrypt(cleartext: ByteArray?): String?</ID>
+    <ID>ReturnCount:EncryptedSharedPreferences.kt$KeyNameCipher$fun decryptName(encName: String): String?</ID>
+    <ID>ReturnCount:HelperTool.kt$HelperTool$fun isVisible( //@Nullable final View rootView, view: View?, minPercentageViewed: Int ): Boolean</ID>
+    <ID>ReturnCount:HelperTool.kt$HelperTool$fun setFlameFlag(window: Window, set: Boolean, bits: Int): Boolean</ID>
+    <ID>ReturnCount:HelperTool.kt$HelperTool$fun setMIUIFlag(window: Window, set: Boolean, bits: Int): Boolean</ID>
+    <ID>ReturnCount:HookDetection.kt$HookDetection$private fun checkStackForHooks(): Boolean</ID>
+    <ID>ReturnCount:HookDetection.kt$HookDetection$private fun hooksDetection(): Boolean</ID>
+    <ID>ReturnCount:LocaleHelper.kt$LocaleHelper$private fun Context.getAppLocale(): Locale</ID>
+    <ID>ReturnCount:LocaleHelper.kt$LocaleHelper$private fun addLikelySubtagsCompatNoReflection(base: Locale): Locale</ID>
+    <ID>ReturnCount:LocaleHelper.kt$LocaleHelper$private fun isPerAppLocalesEnabled(context: Context): Boolean</ID>
+    <ID>ReturnCount:LocalizationHelper.kt$LocalizationHelper$private fun fetchFromWebWithRedirects( url: String, redirectCount: Int, retryCount: Int = 0 ): String?</ID>
+    <ID>ReturnCount:LocalizationHelper.kt$LocalizationHelper$private fun getTranslatedStringFromResources( currentContext: Context, id: Int, vararg formatArgs: Any? ): String?</ID>
+    <ID>ReturnCount:LocalizationHelper.kt$LocalizationHelper$private fun getTranslatedStringFromResources(currentContext: Context, id: Int): String?</ID>
+    <ID>ReturnCount:LocalizationHelper.kt$LocalizationHelper$private fun read( fromLang: Locale, toLang: Locale, text: String ): String?</ID>
+    <ID>ReturnCount:LocalizationHelper.kt$LocalizationHelper$private fun store( fromLang: Locale, toLang: Locale, text: String, result: String )</ID>
+    <ID>ReturnCount:LocalizationHelper.kt$LocalizationHelper$private fun translate(text: String, fromLang: Locale, toLang: Locale): String</ID>
+    <ID>ReturnCount:LocalizationHelper.kt$LocalizationHelper$private fun translateUseFallbackApi(t: String, fromLang: Locale, toLang: Locale): String?</ID>
+    <ID>ReturnCount:LocalizationHelper.kt$LocalizationHelper$private fun translateUseGoogleApi(t: String, fromLang: Locale, toLang: Locale): String?</ID>
+    <ID>ReturnCount:MultiWindowSupport.kt$MultiWindowSupport$fun isWindowOnScreenBottom(): Boolean</ID>
+    <ID>ReturnCount:MultiWindowSupport.kt$MultiWindowSupport$private fun Context.realScreenSizePx(): Point</ID>
+    <ID>ReturnCount:MultiWindowSupport.kt$MultiWindowSupport$private fun checkIsInMultiWindow(): Boolean</ID>
+    <ID>ReturnCount:NotificationPermissionsFragment.kt$NotificationPermissionsFragment.Companion$fun getOneUiVersion(): String</ID>
+    <ID>ReturnCount:NotificationPermissionsFragment.kt$private fun parseOneUiVersion(version: String): Pair&lt;Int, Int&gt;?</ID>
+    <ID>ReturnCount:PermissionUtils.kt$PermissionUtils$fun isAllowedNotificationsChannelPermission(channelId: String?): Boolean</ID>
+    <ID>ReturnCount:PermissionUtils.kt$PermissionUtils$fun verifyPermissions(vararg grantResults: Int): Boolean</ID>
+    <ID>ReturnCount:PermissionUtils.kt$PermissionUtils$private fun isPermissionGranted(permission: String): Boolean</ID>
+    <ID>ReturnCount:PreferenceKeyResolver.kt$PreferenceKeyResolver$fun resolve( plainKey: String, directLookup: () -&gt; String?, scanStoredKeys: () -&gt; Sequence&lt;String&gt;, decryptStoredKey: (String) -&gt; String? ): String?</ID>
+    <ID>ReturnCount:ReflectionTools.kt$ReflectionTools$fun callGetOrCreateInstance(target: Class&lt;*&gt;): Any?</ID>
+    <ID>ReturnCount:SettingsHelper.kt$SettingsHelper$fun getString( context: Context, secureSettingKey: String?, defaultValue: String? = null ): String?</ID>
+    <ID>ReturnCount:SettingsHelper.kt$SettingsHelper$private fun getFloatInternal( context: Context, secureSettingKey: String?, defaultValue: Float ): Float</ID>
+    <ID>ReturnCount:SettingsHelper.kt$SettingsHelper$private fun getIntInternal( context: Context, secureSettingKey: String?, defaultValue: Int ): Int</ID>
+    <ID>ReturnCount:SettingsHelper.kt$SettingsHelper$private fun getLongInternal( context: Context, secureSettingKey: String?, defaultValue: Long ): Long</ID>
+    <ID>ReturnCount:SharedPreferenceProvider.kt$SharedPreferenceProvider.EncryptionConfig.Companion$private fun getKeyStoreBackedEncryptionConfig(): EncryptionConfig?</ID>
+    <ID>ReturnCount:StatusBarIconsDarkMode.kt$StatusBarIconsDarkMode$fun setDarkIconMode(window: Window, lightBars: Boolean, type: BarType): Boolean</ID>
+    <ID>ReturnCount:StatusBarTools.kt$StatusBarTools$private fun getNightMode(context: Context): Int</ID>
+    <ID>ReturnCount:SystemMonetDialogs.kt$SystemMonetDialogs.DarkLightThemes$private fun getNightMode(context: Context): Int</ID>
+    <ID>SpreadOperator:BlurUtil.kt$BlurUtil.ReflectiveMethod$(methodName, *paramTypes)</ID>
+    <ID>SpreadOperator:InstallerID.kt$InstallerID$(*split)</ID>
+    <ID>SpreadOperator:LastUpdatedTs.kt$LastUpdatedTs$(*it)</ID>
+    <ID>SpreadOperator:PermissionUtils.kt$PermissionUtils$(*permissions.toTypedArray())</ID>
+    <ID>SpreadOperator:ReflectionTools.kt$ReflectionTools$( *target.interfaces )</ID>
+    <ID>SpreadOperator:Utils.kt$Utils$( AndroidContext.appContext, *stringIds )</ID>
+    <ID>SwallowedException:A11yDetection.kt$A11yDetection$e: Exception</ID>
+    <ID>SwallowedException:AndroidContext.kt$AndroidContext$e: Throwable</ID>
+    <ID>SwallowedException:BlurUtil.kt$BlurUtil$e: IllegalArgumentException</ID>
+    <ID>SwallowedException:BlurUtil.kt$BlurUtil.HardwareRendererCompat$e: ReflectionException</ID>
+    <ID>SwallowedException:DarkLightThemeDetection.kt$e: Throwable</ID>
+    <ID>SwallowedException:DeviceInfoManager.kt$DeviceInfoManager$e: Exception</ID>
+    <ID>SwallowedException:DeviceSpecManager.kt$DeviceSpecManager$e: Exception</ID>
+    <ID>SwallowedException:EncryptedSharedPreferences.kt$EncryptedSharedPreferences$e: GeneralSecurityException</ID>
+    <ID>SwallowedException:EncryptedSharedPreferences.kt$EncryptedSharedPreferences$e: UnsupportedEncodingException</ID>
+    <ID>SwallowedException:FastBlur.kt$FastBlur$e: RSRuntimeException</ID>
+    <ID>SwallowedException:HookDetection.kt$HookDetection$e: ClassNotFoundException</ID>
+    <ID>SwallowedException:HookDetection.kt$HookDetection$e: Exception</ID>
+    <ID>SwallowedException:InstallerID.kt$InstallerID.Companion$e: Throwable</ID>
+    <ID>SwallowedException:LastUpdatedTs.kt$LastUpdatedTs$e: Throwable</ID>
+    <ID>SwallowedException:MultiWindowSupport.kt$MultiWindowSupport$e: Throwable</ID>
+    <ID>SwallowedException:PermissionUtils.kt$PermissionUtils$e: Exception</ID>
+    <ID>SwallowedException:PermissionsFragment.kt$PermissionsFragment$e: Throwable</ID>
+    <ID>SwallowedException:ReflectionTools.kt$ReflectionTools$e: Throwable</ID>
+    <ID>SwallowedException:SettingsHelper.kt$SettingsHelper$e: Throwable</ID>
+    <ID>SwallowedException:SharedPreferenceProvider.kt$SharedPreferenceProvider.EncryptionConfig.Companion$e: Throwable</ID>
+    <ID>SwallowedException:StatusBarIconsDarkMode.kt$StatusBarIconsDarkMode$e: Exception</ID>
+    <ID>SwallowedException:StatusBarIconsDarkMode.kt$StatusBarIconsDarkMode$e: Throwable</ID>
+    <ID>SwallowedException:SystemPropertiesProxy.kt$SystemPropertiesProxy$e: Exception</ID>
+    <ID>SwallowedException:SystemStringsHelper.kt$SystemStringsHelper$e: Throwable</ID>
+    <ID>ThrowsCount:BlurUtil.kt$BlurUtil.ReflectiveMethod$@Throws(ReflectionException::class) operator fun invoke(`object`: Any?, vararg paramValues: Any?): T</ID>
+    <ID>ThrowsCount:DataProviders.kt$DataProviders$internal fun extractFileNameFromUrl(urlStr: String?): String</ID>
+    <ID>ThrowsCount:SystemStringsHelper.kt$SystemStringsHelper$@SuppressLint("PrivateApi") fun getFromSystem(context: Context, alias: String): String?</ID>
+    <ID>TooGenericExceptionCaught:A11yDetection.kt$A11yDetection$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:A11yDetection.kt$A11yDetection$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:A11yDetection.kt$A11yDetection.AssetsChecker$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AndroidContext.kt$AndroidContext$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AndroidContext.kt$AndroidContext$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BlurUtil.kt$BlurUtil$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:DarkLightThemeDetection.kt$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:DataProviders.kt$DataProviders$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:DataProviders.kt$DataProviders$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:DeviceInfoManager.kt$DeviceInfoManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:DeviceInfoManager.kt$DeviceInfoManager$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:DeviceModelManager.kt$DeviceModelManager$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:DeviceParser.kt$DeviceParser$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:DeviceSettings.kt$DeviceSettings$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:DeviceSpecManager.kt$DeviceSpecManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ExecutorHelper.kt$ExecutorHelper$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HookDetection.kt$HookDetection$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:HookDetection.kt$HookDetection$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:InstallerID.kt$InstallerID.Companion$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:LastUpdatedTs.kt$LastUpdatedTs$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:LocalizationHelper.kt$LocalizationHelper$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:MultiWindowSupport.kt$MultiWindowSupport$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NotificationPermissionsFragment.kt$NotificationPermissionsFragment$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NotificationPermissionsFragment.kt$NotificationPermissionsFragment$throwable: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NotificationPermissionsFragment.kt$NotificationPermissionsFragment.Companion$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NotificationPermissionsFragment.kt$NotificationPermissionsFragment.Companion.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PermissionUtils.kt$PermissionUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PermissionUtils.kt$PermissionUtils$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PermissionUtils.kt$PermissionUtils$ex: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PermissionUtils.kt$PermissionUtils$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PermissionsFragment.kt$PermissionsFragment$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PermissionsFragment.kt$PermissionsFragment.Companion.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ReflectionTools.kt$ReflectionTools$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ReflectionUtils.kt$ReflectionUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SettingsHelper.kt$SettingsHelper$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SharedPreferenceProvider.kt$SharedPreferenceProvider.EncryptionConfig.Companion$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:StatusBarIconsDarkMode.kt$StatusBarIconsDarkMode$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:StatusBarIconsDarkMode.kt$StatusBarIconsDarkMode$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:StatusBarTools.kt$StatusBarTools$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SystemMonetDialogs.kt$SystemMonetDialogs$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SystemPropertiesProxy.kt$SystemPropertiesProxy$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SystemStringsHelper.kt$SystemStringsHelper$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:Utils.kt$Utils$e: Throwable</ID>
+    <ID>TooGenericExceptionThrown:AndroidContext.kt$AndroidContext$throw RuntimeException("Application is NULL")</ID>
+    <ID>TooGenericExceptionThrown:HookDetection.kt$HookDetection$throw Exception("Stack Trace Hook Detection")</ID>
+    <ID>TooGenericExceptionThrown:PermissionUtils.kt$PermissionUtils$throw RuntimeException("Provide at least one permission string")</ID>
+    <ID>TooGenericExceptionThrown:SystemStringsHelper.kt$SystemStringsHelper$throw RuntimeException("String is empty")</ID>
+    <ID>TooGenericExceptionThrown:SystemStringsHelper.kt$SystemStringsHelper$throw RuntimeException("String value must be different from key")</ID>
+    <ID>TooManyFunctions:BlurUtil.kt$BlurUtil</ID>
+    <ID>TooManyFunctions:ConnectionStateListener.kt$ConnectionStateListener</ID>
+    <ID>TooManyFunctions:EncryptedSharedPreferences.kt$EncryptedSharedPreferences : SharedPreferences</ID>
+    <ID>TooManyFunctions:EncryptedSharedPreferences.kt$EncryptedSharedPreferences$Editor : Editor</ID>
+    <ID>TooManyFunctions:LocaleHelper.kt$LocaleHelper</ID>
+    <ID>TooManyFunctions:LocalizationHelper.kt$LocalizationHelper</ID>
+    <ID>TooManyFunctions:PermissionUtils.kt$PermissionUtils</ID>
+    <ID>TooManyFunctions:PermissionsFragment.kt$PermissionsFragment : Fragment</ID>
+    <ID>UnusedParameter:PermissionUtils.kt$PermissionUtils$context: Context</ID>
+    <ID>UnusedParameter:SystemPropertiesProxy.kt$SystemPropertiesProxy$context: Context</ID>
+    <ID>UnusedPrivateProperty:LocaleHelper.kt$LocaleHelper$private val TAG = "LocaleHelper"</ID>
+    <ID>UseCheckOrError:DataProviders.kt$DataProviders$throw IllegalStateException("Failed to rename ${tmpFile.absolutePath} to ${file.absolutePath}")</ID>
+    <ID>UseCheckOrError:SharedPreferenceProvider.kt$SharedPreferenceProvider.EncryptionConfig.Companion$throw IllegalStateException( "Android Keystore is unavailable; protected preferences fallback is disabled" )</ID>
+    <ID>UseRequire:DataProviders.kt$DataProviders$throw IllegalArgumentException("Could not extract file name from URL: $urlStr")</ID>
+    <ID>UseRequire:DataProviders.kt$DataProviders$throw IllegalArgumentException("Could not extract path from URL: $urlStr")</ID>
+    <ID>UseRequire:DataProviders.kt$DataProviders$throw IllegalArgumentException("Unexpected JSON root")</ID>
+  </CurrentIssues>
+</SmellBaseline>

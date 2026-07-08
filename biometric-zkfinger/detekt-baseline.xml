@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LargeClass:ZkFingerUnlockManager.kt$ZkFingerUnlockManager : AbstractSoftwareBiometricManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:ZkFingerConfig.kt$ZkFingerConfig</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:ZkFingerPromptFactory.kt$ZkFingerPromptFactory : SoftwareBiometricPromptFactory</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:ZkFingerProvider.kt$ZkFingerProvider : SoftwareBiometricProvider</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:ZkFingerUnlockManager.kt$ZkFingerUnlockManager : AbstractSoftwareBiometricManager</ID>
+    <ID>LongMethod:ZkFingerUnlockManager.kt$ZkFingerUnlockManager$private fun processEnrollmentTemplate(template: ByteArray)</ID>
+    <ID>LongParameterList:ZkFingerUnlockManager.kt$ZkFingerUnlockManager$( targetDevice: UsbDevice, deadline: Long, completed: AtomicBoolean, onGranted: (UsbDevice) -&gt; Unit, onDenied: () -&gt; Unit, onDetached: () -&gt; Unit )</ID>
+    <ID>MagicNumber:ZkFingerConfig.kt$ZkFingerConfig$0x0120</ID>
+    <ID>MagicNumber:ZkFingerConfig.kt$ZkFingerConfig$0x0124</ID>
+    <ID>MagicNumber:ZkFingerSessionSupport.kt$17</ID>
+    <ID>MagicNumber:ZkFingerSessionSupport.kt$31</ID>
+    <ID>MagicNumber:ZkFingerUnlockManager.kt$ZkFingerUnlockManager$3</ID>
+    <ID>MagicNumber:ZkFingerUnlockManager.kt$ZkFingerUnlockManager$999</ID>
+    <ID>ReturnCount:ZkFingerUnlockManager.kt$ZkFingerUnlockManager$override fun authenticate( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
+    <ID>ReturnCount:ZkFingerUnlockManager.kt$ZkFingerUnlockManager$private fun openWhenUsbPermissionReady()</ID>
+    <ID>ReturnCount:ZkFingerUnlockManager.kt$ZkFingerUnlockManager$private fun processEnrollmentTemplate(template: ByteArray)</ID>
+    <ID>TooGenericExceptionCaught:ZkFingerUnlockManager.kt$ZkFingerUnlockManager$e: Throwable</ID>
+    <ID>TooManyFunctions:ZkFingerUnlockManager.kt$ZkFingerUnlockManager : AbstractSoftwareBiometricManager</ID>
+  </CurrentIssues>
+</SmellBaseline>

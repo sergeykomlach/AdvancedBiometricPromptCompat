@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ForbiddenPublicDataClass:BiometricAuthRequestData.kt$BiometricAuthRequestData</ID>
+    <ID>InvalidPackageDeclaration:AuthPromptCanceledException.kt$package dev.skomlach.biometric.compat.auth</ID>
+    <ID>InvalidPackageDeclaration:AuthPromptErrorException.kt$package dev.skomlach.biometric.compat.auth</ID>
+    <ID>InvalidPackageDeclaration:BiometricAuthExtensions.kt$package dev.skomlach.biometric.compat.auth</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AuthPromptCanceledException.kt$AuthPromptCanceledException : Exception</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AuthPromptErrorException.kt$AuthPromptErrorException : Exception</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AuthPromptHost.kt$AuthPromptHost</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthExtensions.kt$fun Fragment.startBiometricAuthentication( biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(), callback: BiometricPromptCompat.AuthenticationCallback ): BiometricPromptCompat</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthExtensions.kt$fun Fragment.startSetupBiometricAuthentication( biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(), callback: BiometricPromptCompat.AuthenticationCallback ): BiometricPromptCompat</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthExtensions.kt$fun FragmentActivity.startBiometricAuthentication( biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(), callback: BiometricPromptCompat.AuthenticationCallback ): BiometricPromptCompat</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthExtensions.kt$fun FragmentActivity.startSetupBiometricAuthentication( biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(), callback: BiometricPromptCompat.AuthenticationCallback ): BiometricPromptCompat</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthExtensions.kt$suspend fun Fragment.authenticateWithBiometrics( biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(), ): Set&lt;AuthenticationResult&gt;</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthExtensions.kt$suspend fun Fragment.setupWithBiometrics( biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(), ): Set&lt;AuthenticationResult&gt;</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthExtensions.kt$suspend fun FragmentActivity.authenticateWithBiometrics( biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(), ): Set&lt;AuthenticationResult&gt;</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthExtensions.kt$suspend fun FragmentActivity.setupWithBiometrics( biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(), ): Set&lt;AuthenticationResult&gt;</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthRequestData.kt$BiometricAuthRequestData</ID>
+    <ID>NewLineAtEndOfFile:AuthPromptHost.kt$dev.skomlach.biometric.compat.auth.helpers.AuthPromptHost.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricAuthRequestData.kt$dev.skomlach.biometric.compat.auth.helpers.BiometricAuthRequestData.kt</ID>
+    <ID>TooManyFunctions:BiometricAuthExtensions.kt$dev.skomlach.biometric.compat.auth.BiometricAuthExtensions.kt</ID>
+  </CurrentIssues>
+</SmellBaseline>

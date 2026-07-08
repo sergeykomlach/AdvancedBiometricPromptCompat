@@ -1,0 +1,154 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$!antiSpoofCheckedThisFace &amp;&amp; matched &amp;&amp; antiSpoofStageForMatch == AntiSpoofingStage.AFTER_CANDIDATE &amp;&amp; isSpoofDetected(livenessCrop)</ID>
+    <ID>CyclomaticComplexMethod:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$override fun authenticate( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
+    <ID>CyclomaticComplexMethod:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$private fun processFaces(bitmap: Bitmap, faces: List&lt;Face&gt;)</ID>
+    <ID>CyclomaticComplexMethod:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$private fun processSingleFace( bitmap: Bitmap, face: Face ): FaceAttemptResult</ID>
+    <ID>CyclomaticComplexMethod:TfLiteBackendHelper.kt$TfLiteBackendHelper$fun resolveEffectiveConfig(base: TensorFlowFaceConfig): EffectiveTensorFlowFaceConfig</ID>
+    <ID>EmptyCatchBlock:FakeAssetProvider.kt$FakeAssetProvider${ }</ID>
+    <ID>EmptyFunctionBlock:RealCameraProvider.kt$RealCameraProvider.&lt;no name provided&gt;${}</ID>
+    <ID>FunctionNaming:ImageUtils.kt$ImageUtils$private fun YUV2RGB(y: Int, u: Int, v: Int): Int</ID>
+    <ID>ImplicitDefaultLocale:SimilarityClassifier.kt$SimilarityClassifier.Recognition$String.format("(Dist: %.4f) ", distance)</ID>
+    <ID>LargeClass:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager : AbstractSoftwareBiometricManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FaceAntiSpoofing.kt$FaceAntiSpoofing</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FakeAssetProvider.kt$FakeAssetProvider : IFrameProvider</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:IFrameProvider.kt$IFrameProvider</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:RealCameraProvider.kt$RealCameraProvider : IFrameProviderOnImageAvailableListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SimilarityClassifier.kt$SimilarityClassifier</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel : SimilarityClassifier</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TensorFlowFaceConfig.kt$AntiSpoofingMode</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TensorFlowFaceConfig.kt$DevicePerformanceClass</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TensorFlowFaceConfig.kt$TensorFlowBackendPreference</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TensorFlowFaceConfig.kt$TensorFlowFaceConfig</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TensorFlowFaceConfig.kt$TensorFlowPerformanceProfile</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TensorFlowFacePromptFactory.kt$TensorFlowFacePromptFactory : SoftwareBiometricPromptFactory</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager : AbstractSoftwareBiometricManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TensorFlowProvider.kt$TensorFlowProvider : SoftwareBiometricProvider</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TfLiteBackendHelper.kt$EffectiveTensorFlowFaceConfig</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TfLiteBackendHelper.kt$TfBackend</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TfLiteBackendHelper.kt$TfBackendRationality</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TfLiteBackendHelper.kt$TfBackendSelection</ID>
+    <ID>LongMethod:RealCameraProvider.kt$RealCameraProvider$@SuppressLint("MissingPermission") private fun startCamera()</ID>
+    <ID>LongMethod:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$override fun authenticate( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
+    <ID>LongMethod:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$override fun prepareForAuthentication(callback: PreparationCallback)</ID>
+    <ID>LongMethod:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$private fun processFaces(bitmap: Bitmap, faces: List&lt;Face&gt;)</ID>
+    <ID>LongMethod:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$private fun processSingleFace( bitmap: Bitmap, face: Face ): FaceAttemptResult</ID>
+    <ID>LongMethod:TfLiteBackendHelper.kt$TfLiteBackendHelper$fun resolveEffectiveConfig(base: TensorFlowFaceConfig): EffectiveTensorFlowFaceConfig</ID>
+    <ID>LongParameterList:ImageUtils.kt$ImageUtils$( srcWidth: Int, srcHeight: Int, dstWidth: Int, dstHeight: Int, applyRotation: Int, maintainAspectRatio: Boolean )</ID>
+    <ID>LongParameterList:ImageUtils.kt$ImageUtils$( yData: ByteArray, uData: ByteArray, vData: ByteArray, width: Int, height: Int, yRowStride: Int, uvRowStride: Int, uvPixelStride: Int, out: IntArray )</ID>
+    <ID>LongParameterList:TensorFlowFacePreflight.kt$( isHardwareDetected: Boolean, usesRealCameraProvider: Boolean, isCameraBlocked: Boolean, isCameraInUse: Boolean, isEnrolling: Boolean, hasEnrolledBiometric: Boolean )</ID>
+    <ID>MagicNumber:FaceAntiSpoofing.kt$FaceAntiSpoofing$0.114</ID>
+    <ID>MagicNumber:FaceAntiSpoofing.kt$FaceAntiSpoofing$0.299</ID>
+    <ID>MagicNumber:FaceAntiSpoofing.kt$FaceAntiSpoofing$0.587</ID>
+    <ID>MagicNumber:FaceAntiSpoofing.kt$FaceAntiSpoofing$0xFF</ID>
+    <ID>MagicNumber:FaceAntiSpoofing.kt$FaceAntiSpoofing$16</ID>
+    <ID>MagicNumber:FaceAntiSpoofing.kt$FaceAntiSpoofing$255.0f</ID>
+    <ID>MagicNumber:FaceAntiSpoofing.kt$FaceAntiSpoofing$3</ID>
+    <ID>MagicNumber:FaceAntiSpoofing.kt$FaceAntiSpoofing$4</ID>
+    <ID>MagicNumber:FaceAntiSpoofing.kt$FaceAntiSpoofing$7</ID>
+    <ID>MagicNumber:FaceAntiSpoofing.kt$FaceAntiSpoofing$8</ID>
+    <ID>MagicNumber:FakeAssetProvider.kt$FakeAssetProvider$500</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$0xff</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$0xff00</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$0xff0000</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$10</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$100</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$1192</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$128</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$16</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$1634</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$180</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$2066</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$400</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$6</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$833</ID>
+    <ID>MagicNumber:ImageUtils.kt$ImageUtils$90</ID>
+    <ID>MagicNumber:RealCameraProvider.kt$RealCameraProvider$1080</ID>
+    <ID>MagicNumber:RealCameraProvider.kt$RealCameraProvider$1280</ID>
+    <ID>MagicNumber:RealCameraProvider.kt$RealCameraProvider$1920</ID>
+    <ID>MagicNumber:RealCameraProvider.kt$RealCameraProvider$720</ID>
+    <ID>MagicNumber:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel$0xFF</ID>
+    <ID>MagicNumber:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel$100</ID>
+    <ID>MagicNumber:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel$16</ID>
+    <ID>MagicNumber:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel$8</ID>
+    <ID>MagicNumber:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel.Companion$3</ID>
+    <ID>MagicNumber:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel.Companion$4</ID>
+    <ID>MagicNumber:TensorFlowFaceConfig.kt$TensorFlowFaceConfig$0.5f</ID>
+    <ID>MagicNumber:TensorFlowFaceConfig.kt$TensorFlowFaceConfig$255</ID>
+    <ID>MagicNumber:TensorFlowFaceConfig.kt$TensorFlowFaceConfig$45f</ID>
+    <ID>MagicNumber:TensorFlowFaceConfig.kt$TensorFlowFaceConfig$64</ID>
+    <ID>MagicNumber:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$0.114</ID>
+    <ID>MagicNumber:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$0.299</ID>
+    <ID>MagicNumber:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$0.38f</ID>
+    <ID>MagicNumber:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$0.45f</ID>
+    <ID>MagicNumber:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$0.587</ID>
+    <ID>MagicNumber:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$0xFF</ID>
+    <ID>MagicNumber:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$16</ID>
+    <ID>MagicNumber:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$3</ID>
+    <ID>MagicNumber:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$4</ID>
+    <ID>MagicNumber:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$8</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$0.02f</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$0.15f</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$0.45f</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$0.5f</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$10</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$100</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$10f</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$120</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$16</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$20</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$200</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$20L</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$20f</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$28L</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$2_500L</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$3</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$35f</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$36L</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$38</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$4</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$4f</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$6</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$700</ID>
+    <ID>MagicNumber:TfLiteBackendHelper.kt$TfLiteBackendHelper$8</ID>
+    <ID>MatchingDeclarationName:TensorFlowFacePreflight.kt$TensorFlowFacePreflightIssue</ID>
+    <ID>MaxLineLength:RealCameraProvider.kt$RealCameraProvider$"Using camera preview size: ${previewSize.width}x${previewSize.height}, sensorOrientation=$sensorOrientation"</ID>
+    <ID>MaxLineLength:TfLiteBackendHelper.kt$TfLiteBackendHelper$Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.P &amp;&amp; cores &gt;= 8 &amp;&amp; gpuSupported -&gt; DevicePerformanceClass.HIGH_END</ID>
+    <ID>NestedBlockDepth:FaceAntiSpoofing.kt$FaceAntiSpoofing$fun laplacian(bitmap: Bitmap): Int</ID>
+    <ID>NestedBlockDepth:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel$@Throws(JSONException::class) private fun json2recognition(jsonObject: JSONObject): SimilarityClassifier.Recognition</ID>
+    <ID>NestedBlockDepth:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel$override fun delete(name: String?)</ID>
+    <ID>NestedBlockDepth:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$private fun processFaces(bitmap: Bitmap, faces: List&lt;Face&gt;)</ID>
+    <ID>NewLineAtEndOfFile:FakeAssetProvider.kt$dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.FakeAssetProvider.kt</ID>
+    <ID>NewLineAtEndOfFile:IFrameProvider.kt$dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.IFrameProvider.kt</ID>
+    <ID>NewLineAtEndOfFile:SimilarityClassifier.kt$dev.skomlach.biometric.compat.engine.internal.face.tensorflow.SimilarityClassifier.kt</ID>
+    <ID>ReturnCount:FaceAntiSpoofing.kt$FaceAntiSpoofing$fun antiSpoofing(bitmap: Bitmap): Float</ID>
+    <ID>ReturnCount:RealCameraProvider.kt$RealCameraProvider$@SuppressLint("MissingPermission") private fun startCamera()</ID>
+    <ID>ReturnCount:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel$override fun recognizeImage( bitmap: Bitmap, storeExtra: Boolean ): MutableList&lt;SimilarityClassifier.Recognition&gt;</ID>
+    <ID>ReturnCount:TensorFlowFacePreflight.kt$internal fun resolveTensorFlowFacePreflightIssue( isHardwareDetected: Boolean, usesRealCameraProvider: Boolean, isCameraBlocked: Boolean, isCameraInUse: Boolean, isEnrolling: Boolean, hasEnrolledBiometric: Boolean ): TensorFlowFacePreflightIssue?</ID>
+    <ID>ReturnCount:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$override fun authenticate( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
+    <ID>ReturnCount:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$private fun getAlignedFace( originalBitmap: Bitmap, face: Face, cropScale: Float = effectiveConfig.recognitionCropScale ): Bitmap?</ID>
+    <ID>ReturnCount:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$private fun isSpoofDetected(bitmap: Bitmap): Boolean</ID>
+    <ID>ReturnCount:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$private fun processFaces(bitmap: Bitmap, faces: List&lt;Face&gt;)</ID>
+    <ID>ReturnCount:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$private fun processSingleFace( bitmap: Bitmap, face: Face ): FaceAttemptResult</ID>
+    <ID>ReturnCount:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$private fun resolveAntiSpoofingStage( frameNumber: Int, consecutiveMatches: Int, candidateMatched: Boolean ): AntiSpoofingStage</ID>
+    <ID>SpreadOperator:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager.Companion$(AndroidContext.appContext, *stringIds)</ID>
+    <ID>SwallowedException:FakeAssetProvider.kt$FakeAssetProvider$e: Exception</ID>
+    <ID>SwallowedException:FakeAssetProvider.kt$FakeAssetProvider$e: IOException</ID>
+    <ID>ThrowsCount:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel$@Throws(JSONException::class) private fun json2recognition(jsonObject: JSONObject): SimilarityClassifier.Recognition</ID>
+    <ID>TooGenericExceptionCaught:FaceAntiSpoofing.kt$FaceAntiSpoofing$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FakeAssetProvider.kt$FakeAssetProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RealCameraProvider.kt$RealCameraProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RealCameraProvider.kt$RealCameraProvider.&lt;no name provided&gt;$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager.Companion$e: Throwable</ID>
+    <ID>TooManyFunctions:RealCameraProvider.kt$RealCameraProvider : IFrameProviderOnImageAvailableListener</ID>
+    <ID>TooManyFunctions:TFLiteObjectDetectionAPIModel.kt$TFLiteObjectDetectionAPIModel : SimilarityClassifier</ID>
+    <ID>TooManyFunctions:TensorFlowFaceUnlockManager.kt$TensorFlowFaceUnlockManager : AbstractSoftwareBiometricManager</ID>
+    <ID>TooManyFunctions:TfLiteBackendHelper.kt$TfLiteBackendHelper</ID>
+  </CurrentIssues>
+</SmellBaseline>

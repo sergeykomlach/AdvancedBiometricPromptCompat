@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">音声サンプル %1$d / %2$d を保存しました</string>
     <string name="biometriccompat_voice_status_recording">音声サンプルを録音しています...</string>
     <string name="biometriccompat_voice_status_checking">音声を確認しています</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">音声を登録するには、コードフレーズを2〜4秒間自然に話してください。%2$d回中%1$d回目です。</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">同じコードフレーズをもう一度話してください。%2$d回中%1$d回目です。</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">コードフレーズを自然に話してください。</string>
+    <string name="biometriccompat_voice_prompt_processing">音声サンプルを処理しています</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">音声が検出されませんでした。同じフレーズをもう一度話してください。</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">フレーズが短すぎました。同じフレーズをもう一度話してください。</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">フレーズの音量が小さすぎました。マイクに近づいてもう一度お試しください。</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">フレーズをもう少しはっきり話して、もう一度お試しください。</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">もう少し短いフレーズで、もう一度お試しください。</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">新しい自然なフレーズを話して、もう一度お試しください。</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">録音に失敗しました。同じフレーズをもう一度話してください。</string>
 </resources>
-
-
-
-
-
-

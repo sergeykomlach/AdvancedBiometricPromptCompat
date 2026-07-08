@@ -1,0 +1,1224 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$((success != null || error != null || allList.isEmpty()) &amp;&amp; builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) || (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL &amp;&amp; allList.isEmpty())</ID>
+    <ID>ComplexCondition:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$System.currentTimeMillis() - startTsImpl &lt;= AndroidContext.appContext.resources.getInteger( android.R.integer.config_longAnimTime ) &amp;&amp; (oldIsBiometricReadyForUsage != BiometricManagerCompat.isBiometricSensorPermanentlyLocked( builder.getBiometricAuthRequest() )) &amp;&amp; builder.isDeviceCredentialFallbackAllowed() &amp;&amp; !builder.forceDeviceCredential()</ID>
+    <ID>ComplexCondition:BiometricPromptGenericImpl.kt$BiometricPromptGenericImpl$((success != null || error != null || allList.isEmpty()) &amp;&amp; builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) || (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL &amp;&amp; allList.isEmpty())</ID>
+    <ID>ComplexCondition:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl$((success != null || error != null || allList.isEmpty()) &amp;&amp; builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) || (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL &amp;&amp; allList.isEmpty())</ID>
+    <ID>ComplexCondition:CheckBiometricUI.kt$CheckBiometricUI$zip.name.contains("layout", true) &amp;&amp; (zip.name.contains("biometric", true) || zip.name.contains("fingerprint") || zip.name.contains("face", true) || zip.name.contains("iris"))</ID>
+    <ID>ComplexCondition:DarkLightThemes.kt$DarkLightThemes$(now.equals(start) || now.equals(end)) || (now.isAfter(start) &amp;&amp; now.isBefore( end ))</ID>
+    <ID>ComplexCondition:DarkLightThemes.kt$DarkLightThemes$shouldInscreenCaseAffected &amp;&amp; DevicesWithKnownBugs.isOnePlus &amp;&amp; !Utils.isAtLeastT &amp;&amp; DevicesWithKnownBugs.hasUnderDisplayFingerprint</ID>
+    <ID>ComplexCondition:DeviceUnlockedReceiver.kt$DeviceUnlockedReceiver$action == Intent.ACTION_USER_PRESENT || (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.N &amp;&amp; ( action == Intent.ACTION_MANAGED_PROFILE_UNLOCKED || action == Intent.ACTION_USER_UNLOCKED ))</ID>
+    <ID>ComplexCondition:LockType.kt$LockType$s.contains("fingerprint") || s.contains("face") || s.contains("iris") || s.contains("biometric") || s.contains("palm") || s.contains("voice") || s.contains("heartrate") || s.contains("behavior")</ID>
+    <ID>ConstructorParameterNaming:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$dummy_reference: FragmentActivity</ID>
+    <ID>CyclomaticComplexMethod:API23FingerprintModule.kt$API23FingerprintModule.AuthCallback$@Deprecated("Deprecated in Java") override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:AbstractBiometricModule.kt$AbstractBiometricModule$private fun getIds(manager: Any): List&lt;String&gt;</ID>
+    <ID>CyclomaticComplexMethod:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule.FaceManagerAuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:BiometricClient.kt$BiometricClient.ConnectHandler$override fun handleMessage(msg: Message)</ID>
+    <ID>CyclomaticComplexMethod:BiometricManagerCompat.kt$BiometricManagerCompat$@SuppressLint("Range") private fun isBiometricAppEnabled(): Boolean</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$@SuppressLint("RestrictedApi") private fun showSystemUi(biometricPrompt: BiometricPrompt)</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$private fun checkAuthResult( authResult: AuthResult.AuthResultState, module: AuthenticationResult? )</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptCompat.kt$BiometricPromptCompat$private fun authenticateInternal( callback: AuthenticationCallback )</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$@RequiresApi(Build.VERSION_CODES.S) private fun findNearestColor(name: String, color: Int)</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$internal fun updateMonetColorsInternal(context: Context)</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptGenericImpl.kt$BiometricPromptGenericImpl$private fun checkAuthResult( module: AuthenticationResult?, authResult: AuthResult.AuthResultState )</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptHardware.kt$BiometricPromptHardware$private fun isBiometricEnrolledForType( type: BiometricType, result: BiometricModalityDetector.Result ): Boolean</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptHardware.kt$BiometricPromptHardware$private fun isHardwareAvailableForType( type: BiometricType, modalityResult: BiometricModalityDetector.Result ): Boolean</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricModalityDetector$private fun detectFace(context: Context): Result</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricModalityDetector$private fun detectIris(context: Context): Result</ID>
+    <ID>CyclomaticComplexMethod:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl$private fun checkAuthResult( module: AuthenticationResult?, authResult: AuthResult.AuthResultState )</ID>
+    <ID>CyclomaticComplexMethod:BiometricTitle.kt$BiometricTitle$fun getRelevantTitle(context: Context, types: Set&lt;BiometricType&gt;): String</ID>
+    <ID>CyclomaticComplexMethod:Core.kt$Core$@JvmOverloads fun authenticate( purpose: BiometricCryptographyPurpose?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? = RestartPredicatesImpl.defaultPredicate(), allowCryptoFallback: Boolean = false )</ID>
+    <ID>CyclomaticComplexMethod:DarkLightThemes.kt$DarkLightThemes$fun getNightMode(context: Context, shouldInscreenCaseAffected: Boolean = false): Int</ID>
+    <ID>CyclomaticComplexMethod:FacelockOldModule.kt$FacelockOldModule.ProxyListener$fun onAuthenticationError(errMsgId: Int, errString: CharSequence?): Void?</ID>
+    <ID>CyclomaticComplexMethod:Hihonor3DFaceUnlockModule.kt$Hihonor3DFaceUnlockModule.AuthCallback3DFace$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$fun getErrorCodeString(code: Int, errorCode: Int): String</ID>
+    <ID>CyclomaticComplexMethod:HihonorFaceUnlockModule.kt$HihonorFaceUnlockModule.AuthCallbackLegacy$override fun onAuthenticationError(errMsgId: Int)</ID>
+    <ID>CyclomaticComplexMethod:Huawei3DFaceUnlockModule.kt$Huawei3DFaceUnlockModule.AuthCallback3DFace$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$fun getErrorCodeString(code: Int, errorCode: Int): String</ID>
+    <ID>CyclomaticComplexMethod:HuaweiFaceUnlockModule.kt$HuaweiFaceUnlockModule.AuthCallbackLegacy$override fun onAuthenticationError(errMsgId: Int)</ID>
+    <ID>CyclomaticComplexMethod:LegacyBiometric.kt$LegacyBiometric$private fun initModule(method: BiometricMethod, initListener: LegacyBiometricInitListener)</ID>
+    <ID>CyclomaticComplexMethod:LockType.kt$LockType$private fun isBiometricEnabledInSettings(context: Context): Boolean</ID>
+    <ID>CyclomaticComplexMethod:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$override fun onBiometricEventCallback(module_id: Int, event: Int, arg1: Int, arg2: Int)</ID>
+    <ID>CyclomaticComplexMethod:MiuiCodeToString.kt$MiuiCodeToString$fun getAcquiredString(acquireInfo: Int, vendorCode: Int): String?</ID>
+    <ID>CyclomaticComplexMethod:MiuiCodeToString.kt$MiuiCodeToString$fun getErrorString(errMsg: Int, vendorCode: Int): String?</ID>
+    <ID>CyclomaticComplexMethod:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$private fun getMessageInfo(msgId: Int): String</ID>
+    <ID>CyclomaticComplexMethod:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:OppoFaceUnlockModule.kt$OppoFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>CyclomaticComplexMethod:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>CyclomaticComplexMethod:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:ScreenProtection.kt$ScreenProtection$private fun applyProtectionInWindowInternal( window: Window, disableWindow: Boolean = true, includeHostActivity: Boolean = false )</ID>
+    <ID>CyclomaticComplexMethod:SoftwareBiometricModule.kt$SoftwareBiometricModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:SoterFaceUnlockModule.kt$SoterFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>CyclomaticComplexMethod:SupportFingerprintModule.kt$SupportFingerprintModule.AuthCallbackCompat$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence)</ID>
+    <ID>CyclomaticComplexMethod:TruncatedTextFix.kt$TruncatedTextFix$@SuppressLint("InflateParams") fun recalculateTexts( builder: BiometricPromptCompat.Builder, onTruncateChecked: OnTruncateChecked )</ID>
+    <ID>CyclomaticComplexMethod:WindowForegroundBlurring.kt$WindowForegroundBlurring$private fun setIconState(type: BiometricType?, iconStates: IconStates?)</ID>
+    <ID>CyclomaticComplexMethod:WindowForegroundBlurring.kt$WindowForegroundBlurring$private fun updateBiometricIconsLayout()</ID>
+    <ID>EmptyCatchBlock:API23FingerprintModule.kt$API23FingerprintModule${ }</ID>
+    <ID>EmptyCatchBlock:AbstractBiometricModule.kt$AbstractBiometricModule${ }</ID>
+    <ID>EmptyCatchBlock:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:FingerprintIconView.kt$FingerprintIconView.Companion${ }</ID>
+    <ID>EmptyCatchBlock:Hihonor3DFaceUnlockModule.kt$Hihonor3DFaceUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:HihonorFaceUnlockModule.kt$HihonorFaceUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:HomeWatcher.kt$HomeWatcher.InnerReceiver${ }</ID>
+    <ID>EmptyCatchBlock:Huawei3DFaceUnlockModule.kt$Huawei3DFaceUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:HuaweiFaceUnlockModule.kt$HuaweiFaceUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl${ }</ID>
+    <ID>EmptyCatchBlock:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:OppoFaceUnlockModule.kt$OppoFaceUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:ScreenProtection.kt$ScreenProtection${ }</ID>
+    <ID>EmptyCatchBlock:SoterFaceUnlockModule.kt$SoterFaceUnlockModule${ }</ID>
+    <ID>EmptyCatchBlock:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule${ }</ID>
+    <ID>EmptyFunctionBlock:BiometricPromptCompat.kt$BiometricPromptCompat.Companion.&lt;no name provided&gt;${ }</ID>
+    <ID>EmptyFunctionBlock:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl.LegacyBiometricAuthenticationCallbackImpl${ }</ID>
+    <ID>EmptyFunctionBlock:FacelockOldModule.kt$FacelockOldModule.&lt;no name provided&gt;.&lt;no name provided&gt;${ }</ID>
+    <ID>EmptyFunctionBlock:HihonorFaceUnlockModule.kt$HihonorFaceUnlockModule.&lt;no name provided&gt;${ }</ID>
+    <ID>EmptyFunctionBlock:HuaweiFaceUnlockModule.kt$HuaweiFaceUnlockModule.&lt;no name provided&gt;${ }</ID>
+    <ID>EmptyFunctionBlock:IMiuiFaceManager.kt$IMiuiFaceManager.EnrollmentCallback${}</ID>
+    <ID>EmptyFunctionBlock:IMiuiFaceManager.kt$IMiuiFaceManager.LockoutResetCallback${}</ID>
+    <ID>EmptyFunctionBlock:IMiuiFaceManager.kt$IMiuiFaceManager.RemovalCallback${}</ID>
+    <ID>EmptyFunctionBlock:LegacyBiometric.kt$LegacyBiometric.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl${ }</ID>
+    <ID>EmptyFunctionBlock:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl${}</ID>
+    <ID>EmptyFunctionBlock:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule.&lt;no name provided&gt;${ }</ID>
+    <ID>EmptyFunctionBlock:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule.&lt;no name provided&gt;${ }</ID>
+    <ID>EmptyIfBlock:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl${ }</ID>
+    <ID>ForbiddenPublicDataClass:AbstractSoftwareBiometricManager.kt$AbstractSoftwareBiometricManager$LockoutPolicy</ID>
+    <ID>ForbiddenPublicDataClass:AuthResult.kt$AuthResult</ID>
+    <ID>ForbiddenPublicDataClass:AuthenticationResult.kt$AuthenticationResult</ID>
+    <ID>ForbiddenPublicDataClass:BiometricAuthRequest.kt$BiometricAuthRequest : Parcelable</ID>
+    <ID>ForbiddenPublicDataClass:BiometricAuthState.kt$BiometricAuthRouteState</ID>
+    <ID>ForbiddenPublicDataClass:BiometricAuthState.kt$BiometricAuthSnapshot</ID>
+    <ID>ForbiddenPublicDataClass:BiometricAuthState.kt$BiometricAuthState</ID>
+    <ID>ForbiddenPublicDataClass:BiometricCryptoObject.kt$BiometricCryptoObject</ID>
+    <ID>ForbiddenPublicDataClass:BiometricCryptographyPurpose.kt$BiometricCryptographyPurpose</ID>
+    <ID>ForbiddenPublicDataClass:BiometricCryptographyResult.kt$BiometricCryptographyResult</ID>
+    <ID>ForbiddenPublicDataClass:BiometricModule.kt$BiometricModuleState</ID>
+    <ID>ForbiddenPublicDataClass:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricLexicon$Config</ID>
+    <ID>ForbiddenPublicDataClass:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricLexicon$MatchResult</ID>
+    <ID>ForbiddenPublicDataClass:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricModalityDetector$Result</ID>
+    <ID>ForbiddenPublicDataClass:BiometricPromptHardware.kt$BiometricPromptHardware.PixelModelChecker$PixelModelInfo</ID>
+    <ID>ForbiddenPublicDataClass:SoftwareBiometricPromptHost.kt$SoftwareBiometricPromptHost</ID>
+    <ID>ForbiddenPublicDataClass:TruncatedTextFix.kt$TruncatedTextFix$TruncatedText</ID>
+    <ID>FunctionNaming:BiometricClient.kt$BiometricClient$@SuppressLint("WrongConstant") private fun handle_startService()</ID>
+    <ID>FunctionNaming:BiometricClient.kt$BiometricClient$private fun handle_getServiceVersion(module_id: Int)</ID>
+    <ID>FunctionNaming:BiometricClient.kt$BiometricClient$private fun handle_releaseService()</ID>
+    <ID>FunctionNaming:BiometricClient.kt$BiometricClient$private fun handle_sendService(msg: Message)</ID>
+    <ID>FunctionNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private fun IrToRgbMove(x: Float, offset: Float): Float</ID>
+    <ID>FunctionNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private fun IrToRgbRadio(x: Float): Float</ID>
+    <ID>FunctionNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private fun IrToRgbScale(x: Float, zoom: Float): Float</ID>
+    <ID>FunctionParameterNaming:BiometricClient.kt$BiometricClient$module_id: Int</ID>
+    <ID>FunctionParameterNaming:BiometricConnect.kt$BiometricConnect$Data: String?</ID>
+    <ID>FunctionParameterNaming:BiometricConnect.kt$BiometricConnect$group_id: Int</ID>
+    <ID>FunctionParameterNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$detect_zone: FloatArray?</ID>
+    <ID>InstanceOfCheckForException:FaceLockHelper.kt$FaceLockHelper.&lt;no name provided&gt;$e is InvocationTargetException</ID>
+    <ID>LargeClass:BiometricPromptCompat.kt$BiometricPromptCompat</ID>
+    <ID>LargeClass:BiometricPromptCompat.kt$BiometricPromptCompat$Builder</ID>
+    <ID>LargeClass:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl : IMiuiFaceManagerServiceCallback</ID>
+    <ID>LargeClass:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl : IMiuiFaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:API23FingerprintModule.kt$API23FingerprintModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AbstractBiometricModule.kt$AbstractBiometricModule : BiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AbstractHardware.kt$AbstractHardware : HardwareInfo</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AbstractSoftwareBiometricManager.kt$AbstractSoftwareBiometricManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:ActivityViewWatcher.kt$ActivityViewWatcher</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AppBackgroundDetector.kt$AppBackgroundDetector</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AppFlowCryptographyManagerInterface.kt$AppFlowCryptographyManagerInterface : CryptographyManagerInterface</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AuthCallback.kt$AuthCallback</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AuthResult.kt$AuthResult</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AuthenticationFailureReason.kt$AuthenticationFailureReason</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AuthenticationListener.kt$AuthenticationListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:AuthenticationResult.kt$AuthenticationResult</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BehaviorAuthMode.kt$BehaviorAuthMode</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricApi.kt$BiometricApi</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthException.kt$BiometricAuthException : Exception</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthRequest.kt$BiometricAuthRequest : Parcelable</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthState.kt$BiometricAuthRouteSource</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthState.kt$BiometricAuthRouteState</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthState.kt$BiometricAuthSnapshot</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricAuthState.kt$BiometricAuthState</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricClient.kt$BiometricClient</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricConfirmation.kt$BiometricConfirmation</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricCryptoException.kt$BiometricCryptoException : Exception</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricCryptoObject.kt$BiometricCryptoObject</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricCryptographyPurpose.kt$BiometricCryptographyPurpose</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricCryptographyResult.kt$BiometricCryptographyResult</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricInitProvider.kt$BiometricInitProvider : ContentProvider</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricMethod.kt$BiometricMethod</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricModule.kt$BiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricModule.kt$BiometricModuleState</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl : IBiometricPromptImplAuthCallback</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricPromptApi28Impl.kt$fun CharSequence.toColoredText(context: Context, colorRes: Int): CharSequence</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricPromptCompat.kt$BiometricPromptCompat</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog : DialogFragment</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricPromptCompatDialogImpl.kt$BiometricPromptCompatDialogImpl</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricPromptGenericImpl.kt$BiometricPromptGenericImpl : IBiometricPromptImplAuthCallback</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricPromptHardware.kt$BiometricPromptHardware : AbstractHardware</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl : IBiometricPromptImplAuthCallback</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricProviderType.kt$BiometricProviderType</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BiometricType.kt$BiometricType</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:CredentialsRequestFragment.kt$CredentialsRequestFragment : Fragment</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:CryptoAccessType.kt$CryptoAccessType</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:CryptoSecurityLevel.kt$CryptoSecurityLevel</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:CryptographyManagerInterface.kt$CryptographyManagerInterface</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:CryptographyManagerInterfaceMarshmallowImpl.kt$CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DeviceUnlockedReceiver.kt$DeviceUnlockedReceiver : BroadcastReceiver</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DialogViewModel.kt$DialogViewModel : ViewModel</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:DummyBiometricModule.kt$DummyBiometricModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:EngineBackedSoftwarePromptDelegate.kt$EngineBackedSoftwarePromptDelegate : SoftwareBiometricPromptDelegate</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FaceLock.kt$FaceLock</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FaceLockHelper.kt$FaceLockHelper</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FaceLockInterface.kt$FaceLockInterface</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FaceManager.kt$FaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FaceUnlockCallback.kt$FaceUnlockCallback</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FacelockOldModule.kt$FacelockOldModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FaceunlockLavaModule.kt$FaceunlockLavaModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FingerprintIconView.kt$FingerprintIconView : AppCompatImageView</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HardwareAccessImpl.kt$HardwareAccessImpl</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HardwareInfo.kt$HardwareInfo</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:Hihonor3DFaceUnlockModule.kt$Hihonor3DFaceUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HihonorFaceManager.kt$HihonorFaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HihonorFaceManagerV1.kt$HihonorFaceManagerV1 : HihonorFaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HihonorFaceManagerV1Impl.kt$HihonorFaceManagerV1Impl : HihonorFaceManagerV1</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HihonorFaceUnlockModule.kt$HihonorFaceUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HomeWatcher.kt$HomeWatcher</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:Huawei3DFaceUnlockModule.kt$Huawei3DFaceUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HuaweiFaceManager.kt$HuaweiFaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HuaweiFaceManagerV1.kt$HuaweiFaceManagerV1 : HuaweiFaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HuaweiFaceManagerV1Impl.kt$HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HuaweiFaceUnlockModule.kt$HuaweiFaceUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:HybridCryptographyManagerInterface.kt$HybridCryptographyManagerInterface : CryptographyManagerInterface</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:IBiometricPromptImpl.kt$IBiometricPromptImpl</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:IFaceLockCallback.kt$IFaceLockCallback</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:IMiuiFaceManager.kt$IMiuiFaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:IconStateHelper.kt$IconStateHelper$IconStateListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:InitiateSystemBiometricEnrollFragment.kt$InitiateSystemBiometricEnrollFragment : Fragment</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:LegacyBiometricAuthenticationListener.kt$LegacyBiometricAuthenticationListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:LegacyBiometricInitListener.kt$LegacyBiometricInitListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:LegacyHardware.kt$LegacyHardware : AbstractHardware</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl : IMiuiFaceManagerServiceCallback</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl : IMiuiFaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:Miuiface.kt$Miuiface : Parcelable</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:OppoFaceUnlockModule.kt$OppoFaceUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:RestartPredicate.kt$RestartPredicate</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:RsaKeyDataException.kt$RsaKeyDataException : Exception</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:RsaKeyHeader.kt$RsaKeyHeader</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:RsaPrivateKey.kt$RsaPrivateKey</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:RsaPublicKey.kt$RsaPublicKey</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SensorBlockedFallbackFragment.kt$SensorBlockedFallbackFragment : Fragment</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SoftwareBiometricModule.kt$SoftwareBiometricModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SoftwareBiometricPromptDelegate.kt$SoftwareBiometricPromptDelegate</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SoftwareBiometricPromptFactory.kt$SoftwareBiometricPromptFactory</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SoftwareBiometricPromptHost.kt$SoftwareBiometricPromptHost</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SoftwareBiometricProvider.kt$SoftwareBiometricProvider</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SoterFaceUnlockModule.kt$SoterFaceUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SupportFingerprintModule.kt$SupportFingerprintModule : AbstractBiometricModule</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TruncatedTextFix.kt$TruncatedTextFix$OnTruncateChecked</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:TruncatedTextFix.kt$TruncatedTextFix$TruncatedText</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:UntrustedAccessibilityFragment.kt$UntrustedAccessibilityFragment : Fragment</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:WindowBackgroundBlurring.kt$WindowBackgroundBlurring</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:WindowFocusChangedListener.kt$WindowFocusChangedListener</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:WindowForegroundBlurring.kt$WindowForegroundBlurring : IconStateListener</ID>
+    <ID>LongMethod:API23FingerprintModule.kt$API23FingerprintModule.AuthCallback$@Deprecated("Deprecated in Java") override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:AbstractBiometricModule.kt$AbstractBiometricModule$private fun getIds(manager: Any): List&lt;String&gt;</ID>
+    <ID>LongMethod:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>LongMethod:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule.FaceManagerAuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>LongMethod:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:BiometricClient.kt$BiometricClient$@SuppressLint("WrongConstant") private fun handle_startService()</ID>
+    <ID>LongMethod:BiometricClient.kt$BiometricClient$private fun handle_getServiceVersion(module_id: Int)</ID>
+    <ID>LongMethod:BiometricClient.kt$BiometricClient$private fun handle_releaseService()</ID>
+    <ID>LongMethod:BiometricClient.kt$BiometricClient$private fun handle_sendService(msg: Message)</ID>
+    <ID>LongMethod:BiometricClient.kt$BiometricClient.ConnectHandler$override fun handleMessage(msg: Message)</ID>
+    <ID>LongMethod:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$@SuppressLint("RestrictedApi") private fun showSystemUi(biometricPrompt: BiometricPrompt)</ID>
+    <ID>LongMethod:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$private fun checkAuthResult( authResult: AuthResult.AuthResultState, module: AuthenticationResult? )</ID>
+    <ID>LongMethod:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl.&lt;no name provided&gt;$override fun onAuthenticationError(errorCode: Int, errString: CharSequence)</ID>
+    <ID>LongMethod:BiometricPromptCompat.kt$BiometricPromptCompat$fun authenticate(callbackOuter: AuthenticationCallback)</ID>
+    <ID>LongMethod:BiometricPromptCompat.kt$BiometricPromptCompat$fun setupBiometric( callbackOuter: AuthenticationCallback, enrollNewHardwareBiometric: Boolean = isHardwareEnrollmentNeeded( builder.getBiometricAuthRequest() ) )</ID>
+    <ID>LongMethod:BiometricPromptCompat.kt$BiometricPromptCompat$private fun authenticateInternal( callback: AuthenticationCallback )</ID>
+    <ID>LongMethod:BiometricPromptCompat.kt$BiometricPromptCompat$private fun continueAuthenticationAfterReadiness( callback: AuthenticationCallback, timeout: Boolean )</ID>
+    <ID>LongMethod:BiometricPromptCompat.kt$BiometricPromptCompat$private fun startAuth( callbackOuter: AuthenticationCallback )</ID>
+    <ID>LongMethod:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$override fun onSucceeded(result: Set&lt;AuthenticationResult&gt;)</ID>
+    <ID>LongMethod:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$internal fun updateMonetColorsInternal(context: Context)</ID>
+    <ID>LongMethod:BiometricPromptGenericImpl.kt$BiometricPromptGenericImpl$private fun checkAuthResult( module: AuthenticationResult?, authResult: AuthResult.AuthResultState )</ID>
+    <ID>LongMethod:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl$private fun checkAuthResult( module: AuthenticationResult?, authResult: AuthResult.AuthResultState )</ID>
+    <ID>LongMethod:BiometricTitle.kt$BiometricTitle$fun getRelevantTitle(context: Context, types: Set&lt;BiometricType&gt;): String</ID>
+    <ID>LongMethod:Core.kt$Core$@JvmOverloads fun authenticate( purpose: BiometricCryptographyPurpose?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? = RestartPredicatesImpl.defaultPredicate(), allowCryptoFallback: Boolean = false )</ID>
+    <ID>LongMethod:DarkLightThemes.kt$DarkLightThemes$fun getNightMode(context: Context, shouldInscreenCaseAffected: Boolean = false): Int</ID>
+    <ID>LongMethod:FacelockOldModule.kt$FacelockOldModule.ProxyListener$fun onAuthenticationError(errMsgId: Int, errString: CharSequence?): Void?</ID>
+    <ID>LongMethod:Hihonor3DFaceUnlockModule.kt$Hihonor3DFaceUnlockModule.AuthCallback3DFace$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.&lt;no name provided&gt;$override fun onCallbackEvent(reqId: Int, type: Int, code: Int, errorCode: Int)</ID>
+    <ID>LongMethod:HihonorFaceUnlockModule.kt$HihonorFaceUnlockModule.AuthCallbackLegacy$override fun onAuthenticationError(errMsgId: Int)</ID>
+    <ID>LongMethod:Huawei3DFaceUnlockModule.kt$Huawei3DFaceUnlockModule.AuthCallback3DFace$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.&lt;no name provided&gt;$override fun onCallbackEvent(reqId: Int, type: Int, code: Int, errorCode: Int)</ID>
+    <ID>LongMethod:HuaweiFaceUnlockModule.kt$HuaweiFaceUnlockModule.AuthCallbackLegacy$override fun onAuthenticationError(errMsgId: Int)</ID>
+    <ID>LongMethod:LockType.kt$LockType$private fun isBiometricEnabledInSettings(context: Context): Boolean</ID>
+    <ID>LongMethod:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$override fun enroll( cryptoToken: ByteArray?, cancel: CancellationSignal, flags: Int, enrollCallback: IMiuiFaceManager.EnrollmentCallback?, surface: Surface?, detectArea: RectF?, enrollArea: RectF, timeout: Int )</ID>
+    <ID>LongMethod:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$override fun onBiometricEventCallback(module_id: Int, event: Int, arg1: Int, arg2: Int)</ID>
+    <ID>LongMethod:MiuiCodeToString.kt$MiuiCodeToString$fun getAcquiredString(acquireInfo: Int, vendorCode: Int): String?</ID>
+    <ID>LongMethod:MiuiCodeToString.kt$MiuiCodeToString$fun getErrorString(errMsg: Int, vendorCode: Int): String?</ID>
+    <ID>LongMethod:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.&lt;no name provided&gt;$@Throws(RemoteException::class) public override fun onTransact( code: Int, data: Parcel, reply: Parcel?, flags: Int ): Boolean</ID>
+    <ID>LongMethod:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:OppoFaceUnlockModule.kt$OppoFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>LongMethod:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>LongMethod:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:SoftwareBiometricModule.kt$SoftwareBiometricModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>LongMethod:SoftwareBiometricModule.kt$SoftwareBiometricModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:SoterFaceUnlockModule.kt$SoterFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>LongMethod:SupportFingerprintModule.kt$SupportFingerprintModule.AuthCallbackCompat$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence)</ID>
+    <ID>LongMethod:TruncatedTextFix.kt$TruncatedTextFix$@SuppressLint("InflateParams") fun recalculateTexts( builder: BiometricPromptCompat.Builder, onTruncateChecked: OnTruncateChecked )</ID>
+    <ID>LongParameterList:AbstractSoftwareBiometricManager.kt$AbstractSoftwareBiometricManager$( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
+    <ID>LongParameterList:BiometricAuthState.kt$( confirmation: BiometricConfirmation, scopeTypes: Collection&lt;BiometricType&gt;, successResults: Collection&lt;AuthenticationResult&gt;, failureResults: Collection&lt;AuthenticationResult&gt; = emptySet(), canceledResults: Collection&lt;AuthenticationResult&gt; = emptySet(), terminal: Boolean )</ID>
+    <ID>LongParameterList:BiometricAuthState.kt$( requestApi: BiometricApi, preferSystemFaceHardware: Boolean, preferHighPrioritySoftware: Boolean, biometricPromptRoute: SelectedBiometricRoute?, legacyHardwareRoute: SelectedBiometricRoute?, fallbackRoute: SelectedBiometricRoute? )</ID>
+    <ID>LongParameterList:IMiuiFaceManager.kt$IMiuiFaceManager$( bArr: ByteArray?, cancellationSignal: CancellationSignal, i: Int, enrollmentCallback: EnrollmentCallback?, surface: Surface?, rect: Rect?, i2: Int )</ID>
+    <ID>LongParameterList:IMiuiFaceManager.kt$IMiuiFaceManager$( bArr: ByteArray?, cancellationSignal: CancellationSignal, i: Int, enrollmentCallback: EnrollmentCallback?, surface: Surface?, rectF: RectF?, rectF2: RectF, i2: Int )</ID>
+    <ID>LongParameterList:LegacyBiometric.kt$LegacyBiometric$( biometricCryptographyPurpose: BiometricCryptographyPurpose?, targetView: SurfaceView?, requestedMethods: List&lt;BiometricType?&gt;, listener: LegacyBiometricAuthenticationListener, bundle: Bundle?, provider: BiometricProviderType = BiometricProviderType.COMBINED, excludedModuleTags: Set&lt;Int&gt; = emptySet(), allowCryptoFallback: Boolean = false )</ID>
+    <ID>LongParameterList:LegacyBiometric.kt$LegacyBiometric$( biometricCryptographyPurpose: BiometricCryptographyPurpose?, viewRef: WeakReference&lt;SurfaceView?&gt;, requestedMethods: List&lt;BiometricType&gt;, listener: LegacyBiometricAuthenticationListener, bundle: Bundle?, provider: BiometricProviderType, excludedModuleTags: Set&lt;Int&gt;, allowCryptoFallback: Boolean, startTime: Long )</ID>
+    <ID>LongParameterList:LegacyBiometric.kt$LegacyBiometric$( request: BiometricAuthRequest, types: Collection&lt;BiometricType&gt;, enroll: Boolean, excludedModuleTags: Set&lt;Int&gt; = emptySet(), onModuleSkipped: (SoftwareBiometricModule) -&gt; Unit = {}, callback: AbstractSoftwareBiometricManager.PreparationCallback )</ID>
+    <ID>LongParameterList:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$( service: IBinder?, token: IBinder, cryptoToken: ByteArray?, groupId: Int, receiver: IBinder?, flags: Int, packName: String, surface: Surface?, detectArea: RectF?, timeout: Int )</ID>
+    <ID>LongParameterList:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$( service: IBinder?, token: IBinder, faceId: Int, groupId: Int, userId: Int, receiver: IBinder? )</ID>
+    <ID>LongParameterList:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$( service: IBinder?, token: IBinder, receiver: IBinder?, cmd: Int, param: Int, packName: String )</ID>
+    <ID>LongParameterList:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$( service: IBinder?, token: IBinder, sessionId: Long, userId: Int, receiver: IBinder?, flags: Int, packName: String, timeout: Int )</ID>
+    <ID>LongParameterList:RsaPrivateKey.kt$RsaPrivateKey$( private val rsaKeyHeader: RsaKeyHeader, private val publicExponent: BigInteger, private val modulus: BigInteger, private val prime1: BigInteger, private val prime2: BigInteger, private val exponent1: BigInteger, private val exponent2: BigInteger, private val coefficient: BigInteger, private val privateExponent: BigInteger )</ID>
+    <ID>LoopWithTooManyJumpStatements:ActiveWindow.kt$ActiveWindow$for</ID>
+    <ID>LoopWithTooManyJumpStatements:BiometricManagerCompat.kt$BiometricManagerCompat$while</ID>
+    <ID>LoopWithTooManyJumpStatements:CryptographyManager.kt$CryptographyManager$for</ID>
+    <ID>MagicNumber:API23FingerprintModule.kt$API23FingerprintModule.AuthCallback$1000</ID>
+    <ID>MagicNumber:AbstractBiometricModule.kt$AbstractBiometricModule$2000</ID>
+    <ID>MagicNumber:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule.FaceManagerAuthCallback$1000</ID>
+    <ID>MagicNumber:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule.AuthCallback$1000</ID>
+    <ID>MagicNumber:AppFlowCryptoStorage.kt$AppFlowCryptoStorage$32</ID>
+    <ID>MagicNumber:AppFlowCryptographyManagerInterface.kt$AppFlowCryptographyManagerInterface$128</ID>
+    <ID>MagicNumber:AppFlowCryptographyManagerInterface.kt$AppFlowCryptographyManagerInterface$210_000</ID>
+    <ID>MagicNumber:AppFlowCryptographyManagerInterface.kt$AppFlowCryptographyManagerInterface$256</ID>
+    <ID>MagicNumber:BigIntHelper.kt$BigIntHelper$3</ID>
+    <ID>MagicNumber:BigIntHelper.kt$BigIntHelper$7</ID>
+    <ID>MagicNumber:BigIntHelper.kt$BigIntHelper$8</ID>
+    <ID>MagicNumber:BiometricAuthState.kt$1000</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$1000</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$1001</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$1002</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$11</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$12</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$4</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$5</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$5000</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$5001</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$5002</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$5003</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient$65</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.ConnectHandler$100</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.ConnectHandler$100.0f</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.ConnectHandler$1000</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.ConnectHandler$1001</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.ConnectHandler$1004</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.ConnectHandler$1005</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.ConnectHandler$9999</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.MyHandler$5000</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.MyHandler$5001</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.MyHandler$5002</ID>
+    <ID>MagicNumber:BiometricClient.kt$BiometricClient.MyHandler$5003</ID>
+    <ID>MagicNumber:BiometricLockoutFix.kt$BiometricLockoutFix$31</ID>
+    <ID>MagicNumber:BiometricManagerCompat.kt$BiometricManagerCompat$28</ID>
+    <ID>MagicNumber:BiometricManagerCompat.kt$BiometricManagerCompat$5_000</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.CUSTOM_BEHAVIOR$10007</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.CUSTOM_FACE$10002</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.CUSTOM_FINGERPRINT$10001</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.CUSTOM_HEARTRATE$10006</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.CUSTOM_IRIS$10003</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.CUSTOM_PALMPRINT$10005</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.CUSTOM_UNDEFINED$10000</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.CUSTOM_VOICE$10004</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.DUMMY_BIOMETRIC$9999</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACELOCK$299</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACEUNLOCK_LAVA$209</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACE_ANDROIDAPI$201</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACE_HIHONOR$211</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACE_HIHONOR3D$210</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACE_HUAWEI$205</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACE_HUAWEI3D$204</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACE_MIUI$207</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACE_OPPO$203</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACE_SAMSUNG$202</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACE_SOTERAPI$206</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FINGERPRINT_API23$100</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FINGERPRINT_SOTERAPI$102</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FINGERPRINT_SUPPORT$101</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.IRIS_ANDROIDAPI$300</ID>
+    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.IRIS_SAMSUNG$301</ID>
+    <ID>MagicNumber:BiometricNotificationManager.kt$BiometricNotificationManager$26</ID>
+    <ID>MagicNumber:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$100</ID>
+    <ID>MagicNumber:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$500</ID>
+    <ID>MagicNumber:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl.&lt;no name provided&gt;$1000</ID>
+    <ID>MagicNumber:BiometricPromptCompat.kt$BiometricPromptCompat$10</ID>
+    <ID>MagicNumber:BiometricPromptCompat.kt$BiometricPromptCompat$1000</ID>
+    <ID>MagicNumber:BiometricPromptCompat.kt$BiometricPromptCompat$5</ID>
+    <ID>MagicNumber:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$30</ID>
+    <ID>MagicNumber:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$0.01f</ID>
+    <ID>MagicNumber:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$100</ID>
+    <ID>MagicNumber:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$200</ID>
+    <ID>MagicNumber:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$300</ID>
+    <ID>MagicNumber:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$50</ID>
+    <ID>MagicNumber:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$500</ID>
+    <ID>MagicNumber:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$600</ID>
+    <ID>MagicNumber:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$900</ID>
+    <ID>MagicNumber:BiometricPromptCompatDialogImpl.kt$BiometricPromptCompatDialogImpl$1000</ID>
+    <ID>MagicNumber:BiometricPromptCompatDialogImpl.kt$BiometricPromptCompatDialogImpl$2000</ID>
+    <ID>MagicNumber:BiometricPromptGenericImpl.kt$500L</ID>
+    <ID>MagicNumber:BiometricPromptGenericImpl.kt$BiometricPromptGenericImpl$2000</ID>
+    <ID>MagicNumber:BiometricPromptHardware.kt$BiometricPromptHardware$1000L</ID>
+    <ID>MagicNumber:BiometricPromptHardware.kt$BiometricPromptHardware$1500L</ID>
+    <ID>MagicNumber:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricLexicon$10</ID>
+    <ID>MagicNumber:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricLexicon$18</ID>
+    <ID>MagicNumber:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricLexicon$3</ID>
+    <ID>MagicNumber:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricLexicon$4</ID>
+    <ID>MagicNumber:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricLexicon$5</ID>
+    <ID>MagicNumber:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricModalityDetector$3</ID>
+    <ID>MagicNumber:BiometricPromptHardware.kt$BiometricPromptHardware.PixelModelChecker$3</ID>
+    <ID>MagicNumber:BiometricPromptHardware.kt$BiometricPromptHardware.PixelModelChecker$8</ID>
+    <ID>MagicNumber:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl$2000</ID>
+    <ID>MagicNumber:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl$500</ID>
+    <ID>MagicNumber:CheckBiometricUI.kt$CheckBiometricUI$21</ID>
+    <ID>MagicNumber:CredentialsRequestFragment.kt$CredentialsRequestFragment.Companion.&lt;no name provided&gt;.&lt;no name provided&gt;$250</ID>
+    <ID>MagicNumber:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$1337</ID>
+    <ID>MagicNumber:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$17</ID>
+    <ID>MagicNumber:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$2048</ID>
+    <ID>MagicNumber:CryptographyManagerInterfaceMarshmallowImpl.kt$CryptographyManagerInterfaceMarshmallowImpl$128</ID>
+    <ID>MagicNumber:DialogMainColor.kt$DialogMainColor$50</ID>
+    <ID>MagicNumber:DialogMainColor.kt$DialogMainColor$900</ID>
+    <ID>MagicNumber:DummyBiometricModule.kt$DummyBiometricModule$2500</ID>
+    <ID>MagicNumber:FaceLockHelper.kt$FaceLockHelper.&lt;no name provided&gt;$25000L</ID>
+    <ID>MagicNumber:FacelockOldModule.kt$FacelockOldModule.ProxyListener$1000</ID>
+    <ID>MagicNumber:FaceunlockLavaModule.kt$FaceunlockLavaModule.ProxyListener$1000</ID>
+    <ID>MagicNumber:FingerprintIconView.kt$FingerprintIconView.Companion$26</ID>
+    <ID>MagicNumber:FingerprintIconView.kt$FingerprintIconView.Companion$28</ID>
+    <ID>MagicNumber:Hihonor3DFaceUnlockModule.kt$Hihonor3DFaceUnlockModule.AuthCallback3DFace$1000</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$10</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$11</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$13</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$14</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$15</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$16</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$17</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$18</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$19</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$21</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$22</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$23</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$27</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$28</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$29</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$3</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$30</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$31</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$32</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$4</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$5</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$6</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$7</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$8</ID>
+    <ID>MagicNumber:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$9</ID>
+    <ID>MagicNumber:HihonorFaceUnlockModule.kt$HihonorFaceUnlockModule.AuthCallbackLegacy$1000</ID>
+    <ID>MagicNumber:Huawei3DFaceUnlockModule.kt$Huawei3DFaceUnlockModule.AuthCallback3DFace$1000</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$10</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$11</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$13</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$14</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$15</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$16</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$17</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$18</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$19</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$21</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$22</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$23</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$27</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$28</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$29</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$3</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$30</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$31</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$32</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$4</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$5</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$6</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$7</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$8</ID>
+    <ID>MagicNumber:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$9</ID>
+    <ID>MagicNumber:HuaweiFaceUnlockModule.kt$HuaweiFaceUnlockModule.AuthCallbackLegacy$1000</ID>
+    <ID>MagicNumber:HwFaceManagerFactory.kt$HwFaceManagerFactory$29</ID>
+    <ID>MagicNumber:IconStateHelper.kt$IconStateHelper$2000</ID>
+    <ID>MagicNumber:InitiateSystemBiometricEnrollFragment.kt$InitiateSystemBiometricEnrollFragment.Companion.&lt;no name provided&gt;.&lt;no name provided&gt;$250</ID>
+    <ID>MagicNumber:LegacyBiometric.kt$LegacyBiometric$21</ID>
+    <ID>MagicNumber:LegacyBiometric.kt$LegacyBiometric$24</ID>
+    <ID>MagicNumber:LegacyBiometric.kt$LegacyBiometric$28</ID>
+    <ID>MagicNumber:LegacyBiometric.kt$LegacyBiometric$29</ID>
+    <ID>MagicNumber:LegacyBiometric.kt$LegacyBiometric$33</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$0.044f</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$0.067f</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$0.5f</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1.05f</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1.06f</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1.16f</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1.18f</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$10</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$10.0f</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1082130432</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1086324736</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$12.0f</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$14</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$180000</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$20</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$2000</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$21</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$22</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$23</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$24</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$3</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$30</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$31</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$32</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$34</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$4</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$40</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$4095</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$41</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$42</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$43</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$5</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$6</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$7</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$70</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$8</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$9</ID>
+    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.ClientHandler$66</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$10</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$11</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$12</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$13</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$14</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$15</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$16</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$17</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$18</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$19</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$20</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$21</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$22</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$3</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$4</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$5</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$6</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$7</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$8</ID>
+    <ID>MagicNumber:MiuiCodeToString.kt$MiuiCodeToString$9</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$10</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$1000</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$1001</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$101</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$11</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$12</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$13</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$14</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$15</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$16</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$17</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$18</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$19</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$2</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$20</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$2000</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$21</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$2100</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$22</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$23</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$24</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$25</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$26</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$27</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$28</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$29</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$3</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$30</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$31</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$32</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$4</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$5</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$6</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$7</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$8</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$9</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.&lt;no name provided&gt;$201</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.&lt;no name provided&gt;$202</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.&lt;no name provided&gt;$203</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.&lt;no name provided&gt;$204</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.&lt;no name provided&gt;$205</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.&lt;no name provided&gt;$206</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.&lt;no name provided&gt;$207</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.&lt;no name provided&gt;$261</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.&lt;no name provided&gt;$301</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.ClientHandler$201</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.ClientHandler$202</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.ClientHandler$203</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.ClientHandler$204</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.ClientHandler$205</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.ClientHandler$206</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.ClientHandler$261</ID>
+    <ID>MagicNumber:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.ClientHandler$301</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule$30</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$1000</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$11</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$12</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$2000</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$2100</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$3</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$34</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$4</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$66</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$7</ID>
+    <ID>MagicNumber:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$9</ID>
+    <ID>MagicNumber:OppoFaceUnlockModule.kt$OppoFaceUnlockModule.AuthCallback$1000</ID>
+    <ID>MagicNumber:RestartPredicatesImpl.kt$RestartPredicatesImpl$5</ID>
+    <ID>MagicNumber:RsaKeyHeader.kt$RsaKeyHeader$4</ID>
+    <ID>MagicNumber:RsaKeyHeader.kt$RsaKeyHeader$8</ID>
+    <ID>MagicNumber:RsaKeyHeader.kt$RsaKeyHeader.Companion$4</ID>
+    <ID>MagicNumber:RsaKeyHeader.kt$RsaKeyHeader.Companion$6</ID>
+    <ID>MagicNumber:RsaKeyHeader.kt$RsaKeyHeader.Companion$8</ID>
+    <ID>MagicNumber:RsaPrivateKey.kt$RsaPrivateKey.Companion$8</ID>
+    <ID>MagicNumber:RsaPublicKey.kt$RsaPublicKey.Companion$8</ID>
+    <ID>MagicNumber:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule.AuthCallback$1000</ID>
+    <ID>MagicNumber:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule.AuthCallback$1000</ID>
+    <ID>MagicNumber:SensorBlockedFallbackFragment.kt$SensorBlockedFallbackFragment.Companion.&lt;no name provided&gt;.&lt;no name provided&gt;$250</ID>
+    <ID>MagicNumber:SoftwareBiometricModule.kt$SoftwareBiometricModule$30_000L</ID>
+    <ID>MagicNumber:SoftwareBiometricModule.kt$SoftwareBiometricModule.AuthCallback$1000</ID>
+    <ID>MagicNumber:SoterFaceUnlockModule.kt$SoterFaceUnlockModule.AuthCallback$1000</ID>
+    <ID>MagicNumber:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule.AuthCallback$1000</ID>
+    <ID>MagicNumber:SupportFingerprintModule.kt$SupportFingerprintModule.AuthCallbackCompat$1000</ID>
+    <ID>MagicNumber:TruncatedTextFix.kt$TruncatedTextFix$4</ID>
+    <ID>MagicNumber:TruncatedTextFix.kt$TruncatedTextFix$5</ID>
+    <ID>MagicNumber:TruncatedTextFix.kt$TruncatedTextFix$7</ID>
+    <ID>MagicNumber:UntrustedAccessibilityFragment.kt$UntrustedAccessibilityFragment.Companion.&lt;no name provided&gt;.&lt;no name provided&gt;$250</ID>
+    <ID>MagicNumber:Vibro.kt$Vibro$26</ID>
+    <ID>MagicNumber:Vibro.kt$Vibro$75</ID>
+    <ID>MaxLineLength:API23FingerprintModule.kt$API23FingerprintModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:API23FingerprintModule.kt$API23FingerprintModule.AuthCallback$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule.FaceManagerAuthCallback$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule.AuthCallback$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:BiometricAuthState.kt$dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE</ID>
+    <ID>MaxLineLength:BiometricCryptoObjectHelper.kt$BiometricCryptoObjectHelper$"BiometricCryptoObjectHelper: AndroidKeyStore has no biometric enrollment usable for auth-per-use key $name"</ID>
+    <ID>MaxLineLength:BiometricCryptoObjectHelper.kt$BiometricCryptoObjectHelper$else -&gt; throw IllegalArgumentException("Cryptography purpose should be BiometricCryptographyPurpose.ENCRYPT or BiometricCryptographyPurpose.DECRYPT")</ID>
+    <ID>MaxLineLength:BiometricManagerCompat.kt$BiometricManagerCompat$BiometricLoggerImpl.e("NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return incorrect result in many cases")</ID>
+    <ID>MaxLineLength:BiometricManagerCompat.kt$BiometricManagerCompat$module.priority &gt; dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule.PRIORITY_SYSTEM_HARDWARE</ID>
+    <ID>MaxLineLength:BiometricMethod.kt$BiometricMethod.FACE_SAMSUNG$)</ID>
+    <ID>MaxLineLength:BiometricMethod.kt$BiometricMethod.IRIS_ANDROIDAPI$)</ID>
+    <ID>MaxLineLength:BiometricMethod.kt$BiometricMethod.IRIS_SAMSUNG$)</ID>
+    <ID>MaxLineLength:BiometricNotificationManager.kt$BiometricNotificationManager$// use FLAG_NO_CREATE, however, to create a new PendingIntent with an implicit Intent use FLAG_IMMUTABLE.</ID>
+    <ID>MaxLineLength:BiometricNotificationManager.kt$BiometricNotificationManager$if (Utils.isAtLeastS) PendingIntent.FLAG_IMMUTABLE else PendingIntent.FLAG_CANCEL_CURRENT</ID>
+    <ID>MaxLineLength:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$(BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)</ID>
+    <ID>MaxLineLength:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$callback</ID>
+    <ID>MaxLineLength:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$d("BiometricPromptApi28Impl.authenticate: app-flow crypto is prepared; authenticate without AndroidX CryptoObject")</ID>
+    <ID>MaxLineLength:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$d("BiometricPromptApi28Impl.checkAuthResult.authFinished &lt;&lt; ${builder.getBiometricAuthRequest()}: $error/$success")</ID>
+    <ID>MaxLineLength:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$d("BiometricPromptApi28Impl.checkAuthResult.authFinished &gt;&gt; ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${builder.getAllAvailableTypes()})")</ID>
+    <ID>MaxLineLength:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$e("BiometricPromptApi28Impl.checkAuthResult() -&gt; onFailed ${authFinished.values.filter { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }}")</ID>
+    <ID>MaxLineLength:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$if</ID>
+    <ID>MaxLineLength:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl.&lt;no name provided&gt;$d("BiometricPromptApi28Impl.onAuthenticationSucceeded: ${result.authenticationType}; Crypto=${result.cryptoObject}")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat$"BiometricPromptCompat.enroll enrollNewHardwareBiometric=$enrollNewHardwareBiometric; list=${builder.getAllAvailableTypes()}"</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat$BiometricLoggerImpl.d("BiometricPromptCompat BiometricOpeningTime: authenticateInternal &gt;&gt; credentials ${System.currentTimeMillis() - startTs} ms")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat$BiometricLoggerImpl.d("BiometricPromptCompat BiometricOpeningTime: authenticateInternal &gt;&gt; regular ${System.currentTimeMillis() - startTs} ms")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat$BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal(); isDeviceCredentialFallbackAllowed=${builder.isDeviceCredentialFallbackAllowed()}; forceDeviceCredential=${builder.forceDeviceCredential()}")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat$BiometricLoggerImpl.e("BiometricPromptCompat.checkSensor isCameraBlocked=${SensorPrivacyCheck.isCameraBlocked()}; $permissions")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat$description</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$&amp;&amp;</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded1 = $confirmed")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onCanceled &gt;&gt;&gt;&gt; rollbackLastEnroll")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onFailed &gt;&gt;&gt;&gt; rollbackLastEnroll")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onFailed restart auth with credentials")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onSucceeded restart auth with biometric")</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.&lt;no name provided&gt;$if</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$return !(activity?.isDestroyed == true || activity?.isFinishing == true || activity?.supportFragmentManager?.isStateSaved == true)</ID>
+    <ID>MaxLineLength:BiometricPromptCompat.kt$BiometricPromptCompat.Companion.&lt;no name provided&gt;$BiometricLoggerImpl.e("BiometricPromptCompat initialized in ${System.currentTimeMillis() - initStart} ms")</ID>
+    <ID>MaxLineLength:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$if</ID>
+    <ID>MaxLineLength:BiometricPromptCompatDialogImpl.kt$BiometricPromptCompatDialogImpl$if</ID>
+    <ID>MaxLineLength:BiometricPromptCompatDialogImpl.kt$BiometricPromptCompatDialogImpl.&lt;no name provided&gt;$e("BiometricPromptGenericImpl.onWindowFocusChanged - do not cancelAuth - inScreenDevice and app on top")</ID>
+    <ID>MaxLineLength:BiometricPromptCompatDialogImpl.kt$BiometricPromptCompatDialogImpl.&lt;no name provided&gt;$e("BiometricPromptGenericImpl.onWindowFocusChanged - do not cancelAuth - regular device in multiwindow")</ID>
+    <ID>MaxLineLength:BiometricPromptGenericImpl.kt$BiometricPromptGenericImpl$d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${completionTypes()})")</ID>
+    <ID>MaxLineLength:BiometricPromptGenericImpl.kt$BiometricPromptGenericImpl$if</ID>
+    <ID>MaxLineLength:BiometricPromptHardware.kt$BiometricPromptHardware$(it.hasFaceID() &amp;&amp; checkDeviceFeature(type, modalityResult))</ID>
+    <ID>MaxLineLength:BiometricPromptHardware.kt$BiometricPromptHardware$BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -&gt; false</ID>
+    <ID>MaxLineLength:BiometricPromptHardware.kt$BiometricPromptHardware.EnrollCheckHelper$"BiometricPromptHardware.EnrollCheckHelper: AndroidKeyStore has no biometric enrollment usable for auth-per-use keys"</ID>
+    <ID>MaxLineLength:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl$d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${completionTypes()})")</ID>
+    <ID>MaxLineLength:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl$if</ID>
+    <ID>MaxLineLength:Core.kt$Core$"Core.authenticate: app-flow crypto is prepared for ${module.javaClass.simpleName}; authenticate without module CryptoObject"</ID>
+    <ID>MaxLineLength:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$keyPairGenerator.generateKeyPair()</ID>
+    <ID>MaxLineLength:DevicesWithKnownBugs.kt$DevicesWithKnownBugs$//https://github.com/google/talkback/blob/master/src/main/java/com/google/android/marvin/talkback/TalkBackService.java#L1779-L1781</ID>
+    <ID>MaxLineLength:FaceLock.kt$FaceLock$// &lt;permission android:name="com.google.android.gms.auth.permission.FACE_UNLOCK" android:protectionLevel="signature"/&gt;</ID>
+    <ID>MaxLineLength:FacelockOldModule.kt$FacelockOldModule.ProxyListener$FaceLockHelper.FACELOCK_CANNT_START</ID>
+    <ID>MaxLineLength:FacelockOldModule.kt$FacelockOldModule.ProxyListener$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:HardwareAccessImpl.kt$HardwareAccessImpl.Companion$BiometricPromptHardware(biometricAuthRequest)</ID>
+    <ID>MaxLineLength:Hihonor3DFaceUnlockModule.kt$Hihonor3DFaceUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:Hihonor3DFaceUnlockModule.kt$Hihonor3DFaceUnlockModule.AuthCallback3DFace$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_NOT_FOUND, FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_SCALE_TOO_SMALL -&gt; HIHONOR_FACE_AUTH_STATUS_INSUFFICIENT</ID>
+    <ID>MaxLineLength:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_OFFSET_BOTTOM -&gt; HIHONOR_FACE_AUTH_STATUS_FACE_OFFET_BOTTOM</ID>
+    <ID>MaxLineLength:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_OFFSET_LEFT -&gt; HIHONOR_FACE_AUTH_STATUS_FACE_OFFET_LEFT</ID>
+    <ID>MaxLineLength:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_OFFSET_RIGHT -&gt; HIHONOR_FACE_AUTH_STATUS_FACE_OFFET_RIGHT</ID>
+    <ID>MaxLineLength:HihonorFaceUnlockModule.kt$HihonorFaceUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:Huawei3DFaceUnlockModule.kt$Huawei3DFaceUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:Huawei3DFaceUnlockModule.kt$Huawei3DFaceUnlockModule.AuthCallback3DFace$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_NOT_FOUND, FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_SCALE_TOO_SMALL -&gt; HUAWEI_FACE_AUTH_STATUS_INSUFFICIENT</ID>
+    <ID>MaxLineLength:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_OFFSET_BOTTOM -&gt; HUAWEI_FACE_AUTH_STATUS_FACE_OFFET_BOTTOM</ID>
+    <ID>MaxLineLength:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_OFFSET_RIGHT -&gt; HUAWEI_FACE_AUTH_STATUS_FACE_OFFET_RIGHT</ID>
+    <ID>MaxLineLength:HuaweiFaceUnlockModule.kt$HuaweiFaceUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$//Secure.putIntForUser(this.context.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 1, -2);</ID>
+    <ID>MaxLineLength:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$stringBuilder2.append("onBiometricEventCallback MSG_CB_EVENT_ENROLL_SUCCESS mEnrollmentCallback:")</ID>
+    <ID>MaxLineLength:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$stringBuilder2.append("onBiometricEventCallback MSG_CB_EVENT_VERIFY_SUCCESS mAuthenticationCallback:")</ID>
+    <ID>MaxLineLength:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$// SettingsSecure.getIntForUser(this.context.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, -2), -2);</ID>
+    <ID>MaxLineLength:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:OppoFaceUnlockModule.kt$OppoFaceUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:OppoFaceUnlockModule.kt$OppoFaceUnlockModule.AuthCallback$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:RsaPrivateKey.kt$RsaPrivateKey.Companion$throw RsaKeyDataException("RsaPrivateKey: Unexpected magic byte in header: " + header.magic + ". Expected " + RsaKeyHeader.MAGIC_RSAKEY_PRIVATE)</ID>
+    <ID>MaxLineLength:RsaPublicKey.kt$RsaPublicKey.Companion$throw RsaKeyDataException("RsaPublicKey: Unexpected magic byte in header: " + header.magic + ". Expected " + RsaKeyHeader.MAGIC_RSAKEY_PUBLIC)</ID>
+    <ID>MaxLineLength:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule.AuthCallback$FACE_ERROR_HW_UNAVAILABLE</ID>
+    <ID>MaxLineLength:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule.AuthCallback$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule.AuthCallback$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:ScreenProtection.kt$ScreenProtection$if (view.isAccessibilityDataSensitive) View.ACCESSIBILITY_DATA_SENSITIVE_YES else View.ACCESSIBILITY_DATA_SENSITIVE_NO</ID>
+    <ID>MaxLineLength:SoftwareBiometricModule.kt$SoftwareBiometricModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:SoterFaceUnlockModule.kt$SoterFaceUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:SoterFaceUnlockModule.kt$SoterFaceUnlockModule$class</ID>
+    <ID>MaxLineLength:SoterFaceUnlockModule.kt$SoterFaceUnlockModule.AuthCallback$com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_HW_UNAVAILABLE</ID>
+    <ID>MaxLineLength:SoterFaceUnlockModule.kt$SoterFaceUnlockModule.AuthCallback$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule$class</ID>
+    <ID>MaxLineLength:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule.AuthCallback$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:SupportFingerprintModule.kt$SupportFingerprintModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
+    <ID>MaxLineLength:SupportFingerprintModule.kt$SupportFingerprintModule.AuthCallbackCompat$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
+    <ID>MaxLineLength:WideGamutBug.kt$WideGamutBug$"Do not use android:colorMode=\"wideColorGamut\" for Activity - it leads to unexpected bugs on OnePlus devices:\n"</ID>
+    <ID>MayBeConst:TruncatedTextFix.kt$TruncatedTextFix$private val FINALIZED_STRING = ".."</ID>
+    <ID>MayBeConst:WideGamutBug.kt$WideGamutBug$private val error: String = "WARNING!!!\n" + "Do not use android:colorMode=\"wideColorGamut\" for Activity - it leads to unexpected bugs on OnePlus devices:\n" + "https://www.reddit.com/r/redditsync/comments/9ta7df/updated_my_oneplus_6_recently_opening_images/\n" + "On OnePlus 6T stop working Fingerprint Sensor O_o"</ID>
+    <ID>NestedBlockDepth:API23FingerprintModule.kt$API23FingerprintModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:AbstractBiometricModule.kt$AbstractBiometricModule$@Deprecated("Starts from Android 9 method return empty list due to Reflection restrictions") private fun getHashes(): Set&lt;String&gt;</ID>
+    <ID>NestedBlockDepth:AbstractBiometricModule.kt$AbstractBiometricModule$private fun getIds(manager: Any): List&lt;String&gt;</ID>
+    <ID>NestedBlockDepth:ActiveWindow.kt$ActiveWindow$fun getActiveWindow(list: List&lt;View&gt;): View?</ID>
+    <ID>NestedBlockDepth:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:BiometricManagerCompat.kt$BiometricManagerCompat$@SuppressLint("Range") private fun isBiometricAppEnabled(): Boolean</ID>
+    <ID>NestedBlockDepth:BiometricManagerCompat.kt$BiometricManagerCompat$private fun getHardwarePermissions( types: Collection&lt;BiometricType&gt; ): MutableSet&lt;String&gt;</ID>
+    <ID>NestedBlockDepth:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$@SuppressLint("RestrictedApi") private fun showSystemUi(biometricPrompt: BiometricPrompt)</ID>
+    <ID>NestedBlockDepth:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl.LegacyBiometricAuthenticationCallbackImpl$override fun onFailure( result: AuthenticationResult )</ID>
+    <ID>NestedBlockDepth:BiometricPromptCompat.kt$BiometricPromptCompat$private fun authenticateInternal( callback: AuthenticationCallback )</ID>
+    <ID>NestedBlockDepth:BiometricPromptCompat.kt$BiometricPromptCompat$private fun checkPermissions(callback: AuthenticationCallback, authTask: () -&gt; Unit)</ID>
+    <ID>NestedBlockDepth:BiometricPromptCompat.kt$BiometricPromptCompat$private fun startAuth( callbackOuter: AuthenticationCallback )</ID>
+    <ID>NestedBlockDepth:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$internal fun updateMonetColorsInternal(context: Context)</ID>
+    <ID>NestedBlockDepth:BiometricPromptHardware.kt$BiometricPromptHardware$override fun lockout()</ID>
+    <ID>NestedBlockDepth:BiometricPromptHardware.kt$BiometricPromptHardware$override fun updateBiometricEnrollChanged()</ID>
+    <ID>NestedBlockDepth:BiometricPromptHardware.kt$BiometricPromptHardware$private fun isBiometricEnrolledForType( type: BiometricType, result: BiometricModalityDetector.Result ): Boolean</ID>
+    <ID>NestedBlockDepth:BiometricPromptHardware.kt$BiometricPromptHardware$private fun isHardwareAvailableForType( type: BiometricType, modalityResult: BiometricModalityDetector.Result ): Boolean</ID>
+    <ID>NestedBlockDepth:BiometricTitle.kt$BiometricTitle$fun getRelevantTitle(context: Context, types: Set&lt;BiometricType&gt;): String</ID>
+    <ID>NestedBlockDepth:Core.kt$Core$@JvmOverloads fun authenticate( purpose: BiometricCryptographyPurpose?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? = RestartPredicatesImpl.defaultPredicate(), allowCryptoFallback: Boolean = false )</ID>
+    <ID>NestedBlockDepth:DarkLightThemes.kt$DarkLightThemes$fun getNightMode(context: Context, shouldInscreenCaseAffected: Boolean = false): Int</ID>
+    <ID>NestedBlockDepth:FaceLockHelper.kt$FaceLockHelper$fun initFacelock()</ID>
+    <ID>NestedBlockDepth:FacelockOldModule.kt$FacelockOldModule.&lt;no name provided&gt;$override fun onConnected()</ID>
+    <ID>NestedBlockDepth:FingerprintIconView.kt$FingerprintIconView$fun setState(state: State, animate: Boolean, type: BiometricType)</ID>
+    <ID>NestedBlockDepth:Hihonor3DFaceUnlockModule.kt$Hihonor3DFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:HihonorFaceUnlockModule.kt$HihonorFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:HomeWatcher.kt$HomeWatcher.InnerReceiver$override fun onReceive(context: Context, intent: Intent)</ID>
+    <ID>NestedBlockDepth:Huawei3DFaceUnlockModule.kt$Huawei3DFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:HuaweiFaceUnlockModule.kt$HuaweiFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:LegacyBiometric.kt$LegacyBiometric$fun loadSoftwareModules()</ID>
+    <ID>NestedBlockDepth:LegacyHardware.kt$LegacyHardware$override fun lockout()</ID>
+    <ID>NestedBlockDepth:LockType.kt$LockType$private fun isBiometricEnabledInSettings(context: Context): Boolean</ID>
+    <ID>NestedBlockDepth:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$override fun onBiometricEventCallback(module_id: Int, event: Int, arg1: Int, arg2: Int)</ID>
+    <ID>NestedBlockDepth:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private fun adjustDetectZone(detect_zone: FloatArray?)</ID>
+    <ID>NestedBlockDepth:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private fun commitDatabase()</ID>
+    <ID>NestedBlockDepth:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private fun handlerFace(bundle: Bundle)</ID>
+    <ID>NestedBlockDepth:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private fun initClientDB(listGroup: ArrayList&lt;Parcelable&gt;?, list: ArrayList&lt;Parcelable&gt;?)</ID>
+    <ID>NestedBlockDepth:MiuiCodeToString.kt$MiuiCodeToString$private fun getStringArray(s: String): Array&lt;String&gt;?</ID>
+    <ID>NestedBlockDepth:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$@Throws(RemoteException::class) private fun initService()</ID>
+    <ID>NestedBlockDepth:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$override fun enroll( cryptoToken: ByteArray?, cancel: CancellationSignal, flags: Int, enrollCallback: IMiuiFaceManager.EnrollmentCallback?, surface: Surface?, detectArea: RectF?, enrollArea: RectF, timeout: Int )</ID>
+    <ID>NestedBlockDepth:OppoFaceUnlockModule.kt$OppoFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:ScreenProtection.kt$ScreenProtection$private fun applyProtectionInWindowInternal( window: Window, disableWindow: Boolean = true, includeHostActivity: Boolean = false )</ID>
+    <ID>NestedBlockDepth:SoftwareBiometricModule.kt$SoftwareBiometricModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:SoterFaceUnlockModule.kt$SoterFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:SupportFingerprintModule.kt$SupportFingerprintModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>NestedBlockDepth:WindowBackgroundBlurring.kt$WindowBackgroundBlurring$@SuppressLint("ClickableViewAccessibility") private fun setDrawable(bm: Bitmap?)</ID>
+    <ID>NestedBlockDepth:WindowForegroundBlurring.kt$WindowForegroundBlurring$private fun setDrawable(bm: Bitmap?)</ID>
+    <ID>NestedBlockDepth:WindowForegroundBlurring.kt$WindowForegroundBlurring$private fun setIconState(type: BiometricType?, iconStates: IconStates?)</ID>
+    <ID>NestedBlockDepth:WindowForegroundBlurring.kt$WindowForegroundBlurring$private fun updateBiometricIconsLayout()</ID>
+    <ID>NestedBlockDepth:WindowForegroundBlurring.kt$WindowForegroundBlurring$private fun updateIcons()</ID>
+    <ID>NewLineAtEndOfFile:AbstractHardware.kt$dev.skomlach.biometric.compat.utils.hardware.AbstractHardware.kt</ID>
+    <ID>NewLineAtEndOfFile:AbstractSoftwareBiometricManager.kt$dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.kt</ID>
+    <ID>NewLineAtEndOfFile:ActivityViewWatcher.kt$dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher.kt</ID>
+    <ID>NewLineAtEndOfFile:AppBackgroundDetector.kt$dev.skomlach.biometric.compat.utils.appstate.AppBackgroundDetector.kt</ID>
+    <ID>NewLineAtEndOfFile:AuthResult.kt$dev.skomlach.biometric.compat.impl.AuthResult.kt</ID>
+    <ID>NewLineAtEndOfFile:AuthenticationFailureReason.kt$dev.skomlach.biometric.compat.AuthenticationFailureReason.kt</ID>
+    <ID>NewLineAtEndOfFile:AuthenticationListener.kt$dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener.kt</ID>
+    <ID>NewLineAtEndOfFile:BigIntHelper.kt$dev.skomlach.biometric.compat.crypto.rsa.BigIntHelper.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricClient.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.BiometricClient.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricConnect.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.BiometricConnect.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricCryptoException.kt$dev.skomlach.biometric.compat.crypto.BiometricCryptoException.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricErrorLockoutPermanentFix.kt$dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricInitProvider.kt$dev.skomlach.biometric.compat.BiometricInitProvider.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricLockoutFix.kt$dev.skomlach.biometric.compat.utils.BiometricLockoutFix.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricLoggerImpl.kt$dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricNotificationManager.kt$dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricPromptCompatDialog.kt$dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialog.kt</ID>
+    <ID>NewLineAtEndOfFile:BiometricTitle.kt$dev.skomlach.biometric.compat.utils.BiometricTitle.kt</ID>
+    <ID>NewLineAtEndOfFile:CancellationHelper.kt$androidx.biometric.CancellationHelper.kt</ID>
+    <ID>NewLineAtEndOfFile:CheckBiometricUI.kt$dev.skomlach.biometric.compat.utils.CheckBiometricUI.kt</ID>
+    <ID>NewLineAtEndOfFile:ContentResolverHelper.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.ContentResolverHelper.kt</ID>
+    <ID>NewLineAtEndOfFile:CredentialsRequestFragment.kt$dev.skomlach.biometric.compat.impl.credentials.CredentialsRequestFragment.kt</ID>
+    <ID>NewLineAtEndOfFile:CryptographyManager.kt$dev.skomlach.biometric.compat.crypto.CryptographyManager.kt</ID>
+    <ID>NewLineAtEndOfFile:CryptographyManagerInterface.kt$dev.skomlach.biometric.compat.crypto.CryptographyManagerInterface.kt</ID>
+    <ID>NewLineAtEndOfFile:CryptographyManagerInterfaceMarshmallowImpl.kt$dev.skomlach.biometric.compat.crypto.CryptographyManagerInterfaceMarshmallowImpl.kt</ID>
+    <ID>NewLineAtEndOfFile:DarkLightThemes.kt$dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.kt</ID>
+    <ID>NewLineAtEndOfFile:DialogMainColor.kt$dev.skomlach.biometric.compat.utils.DialogMainColor.kt</ID>
+    <ID>NewLineAtEndOfFile:DialogViewModel.kt$dev.skomlach.biometric.compat.impl.dialogs.DialogViewModel.kt</ID>
+    <ID>NewLineAtEndOfFile:DummyBiometricModule.kt$dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule.kt</ID>
+    <ID>NewLineAtEndOfFile:FaceLock.kt$dev.skomlach.biometric.compat.engine.internal.face.facelock.FaceLock.kt</ID>
+    <ID>NewLineAtEndOfFile:FaceLockInterface.kt$dev.skomlach.biometric.compat.engine.internal.face.facelock.FaceLockInterface.kt</ID>
+    <ID>NewLineAtEndOfFile:FaceUnlockCallback.kt$dev.skomlach.biometric.compat.engine.internal.face.lava.FaceUnlockCallback.kt</ID>
+    <ID>NewLineAtEndOfFile:FeatureParser.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.FeatureParser.kt</ID>
+    <ID>NewLineAtEndOfFile:FingerprintIconView.kt$dev.skomlach.biometric.compat.impl.dialogs.FingerprintIconView.kt</ID>
+    <ID>NewLineAtEndOfFile:HihonorFaceManager.kt$dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl.HihonorFaceManager.kt</ID>
+    <ID>NewLineAtEndOfFile:HihonorFaceManagerFactory.kt$dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl.HihonorFaceManagerFactory.kt</ID>
+    <ID>NewLineAtEndOfFile:HihonorFaceManagerV1.kt$dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl.HihonorFaceManagerV1.kt</ID>
+    <ID>NewLineAtEndOfFile:HihonorFaceManagerV1Impl.kt$dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl.HihonorFaceManagerV1Impl.kt</ID>
+    <ID>NewLineAtEndOfFile:HihonorFaceRecognizeManager.kt$dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl.HihonorFaceRecognizeManager.kt</ID>
+    <ID>NewLineAtEndOfFile:HomeWatcher.kt$dev.skomlach.biometric.compat.utils.appstate.HomeWatcher.kt</ID>
+    <ID>NewLineAtEndOfFile:HuaweiFaceManager.kt$dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManager.kt</ID>
+    <ID>NewLineAtEndOfFile:HuaweiFaceManagerFactory.kt$dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManagerFactory.kt</ID>
+    <ID>NewLineAtEndOfFile:HuaweiFaceManagerV1.kt$dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManagerV1.kt</ID>
+    <ID>NewLineAtEndOfFile:HuaweiFaceManagerV1Impl.kt$dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManagerV1Impl.kt</ID>
+    <ID>NewLineAtEndOfFile:HuaweiFaceRecognizeManager.kt$dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceRecognizeManager.kt</ID>
+    <ID>NewLineAtEndOfFile:HwFaceManagerFactory.kt$com.hihonor.android.facerecognition.HwFaceManagerFactory.kt</ID>
+    <ID>NewLineAtEndOfFile:IFaceLockCallback.kt$dev.skomlach.biometric.compat.engine.internal.face.facelock.IFaceLockCallback.kt</ID>
+    <ID>NewLineAtEndOfFile:IMiuiFaceManager.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.IMiuiFaceManager.kt</ID>
+    <ID>NewLineAtEndOfFile:IconStateHelper.kt$dev.skomlach.biometric.compat.utils.activityView.IconStateHelper.kt</ID>
+    <ID>NewLineAtEndOfFile:InitiateSystemBiometricEnrollFragment.kt$dev.skomlach.biometric.compat.impl.permissions.InitiateSystemBiometricEnrollFragment.kt</ID>
+    <ID>NewLineAtEndOfFile:LegacyBiometricAuthenticationListener.kt$dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener.kt</ID>
+    <ID>NewLineAtEndOfFile:LegacyBiometricInitListener.kt$dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener.kt</ID>
+    <ID>NewLineAtEndOfFile:Miui3DFaceManagerImpl.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.Miui3DFaceManagerImpl.kt</ID>
+    <ID>NewLineAtEndOfFile:MiuiBuild.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.MiuiBuild.kt</ID>
+    <ID>NewLineAtEndOfFile:MiuiCodeToString.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.MiuiCodeToString.kt</ID>
+    <ID>NewLineAtEndOfFile:MiuiFaceFactory.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.MiuiFaceFactory.kt</ID>
+    <ID>NewLineAtEndOfFile:MiuiFaceManagerImpl.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.MiuiFaceManagerImpl.kt</ID>
+    <ID>NewLineAtEndOfFile:Miuiface.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.Miuiface.kt</ID>
+    <ID>NewLineAtEndOfFile:RestartPredicate.kt$dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate.kt</ID>
+    <ID>NewLineAtEndOfFile:RestartPredicatesImpl.kt$dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.kt</ID>
+    <ID>NewLineAtEndOfFile:RsaKeyDataException.kt$dev.skomlach.biometric.compat.crypto.rsa.RsaKeyDataException.kt</ID>
+    <ID>NewLineAtEndOfFile:RsaKeyHeader.kt$dev.skomlach.biometric.compat.crypto.rsa.RsaKeyHeader.kt</ID>
+    <ID>NewLineAtEndOfFile:RsaPrivateKey.kt$dev.skomlach.biometric.compat.crypto.rsa.RsaPrivateKey.kt</ID>
+    <ID>NewLineAtEndOfFile:RsaPublicKey.kt$dev.skomlach.biometric.compat.crypto.rsa.RsaPublicKey.kt</ID>
+    <ID>NewLineAtEndOfFile:SensorBlockedFallbackFragment.kt$dev.skomlach.biometric.compat.impl.permissions.SensorBlockedFallbackFragment.kt</ID>
+    <ID>NewLineAtEndOfFile:SensorPrivacyCheck.kt$dev.skomlach.biometric.compat.utils.SensorPrivacyCheck.kt</ID>
+    <ID>NewLineAtEndOfFile:SettingsSecure.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.SettingsSecure.kt</ID>
+    <ID>NewLineAtEndOfFile:SettingsSystem.kt$dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.SettingsSystem.kt</ID>
+    <ID>NewLineAtEndOfFile:TruncatedTextFix.kt$dev.skomlach.biometric.compat.utils.TruncatedTextFix.kt</ID>
+    <ID>NewLineAtEndOfFile:Vibro.kt$dev.skomlach.biometric.compat.utils.Vibro.kt</ID>
+    <ID>NewLineAtEndOfFile:WideGamutBug.kt$dev.skomlach.biometric.compat.utils.WideGamutBug.kt</ID>
+    <ID>NewLineAtEndOfFile:WindowBackgroundBlurring.kt$dev.skomlach.biometric.compat.utils.activityView.WindowBackgroundBlurring.kt</ID>
+    <ID>NewLineAtEndOfFile:WindowFocusChangedListener.kt$dev.skomlach.biometric.compat.utils.WindowFocusChangedListener.kt</ID>
+    <ID>ProtectedMemberInFinalClass:FaceLock.kt$FaceLock$protected var mFaceLockService: Any? = null</ID>
+    <ID>ProtectedMemberInFinalClass:FaceLock.kt$FaceLock$protected var mMap = HashMap&lt;IFaceLockCallback, Any&gt;()</ID>
+    <ID>RethrowCaughtException:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$throw e</ID>
+    <ID>ReturnCount:API23FingerprintModule.kt$API23FingerprintModule.AuthCallback$@Deprecated("Deprecated in Java") override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>ReturnCount:AbstractBiometricModule.kt$AbstractBiometricModule$private fun getUniqueId(result: Any): String?</ID>
+    <ID>ReturnCount:AbstractSoftwareBiometricManager.kt$AbstractSoftwareBiometricManager$protected fun getStoredLockoutError( prefs: SharedPreferences, policy: LockoutPolicy ): Int?</ID>
+    <ID>ReturnCount:ActiveWindow.kt$ActiveWindow$private fun extractActivity(c: Context): Activity?</ID>
+    <ID>ReturnCount:ActiveWindow.kt$ActiveWindow$private fun viewBelongActivity(view: View?, activity: Activity): Boolean</ID>
+    <ID>ReturnCount:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>ReturnCount:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule.FaceManagerAuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>ReturnCount:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>ReturnCount:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>ReturnCount:BiometricAuthState.kt$internal fun resolveEnrollTerminalOutcome( confirmation: BiometricConfirmation, scopeTypes: Collection&lt;BiometricType&gt;, successResults: Collection&lt;AuthenticationResult&gt;, failureResults: Collection&lt;AuthenticationResult&gt; = emptySet(), canceledResults: Collection&lt;AuthenticationResult&gt; = emptySet(), terminal: Boolean ): EnrollTerminalOutcome</ID>
+    <ID>ReturnCount:BiometricClient.kt$BiometricClient.MyHandler$override fun handleMessage(msg: Message)</ID>
+    <ID>ReturnCount:BiometricManagerCompat.kt$BiometricManagerCompat$@Deprecated("Due to restrictions, this method does not guarantee proper work") @JvmStatic fun isBiometricEnrollChanged( api: BiometricAuthRequest = BiometricAuthRequest.default() ): Boolean</ID>
+    <ID>ReturnCount:BiometricManagerCompat.kt$BiometricManagerCompat$@JvmStatic fun getAuthSnapshot( api: BiometricAuthRequest = BiometricAuthRequest.default(), ignoreCameraCheck: Boolean = true ): BiometricAuthSnapshot</ID>
+    <ID>ReturnCount:BiometricManagerCompat.kt$BiometricManagerCompat$private fun isCameraInUse( biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest.default(), ignoreCameraCheck: Boolean ): Boolean</ID>
+    <ID>ReturnCount:BiometricManagerCompat.kt$BiometricManagerCompat$private fun isCameraNotAvailable( biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest.default(), ignoreCameraCheck: Boolean ): Boolean</ID>
+    <ID>ReturnCount:BiometricManagerCompat.kt$BiometricManagerCompat$private fun shouldPreferLegacyEnrollment( api: BiometricAuthRequest, legacyState: BiometricAuthState, biometricPromptState: BiometricAuthState ): Boolean</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$fun authenticate(callbackOuter: AuthenticationCallback)</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$private fun authenticateInternal( callback: AuthenticationCallback )</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$private fun checkHardware(): AuthenticationFailureReason</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$private fun checkPermissions(callback: AuthenticationCallback, authTask: () -&gt; Unit)</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$private fun isBiometricPromptHardwareAvailable(type: BiometricType): Boolean</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$private fun shouldUseBiometricPromptImpl(): Boolean</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$internal fun disableBiometricForPermissionFailure(result: AuthenticationResult): Boolean</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$private fun fallbackRoute(type: BiometricType): SelectedBiometricRoute?</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$private fun legacyHardwareRoute(type: BiometricType): SelectedBiometricRoute?</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$private fun shouldPreferSystemHardwareFace(type: BiometricType): Boolean</ID>
+    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$private fun shouldRouteLegacyBeforeSystemHardware(type: BiometricType): Boolean</ID>
+    <ID>ReturnCount:BiometricPromptGenericImpl.kt$BiometricPromptGenericImpl$private fun checkAuthResult( module: AuthenticationResult?, authResult: AuthResult.AuthResultState )</ID>
+    <ID>ReturnCount:BiometricPromptHardware.kt$BiometricPromptHardware.EnrollCheckHelper$fun isChanged(): Boolean</ID>
+    <ID>ReturnCount:BiometricPromptHardware.kt$BiometricPromptHardware.PixelModelChecker$fun isPixel8OrNewer(input: String): Boolean</ID>
+    <ID>ReturnCount:BiometricPromptHardware.kt$BiometricPromptHardware.PixelModelChecker$fun parse(input: String): PixelModelInfo?</ID>
+    <ID>ReturnCount:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl$private fun checkAuthResult( module: AuthenticationResult?, authResult: AuthResult.AuthResultState )</ID>
+    <ID>ReturnCount:BiometricTitle.kt$BiometricTitle$fun getRelevantTitle(context: Context, types: Set&lt;BiometricType&gt;): String</ID>
+    <ID>ReturnCount:CheckBiometricUI.kt$CheckBiometricUI$fun hasExists(context: Context): Boolean</ID>
+    <ID>ReturnCount:CheckBiometricUI.kt$CheckBiometricUI$fun hasSomethingFrontSensor(context: Context): Boolean</ID>
+    <ID>ReturnCount:CryptographyManager.kt$CryptographyManager$fun decryptData( ciphertext: ByteArray?, confirmed: Set&lt;AuthenticationResult&gt; ): BiometricCryptographyResult?</ID>
+    <ID>ReturnCount:CryptographyManager.kt$CryptographyManager$fun encryptData( plaintext: ByteArray?, confirmed: Set&lt;AuthenticationResult&gt; ): BiometricCryptographyResult?</ID>
+    <ID>ReturnCount:DarkLightThemes.kt$DarkLightThemes$fun getNightMode(context: Context, shouldInscreenCaseAffected: Boolean = false): Int</ID>
+    <ID>ReturnCount:DialogMainColor.kt$DialogMainColor$@ColorInt fun getColor(context: Context, isNightMode: Boolean): Int</ID>
+    <ID>ReturnCount:FaceLock.kt$FaceLock$fun bind(connection: ServiceConnection): Boolean</ID>
+    <ID>ReturnCount:FacelockOldModule.kt$FacelockOldModule.ProxyListener$fun onAuthenticationError(errMsgId: Int, errString: CharSequence?): Void?</ID>
+    <ID>ReturnCount:FingerprintIconView.kt$FingerprintIconView.Companion$@DrawableRes private fun getDrawable(currentState: State, newState: State, animate: Boolean): Int</ID>
+    <ID>ReturnCount:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager.Companion$fun getErrorCodeString(code: Int, errorCode: Int): String</ID>
+    <ID>ReturnCount:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager.Companion$fun getErrorCodeString(code: Int, errorCode: Int): String</ID>
+    <ID>ReturnCount:HwFaceManagerFactory.kt$HwFaceManagerFactory$@Synchronized @JvmStatic fun getFaceManager(context: Context?): FaceManager?</ID>
+    <ID>ReturnCount:LegacyBiometric.kt$LegacyBiometric$fun areAvailableSoftwareModulesPermanentlyLockedOut( biometricType: BiometricType?, provider: BiometricProviderType ): Boolean</ID>
+    <ID>ReturnCount:LegacyBiometric.kt$LegacyBiometric$fun authenticate( biometricCryptographyPurpose: BiometricCryptographyPurpose?, targetView: SurfaceView?, requestedMethods: List&lt;BiometricType?&gt;, listener: LegacyBiometricAuthenticationListener, bundle: Bundle?, provider: BiometricProviderType = BiometricProviderType.COMBINED, excludedModuleTags: Set&lt;Int&gt; = emptySet(), allowCryptoFallback: Boolean = false )</ID>
+    <ID>ReturnCount:LegacyBiometric.kt$LegacyBiometric$fun getSettingsIntent(type: BiometricType): Intent?</ID>
+    <ID>ReturnCount:LegacyHardware.kt$LegacyHardware$private fun preferredSelectedModuleState(): BiometricModuleState?</ID>
+    <ID>ReturnCount:LockType.kt$LockType$fun isBiometricWeakEnabled(pkg: String?, context: Context): Boolean</ID>
+    <ID>ReturnCount:MiuiCodeToString.kt$MiuiCodeToString$fun getAcquiredString(acquireInfo: Int, vendorCode: Int): String?</ID>
+    <ID>ReturnCount:MiuiCodeToString.kt$MiuiCodeToString$fun getErrorString(errMsg: Int, vendorCode: Int): String?</ID>
+    <ID>ReturnCount:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$override fun enroll( cryptoToken: ByteArray?, cancel: CancellationSignal, flags: Int, enrollCallback: IMiuiFaceManager.EnrollmentCallback?, surface: Surface?, detectArea: RectF?, enrollArea: RectF, timeout: Int )</ID>
+    <ID>ReturnCount:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$private fun getMessageInfo(msgId: Int): String</ID>
+    <ID>ReturnCount:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.ClientHandler$override fun handleMessage(msg: Message)</ID>
+    <ID>ReturnCount:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>ReturnCount:OppoFaceUnlockModule.kt$OppoFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>ReturnCount:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>ReturnCount:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>ReturnCount:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>ReturnCount:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>ReturnCount:SensorPrivacyCheck.kt$SensorPrivacyCheck$fun isCameraBlocked(): Boolean</ID>
+    <ID>ReturnCount:SensorPrivacyCheck.kt$SensorPrivacyCheck$private fun isCameraServiceReportingBusy(): Boolean</ID>
+    <ID>ReturnCount:SensorPrivacyCheck.kt$SensorPrivacyCheck$private fun isSensorOperationallyBlocked(permission: String): Boolean</ID>
+    <ID>ReturnCount:SoftwareBiometricModule.kt$SoftwareBiometricModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
+    <ID>ReturnCount:SoftwareBiometricModule.kt$SoftwareBiometricModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>ReturnCount:SoterFaceUnlockModule.kt$SoterFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>ReturnCount:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
+    <ID>ReturnCount:SupportFingerprintModule.kt$SupportFingerprintModule.AuthCallbackCompat$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence)</ID>
+    <ID>SafeCast:FaceManager.kt$FaceManager.CryptoObject$if (mCrypto is Cipher) mCrypto else null</ID>
+    <ID>SafeCast:FaceManager.kt$FaceManager.CryptoObject$if (mCrypto is Mac) mCrypto else null</ID>
+    <ID>SafeCast:FaceManager.kt$FaceManager.CryptoObject$if (mCrypto is Signature) mCrypto else null</ID>
+    <ID>SpreadOperator:ActiveWindow.kt$ActiveWindow$(*parents)</ID>
+    <ID>SpreadOperator:BiometricPromptCompat.kt$BiometricPromptCompat.Companion$( AndroidContext.appContext, *stringIds )</ID>
+    <ID>SpreadOperator:CheckBiometricUI.kt$CheckBiometricUI$(*applicationInfo.splitPublicSourceDirs ?: emptyArray())</ID>
+    <ID>SpreadOperator:CheckBiometricUI.kt$CheckBiometricUI$(*applicationInfo.splitSourceDirs ?: emptyArray())</ID>
+    <ID>SpreadOperator:DevicesWithKnownBugs.kt$DevicesWithKnownBugs$(*lgWithMissedBiometricUI)</ID>
+    <ID>SpreadOperator:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$(obj, *objArr)</ID>
+    <ID>SpreadOperator:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$(*supportRegion)</ID>
+    <ID>SwallowedException:API23FingerprintModule.kt$API23FingerprintModule$e: Throwable</ID>
+    <ID>SwallowedException:AbstractBiometricModule.kt$AbstractBiometricModule$e: Exception</ID>
+    <ID>SwallowedException:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:BiometricPromptCompat.kt$BiometricPromptCompat$e: IllegalStateException</ID>
+    <ID>SwallowedException:BiometricPromptCompat.kt$BiometricPromptCompat$e: Throwable</ID>
+    <ID>SwallowedException:FaceLock.kt$FaceLock$e: Throwable</ID>
+    <ID>SwallowedException:FaceLockHelper.kt$FaceLockHelper$e: Throwable</ID>
+    <ID>SwallowedException:FingerprintIconView.kt$FingerprintIconView.Companion$e: Exception</ID>
+    <ID>SwallowedException:FingerprintIconView.kt$FingerprintIconView.Companion$ex: Exception</ID>
+    <ID>SwallowedException:FingerprintIconView.kt$FingerprintIconView.Companion$ex: Throwable</ID>
+    <ID>SwallowedException:Hihonor3DFaceUnlockModule.kt$Hihonor3DFaceUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:HihonorFaceManagerV1Impl.kt$HihonorFaceManagerV1Impl$e: Throwable</ID>
+    <ID>SwallowedException:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager$e: Throwable</ID>
+    <ID>SwallowedException:HihonorFaceUnlockModule.kt$HihonorFaceUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:HomeWatcher.kt$HomeWatcher.InnerReceiver$e: Throwable</ID>
+    <ID>SwallowedException:Huawei3DFaceUnlockModule.kt$Huawei3DFaceUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:HuaweiFaceManagerV1Impl.kt$HuaweiFaceManagerV1Impl$e: Throwable</ID>
+    <ID>SwallowedException:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager$e: Throwable</ID>
+    <ID>SwallowedException:HuaweiFaceUnlockModule.kt$HuaweiFaceUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:HwFaceManagerFactory.kt$HwFaceManagerFactory$var3: ClassNotFoundException</ID>
+    <ID>SwallowedException:HwFaceManagerFactory.kt$HwFaceManagerFactory$var4: NoSuchMethodException</ID>
+    <ID>SwallowedException:HwFaceManagerFactory.kt$HwFaceManagerFactory$var5: IllegalAccessException</ID>
+    <ID>SwallowedException:HwFaceManagerFactory.kt$HwFaceManagerFactory$var6: InvocationTargetException</ID>
+    <ID>SwallowedException:LockType.kt$LockType$e: Throwable</ID>
+    <ID>SwallowedException:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$cc: Exception</ID>
+    <ID>SwallowedException:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:OppoFaceUnlockModule.kt$OppoFaceUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>SwallowedException:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>SwallowedException:ScreenProtection.kt$ScreenProtection$e: Exception</ID>
+    <ID>SwallowedException:ScreenProtection.kt$ScreenProtection$se: SecurityException</ID>
+    <ID>SwallowedException:SensorPrivacyCheck.kt$SensorPrivacyCheck$e: Throwable</ID>
+    <ID>SwallowedException:SettingsSecure.kt$SettingsSecure$e: Throwable</ID>
+    <ID>SwallowedException:SettingsSystem.kt$SettingsSystem$e: Throwable</ID>
+    <ID>SwallowedException:SoftwareBiometricModule.kt$SoftwareBiometricModule$e: Throwable</ID>
+    <ID>SwallowedException:SoterFaceUnlockModule.kt$SoterFaceUnlockModule$e: Throwable</ID>
+    <ID>SwallowedException:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule$e: Throwable</ID>
+    <ID>ThrowingExceptionsWithoutMessageOrCause:BiometricPromptCompat.kt$BiometricPromptCompat$IllegalStateException()</ID>
+    <ID>ThrowsCount:BiometricCryptoObjectHelper.kt$BiometricCryptoObjectHelper$fun getBiometricCryptoObject( name: String, purpose: BiometricCryptographyPurpose?, isUserAuthRequired: Boolean = true ): BiometricCryptoObject?</ID>
+    <ID>ThrowsCount:RsaPrivateKey.kt$RsaPrivateKey.Companion$@Throws(RsaKeyDataException::class) fun fromByteArray(bytes: ByteArray, sizeOfLong: Int): RsaPrivateKey</ID>
+    <ID>ThrowsCount:RsaPublicKey.kt$RsaPublicKey.Companion$@Throws(RsaKeyDataException::class) fun fromByteArray(bytes: ByteArray, sizeOfLong: Int): RsaPublicKey</ID>
+    <ID>TooGenericExceptionCaught:API23FingerprintModule.kt$API23FingerprintModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AbstractBiometricModule.kt$AbstractBiometricModule$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AbstractBiometricModule.kt$AbstractBiometricModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ActiveWindow.kt$ActiveWindow$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ActiveWindow.kt$ActiveWindow$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AppFlowCryptographyManagerInterface.kt$AppFlowCryptographyManagerInterface$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricClient.kt$BiometricClient$e2: Exception</ID>
+    <ID>TooGenericExceptionCaught:BiometricClient.kt$BiometricClient$e2: NullPointerException</ID>
+    <ID>TooGenericExceptionCaught:BiometricClient.kt$BiometricClient$e3: Exception</ID>
+    <ID>TooGenericExceptionCaught:BiometricClient.kt$BiometricClient$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BiometricConnect.kt$BiometricConnect$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricCryptoObjectHelper.kt$BiometricCryptoObjectHelper$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricInitProvider.kt$BiometricInitProvider.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricManagerCompat.kt$BiometricManagerCompat$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:BiometricNotificationManager.kt$BiometricNotificationManager$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricPromptCompat.kt$BiometricPromptCompat$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricPromptCompat.kt$BiometricPromptCompat.Companion$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricPromptCompatDialogImpl.kt$BiometricPromptCompatDialogImpl$we: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricPromptHardware.kt$BiometricPromptHardware$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricModalityDetector$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricPromptHardware.kt$BiometricPromptHardware.EnrollCheckHelper$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricPromptHardware.kt$BiometricPromptHardware.EnrollCheckHelper$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:BiometricTitle.kt$BiometricTitle$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:CheckBiometricUI.kt$CheckBiometricUI$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ContentResolverHelper.kt$ContentResolverHelper$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:Core.kt$Core$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:CredentialsRequestFragment.kt$CredentialsRequestFragment$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:CredentialsRequestFragment.kt$CredentialsRequestFragment.Companion.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:CryptographyManager.kt$CryptographyManager$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:CryptographyManagerInterfaceMarshmallowImpl.kt$CryptographyManagerInterfaceMarshmallowImpl$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:DeviceUnlockedReceiver.kt$DeviceUnlockedReceiver.Companion$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FaceLock.kt$FaceLock$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FaceLock.kt$FaceLock.CallBackBinder$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FaceLockHelper.kt$FaceLockHelper$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FaceLockHelper.kt$FaceLockHelper$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FaceLockHelper.kt$FaceLockHelper.&lt;no name provided&gt;$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FaceLockHelper.kt$FaceLockHelper.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FacelockOldModule.kt$FacelockOldModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FacelockOldModule.kt$FacelockOldModule.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FaceunlockLavaModule.kt$FaceunlockLavaModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FeatureParser.kt$FeatureParser$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:FingerprintIconView.kt$FingerprintIconView.Companion$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FingerprintIconView.kt$FingerprintIconView.Companion$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:FingerprintIconView.kt$FingerprintIconView.Companion$ex: Throwable</ID>
+    <ID>TooGenericExceptionCaught:Hihonor3DFaceUnlockModule.kt$Hihonor3DFaceUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HihonorFaceManagerV1Impl.kt$HihonorFaceManagerV1Impl$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HihonorFaceRecognizeManager.kt$HihonorFaceRecognizeManager$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HihonorFaceUnlockModule.kt$HihonorFaceUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HomeWatcher.kt$HomeWatcher$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HomeWatcher.kt$HomeWatcher.InnerReceiver$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:Huawei3DFaceUnlockModule.kt$Huawei3DFaceUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HuaweiFaceManagerV1Impl.kt$HuaweiFaceManagerV1Impl$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HuaweiFaceRecognizeManager.kt$HuaweiFaceRecognizeManager$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HuaweiFaceUnlockModule.kt$HuaweiFaceUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:InitiateSystemBiometricEnrollFragment.kt$InitiateSystemBiometricEnrollFragment$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:InitiateSystemBiometricEnrollFragment.kt$InitiateSystemBiometricEnrollFragment.Companion.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:LegacyBiometric.kt$LegacyBiometric$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:LockType.kt$LockType$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$cc: Exception</ID>
+    <ID>TooGenericExceptionCaught:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:MiuiBuild.kt$MiuiBuild$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:MiuiCodeToString.kt$MiuiCodeToString$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.FaceObserver$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:OppoFaceUnlockModule.kt$OppoFaceUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SamsungFaceUnlockModule.kt$SamsungFaceUnlockModule.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SamsungIrisUnlockModule.kt$SamsungIrisUnlockModule.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:ScreenProtection.kt$ScreenProtection$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SensorBlockedFallbackFragment.kt$SensorBlockedFallbackFragment$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SensorBlockedFallbackFragment.kt$SensorBlockedFallbackFragment.Companion.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SensorPrivacyCheck.kt$SensorPrivacyCheck$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SettingsSecure.kt$SettingsSecure$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SettingsSystem.kt$SettingsSystem$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SoftwareBiometricModule.kt$SoftwareBiometricModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SoftwareBiometricPromptRegistry.kt$SoftwareBiometricPromptRegistry$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SoterFaceUnlockModule.kt$SoterFaceUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:SupportFingerprintModule.kt$SupportFingerprintModule$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:TruncatedTextFix.kt$TruncatedTextFix$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:TruncatedTextFix.kt$TruncatedTextFix.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:UntrustedAccessibilityFragment.kt$UntrustedAccessibilityFragment$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:UntrustedAccessibilityFragment.kt$UntrustedAccessibilityFragment.Companion.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:WindowBackgroundBlurring.kt$WindowBackgroundBlurring$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:WindowForegroundBlurring.kt$WindowForegroundBlurring$e: Throwable</ID>
+    <ID>TooGenericExceptionThrown:FaceLock.kt$FaceLock$throw RuntimeException(TAG + " not supported")</ID>
+    <ID>TooGenericExceptionThrown:MiuiFaceUnlockModule.kt$MiuiFaceUnlockModule$throw RuntimeException("Miui Face not supported")</ID>
+    <ID>TooGenericExceptionThrown:RsaPrivateKey.kt$RsaPrivateKey$throw RuntimeException("Not all data has been written to output")</ID>
+    <ID>TooGenericExceptionThrown:RsaPrivateKey.kt$RsaPrivateKey.Companion$throw RuntimeException("RsaPrivateKey: Not all bytes has been read from input")</ID>
+    <ID>TooGenericExceptionThrown:RsaPublicKey.kt$RsaPublicKey$throw RuntimeException("Some unexpected bytes remaining when converting public key to byte array")</ID>
+    <ID>TooGenericExceptionThrown:RsaPublicKey.kt$RsaPublicKey.Companion$throw RuntimeException("RsaPublicKey: Not all bytes has been read from input")</ID>
+    <ID>TooManyFunctions:AbstractBiometricModule.kt$AbstractBiometricModule : BiometricModule</ID>
+    <ID>TooManyFunctions:AbstractSoftwareBiometricManager.kt$AbstractSoftwareBiometricManager</ID>
+    <ID>TooManyFunctions:BiometricAuthState.kt$dev.skomlach.biometric.compat.BiometricAuthState.kt</ID>
+    <ID>TooManyFunctions:BiometricClient.kt$BiometricClient</ID>
+    <ID>TooManyFunctions:BiometricManagerCompat.kt$BiometricManagerCompat</ID>
+    <ID>TooManyFunctions:BiometricPromptApi28Impl.kt$BiometricPromptApi28Impl : IBiometricPromptImplAuthCallback</ID>
+    <ID>TooManyFunctions:BiometricPromptCompat.kt$BiometricPromptCompat</ID>
+    <ID>TooManyFunctions:BiometricPromptCompat.kt$BiometricPromptCompat$Builder</ID>
+    <ID>TooManyFunctions:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog : DialogFragment</ID>
+    <ID>TooManyFunctions:BiometricPromptGenericImpl.kt$BiometricPromptGenericImpl : IBiometricPromptImplAuthCallback</ID>
+    <ID>TooManyFunctions:BiometricPromptHardware.kt$BiometricPromptHardware : AbstractHardware</ID>
+    <ID>TooManyFunctions:BiometricPromptHardware.kt$BiometricPromptHardware$BiometricModalityDetector</ID>
+    <ID>TooManyFunctions:BiometricPromptSilentImpl.kt$BiometricPromptSilentImpl : IBiometricPromptImplAuthCallback</ID>
+    <ID>TooManyFunctions:IMiuiFaceManager.kt$IMiuiFaceManager</ID>
+    <ID>TooManyFunctions:LegacyBiometric.kt$LegacyBiometric</ID>
+    <ID>TooManyFunctions:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl : IMiuiFaceManagerServiceCallback</ID>
+    <ID>TooManyFunctions:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl : IMiuiFaceManager</ID>
+    <ID>TooManyFunctions:WindowForegroundBlurring.kt$WindowForegroundBlurring : IconStateListener</ID>
+    <ID>UnusedParameter:BiometricClient.kt$BiometricClient$cb: ServiceCallback?</ID>
+    <ID>UnusedParameter:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$deviceId: Long</ID>
+    <ID>UnusedParameter:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$userId: Int</ID>
+    <ID>UnusedPrivateMember:BiometricPromptCompat.kt$BiometricPromptCompat$private fun getProviderForSelectedModule(type: BiometricType): BiometricProviderType</ID>
+    <ID>UnusedPrivateMember:BiometricPromptCompat.kt$BiometricPromptCompat$private fun isBiometricPromptHardwareAvailable(type: BiometricType): Boolean</ID>
+    <ID>UnusedPrivateMember:BiometricPromptCompat.kt$BiometricPromptCompat$private fun isPrimaryBiometricPromptHardwareType(type: BiometricType): Boolean</ID>
+    <ID>UnusedPrivateMember:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$@RequiresApi(Build.VERSION_CODES.S) private fun findNearestColor(name: String, color: Int)</ID>
+    <ID>UnusedPrivateMember:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricModalityDetector$private fun containsWord(value: String, token: String): Boolean</ID>
+    <ID>UnusedPrivateMember:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private fun resetDatabase()</ID>
+    <ID>UnusedPrivateMember:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$@Throws(RemoteException::class) private fun binderCallAuthenticatorId(service: IBinder, packName: String): Long</ID>
+    <ID>UnusedPrivateMember:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$@Throws(RemoteException::class) private fun binderCallHasEnrolledFaces(service: IBinder, groupId: Int, packName: String): Int</ID>
+    <ID>UnusedPrivateMember:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$@Throws(RemoteException::class) private fun binderCallPostEnroll(service: IBinder, token: IBinder)</ID>
+    <ID>UnusedPrivateMember:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$@Throws(RemoteException::class) private fun binderCallPreEnroll(service: IBinder, token: IBinder)</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_GET_VERSION = 5002</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_RELEASE_SERVICE = 5001</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_RELEASE_TIMEOUT = 5</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_REPLAY_TIMEOUT = 2</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_SEND_SERVEICE = 5003</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_START_SERVICE = 5000</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_READY_TIMEOUT = 2</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_CONNECTED = 2</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_CONNECTING = 1</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_CONNECTING_ERROR = 12</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_CONNECTING_TIME_OUT = 11</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_DISCONNECT = 5</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_DISCONNECTING = 3</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_NONE = 0</ID>
+    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_UNBIND = 4</ID>
+    <ID>UnusedPrivateProperty:BiometricManagerCompat.kt$BiometricManagerCompat$private const val TAG = "BiometricManagerCompat"</ID>
+    <ID>UnusedPrivateProperty:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$private val allAvailableTypes: HashSet&lt;BiometricType&gt; by lazy { val types = HashSet&lt;BiometricType&gt;() types.addAll(primaryAvailableTypes) types.addAll(secondaryAvailableTypes) types }</ID>
+    <ID>UnusedPrivateProperty:BiometricPromptHardware.kt$BiometricPromptHardware$private val isAnyLockedOut: Boolean get() { if (canAuthenticate == BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE) return true for (type in BiometricType.entries) { if (BiometricLockoutFix.isLockOut(type)) return true } return false }//legacy</ID>
+    <ID>UnusedPrivateProperty:FaceManager.kt$FaceManager.Companion$private const val TAG = "Facerecognition.FaceManager"</ID>
+    <ID>UnusedPrivateProperty:FingerprintIconView.kt$FingerprintIconView.Companion$//fix java.lang.IllegalStateException: Software rendering doesn't support hardware bitmaps //solution from https://stackoverflow.com/a/50015989 @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O) private val isAndroidO = Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O</ID>
+    <ID>UnusedPrivateProperty:HihonorFaceManagerV1Impl.kt$HihonorFaceManagerV1Impl.Companion$private const val HIHONOR_OP_FAIL = -1</ID>
+    <ID>UnusedPrivateProperty:HuaweiFaceManagerV1Impl.kt$HuaweiFaceManagerV1Impl.Companion$private const val HUAWEI_OP_FAIL = -1</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private val hasEnrollFace = 0</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private val mBinderLock = Any()</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val CANCEL_STATUS_DONE = 1</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val CANCEL_STATUS_NONE = 0</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val DB_STATUS_NONE = 0</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val DB_STATUS_PREPARED = 2</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val DB_STATUS_PREPARING = 1</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val FACEUNLOCK_SUPPORT_SUPERPOWER = "faceunlock_support_superpower"</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val FACE_UNLOCK_HAS_FEATURE_URI = "content://settings/secure/face_unlock_has_feature_sl"</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val POWERMODE_SUPERSAVE_OPEN_URI = "content://settings/secure/power_supersave_mode_open"</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val RECEIVER_ON_AUTHENTICATION_TIMEOUT = 1</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val RECEIVER_ON_ENROLL_TIMEOUT = 0</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val VERSION_1 = 1</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val height = 4</ID>
+    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val width = 3</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$private val mBinderLock = Any()</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$private val mFaceUnlockModel = 0</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_ADD_LOCKOUT_RESET_CALLBACK = 16</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_AUTHENTICATE = 3</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_CANCEL_AUTHENTICATE = 4</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_CANCEL_ENROLL = 6</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_ENROLL = 5</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_EXT_CMD = 101</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_GET_AUTHENTICATOR_ID = 14</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_GET_ENROLLED_FACE_LIST = 9</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_GET_VENDOR_INFO = 17</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_HAS_ENROLLED_FACES = 12</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_POST_ENROLL = 11</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_PRE_ENROLL = 10</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_PRE_INIT_AUTHEN = 2</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_REMOVE = 7</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_RENAME = 8</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_RESET_TIMEOUT = 15</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val FACEUNLOCK_CURRENT_USE_INVALID_MODEL = 2</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val FACEUNLOCK_CURRENT_USE_RGB_MODEL = 1</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val FACEUNLOCK_CURRENT_USE_STRUCTURE_MODEL = 0</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val FACEUNLOCK_SUPPORT_SUPERPOWER = "faceunlock_support_superpower"</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val FACE_UNLOCK_3D_HAS_FEATURE = "face_unlock_has_feature_sl"</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val FACE_UNLOCK_MODEL = "face_unlock_model"</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val RECEIVER_ON_AUTHENTICATION_FAILED = 204</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val RECEIVER_ON_AUTHENTICATION_SUCCEEDED = 203</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val RECEIVER_ON_ENROLL_RESULT = 201</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val RECEIVER_ON_ERROR = 205</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val RECEIVER_ON_EXT_CMD = 301</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val RECEIVER_ON_LOCKOUT_RESET = 261</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val RECEIVER_ON_ON_ACQUIRED = 202</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val RECEIVER_ON_PRE_INIT = 207</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val RECEIVER_ON_REMOVED = 206</ID>
+    <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val VERSION_1 = 1</ID>
+    <ID>UseCheckOrError:AppFlowCryptographyManagerInterface.kt$AppFlowCryptographyManagerInterface$throw IllegalStateException("App-flow session is not unlocked for key: $keyName")</ID>
+    <ID>UseCheckOrError:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$throw IllegalStateException("Cipher initialization error")</ID>
+    <ID>UseCheckOrError:RsaKeyHeader.kt$RsaKeyHeader$throw IllegalStateException("Cannot determine expected key length for magic $magic")</ID>
+    <ID>UseCheckOrError:RsaKeyHeader.kt$RsaKeyHeader$throw IllegalStateException("Unexpected size of int $sizeOfLong")</ID>
+    <ID>UseCheckOrError:RsaKeyHeader.kt$RsaKeyHeader.Companion$throw IllegalStateException("Unexpected size of int $sizeOfLong")</ID>
+    <ID>UseRequire:BiometricMethod.kt$BiometricMethod.Companion$throw IllegalArgumentException("This ID already used")</ID>
+    <ID>UseRequire:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$throw IllegalArgumentException("AuthWindow can't be less then 0")</ID>
+    <ID>UseRequire:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$throw IllegalArgumentException("Must supply an authentication callback")</ID>
+    <ID>VariableNaming:BiometricClient.kt$BiometricClient$private val accessLock_ = ReentrantLock()</ID>
+    <ID>VariableNaming:BiometricClient.kt$BiometricClient$private var replayReadyLatch_: CountDownLatch? = null</ID>
+    <ID>VariableNaming:BiometricClient.kt$BiometricClient$private var serviceReadyLatch_: CountDownLatch? = null</ID>
+    <ID>VariableNaming:BiometricClient.kt$BiometricClient$val msg_cmd = Message.obtain(mHandler, 5003)</ID>
+    <ID>VariableNaming:BiometricClient.kt$BiometricClient.ConnectHandler$val in_bundle = msg.data</ID>
+    <ID>VariableNaming:BiometricClient.kt$BiometricClient.ConnectHandler$val moduleVerMaj_ = in_bundle.getInt(BiometricConnect.MSG_VER_MODULE_MAJ)</ID>
+    <ID>VariableNaming:BiometricClient.kt$BiometricClient.ConnectHandler$val moduleVerMin_ = in_bundle.getInt(BiometricConnect.MSG_VER_MODULE_MIN)</ID>
+    <ID>VariableNaming:BiometricClient.kt$BiometricClient.ConnectHandler$val serviceVerMaj_ = in_bundle.getInt(BiometricConnect.MSG_VER_SER_MAJ)</ID>
+    <ID>VariableNaming:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$val NIGHT_MODE = if (currentMode == UiModeManager.MODE_NIGHT_YES) { AppCompatDelegate.MODE_NIGHT_YES } else if (currentMode == UiModeManager.MODE_NIGHT_AUTO) { if (BuildCompat.isAtLeastP()) { //Android 9+ deal with dark mode natively AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM } else { AppCompatDelegate.MODE_NIGHT_AUTO_TIME } } else { if (BuildCompat.isAtLeastP()) { //Android 9+ deal with dark mode natively AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM } else { AppCompatDelegate.MODE_NIGHT_NO } }</ID>
+    <ID>VariableNaming:BiometricPromptCompatDialogImpl.kt$BiometricPromptCompatDialogImpl$private val not_recognized: CharSequence</ID>
+    <ID>VariableNaming:BiometricPromptCompatDialogImpl.kt$BiometricPromptCompatDialogImpl$private val too_many_attempts: CharSequence</ID>
+    <ID>VariableNaming:BiometricPromptCompatDialogImpl.kt$BiometricPromptCompatDialogImpl$val WHAT_RESTORE_NORMAL_STATE = 0</ID>
+    <ID>VariableNaming:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$private val ANDROID_KEYSTORE_PROVIDER_TYPE: String get() = "AndroidKeyStore"</ID>
+    <ID>VariableNaming:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$private val KEY_NAME = "CryptographyManagerInterfaceKitkatImpl-$version"</ID>
+    <ID>VariableNaming:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$private val LEGACY_KEY_NAME = "CryptographyManagerInterfaceKitkatImpl-$LEGACY_VERSION"</ID>
+    <ID>VariableNaming:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$private val LEGACY_VERSION: String get() = "v2"</ID>
+    <ID>VariableNaming:CryptographyManagerInterfaceKitkatImpl.kt$CryptographyManagerInterfaceKitkatImpl$private val TYPE_RSA: String get() = "RSA"</ID>
+    <ID>VariableNaming:CryptographyManagerInterfaceMarshmallowImpl.kt$CryptographyManagerInterfaceMarshmallowImpl$private val ANDROID_KEYSTORE_PROVIDER_TYPE: String get() = "AndroidKeyStore"</ID>
+    <ID>VariableNaming:CryptographyManagerInterfaceMarshmallowImpl.kt$CryptographyManagerInterfaceMarshmallowImpl$private val KEY_NAME = "CryptographyManagerInterfaceMarshmallowImpl-$version"</ID>
+    <ID>VariableNaming:FaceLock.kt$FaceLock$val FACELOCK_CALLBACK = "com.android.internal.policy.IFaceLockCallback"</ID>
+    <ID>VariableNaming:FaceLock.kt$FaceLock$val FACELOCK_INTERFACE = "com.android.internal.policy.IFaceLockInterface"</ID>
+    <ID>VariableNaming:HomeWatcher.kt$HomeWatcher.InnerReceiver$val SYSTEM_DIALOG_REASON_DREAM = "dream"</ID>
+    <ID>VariableNaming:HomeWatcher.kt$HomeWatcher.InnerReceiver$val SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS = "globalactions"</ID>
+    <ID>VariableNaming:HomeWatcher.kt$HomeWatcher.InnerReceiver$val SYSTEM_DIALOG_REASON_HOME_KEY = "homekey"</ID>
+    <ID>VariableNaming:HomeWatcher.kt$HomeWatcher.InnerReceiver$val SYSTEM_DIALOG_REASON_KEY = "reason"</ID>
+    <ID>VariableNaming:HomeWatcher.kt$HomeWatcher.InnerReceiver$val SYSTEM_DIALOG_REASON_RECENT_APPS = "recentapps"</ID>
+    <ID>VariableNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$val bundle_enroll = Bundle()</ID>
+    <ID>VariableNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$val bundle_preview = Bundle()</ID>
+    <ID>VariableNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$val is_ir_detect = bundle.getBoolean(BiometricConnect.MSG_CB_BUNDLE_FACE_IS_IR)</ID>
+    <ID>VariableNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$val out_bundle = Bundle()</ID>
+    <ID>VariableNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$var detect_zone = floatArrayOf()</ID>
+    <ID>VariableNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.EnrollParam$var DepthmpaType = 0</ID>
+    <ID>VariableNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.FaceInfo$var eye_dist = 0f</ID>
+    <ID>VariableNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.FaceInfo$var points_array: Array&lt;Point?&gt; = arrayOf()</ID>
+    <ID>VariableNaming:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.TemplateItem$var group_id = 0</ID>
+    <ID>WildcardImport:FaceVerifyManager.kt$import android.os.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

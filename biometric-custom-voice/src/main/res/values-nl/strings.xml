@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">Stemmonster %1$d van %2$d opgeslagen</string>
     <string name="biometriccompat_voice_status_recording">Stemmonster opnemen...</string>
     <string name="biometriccompat_voice_status_checking">Stem controleren</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">Om je stem te registreren, spreek je codezin 2-4 seconden lang op natuurlijke wijze uit. Poging %1$d van %2$d.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">Herhaal dezelfde codezin nogmaals. Poging %1$d van %2$d.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">Spreek je codezin op natuurlijke wijze uit.</string>
+    <string name="biometriccompat_voice_prompt_processing">Stemmonster wordt verwerkt</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">Geen spraak gedetecteerd. Probeer dezelfde zin nog eens uit te spreken.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">De zin was te kort. Herhaal dezelfde zin nog eens.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">De zin was te stil. Ga dichter bij de microfoon staan en probeer het opnieuw.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">Spreek de zin duidelijker uit en probeer het opnieuw.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">Spreek een kortere zin uit en probeer het opnieuw.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">Spreek een nieuwe natuurlijke zin uit en probeer het opnieuw.</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">Opnemen is mislukt. Probeer dezelfde zin nog eens uit te spreken.</string>
 </resources>
-
-
-
-
-
-

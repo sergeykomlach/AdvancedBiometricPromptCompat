@@ -20,8 +20,6 @@
     <string name="biometriccompat_voice_help_sample_clipped">Voice sample is clipped. Lower microphone gain or move slightly farther away.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">Voice sample looks repeated or synthetic. Record a fresh natural phrase.</string>
     <string name="biometriccompat_voice_help_embedding_invalid">Voice sample could not be used. Record a new voice sample.</string>
-
-
     <string name="biometriccompat_voice_button_content_description">Voice capture</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Record voice sample</string>
     <string name="biometriccompat_voice_overlay_title_auth">Confirm your voice</string>
@@ -47,14 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">Voice sample %1$d of %2$d saved</string>
     <string name="biometriccompat_voice_status_recording">Recording voice sample...</string>
     <string name="biometriccompat_voice_status_checking">Checking voice</string>
-
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">To register your voice, say your code phrase naturally for 2-4 seconds. Attempt %1$d of %2$d.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">Repeat the same code phrase again. Attempt %1$d of %2$d.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">Say your code phrase naturally.</string>
+    <string name="biometriccompat_voice_prompt_processing">Processing voice sample</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">No speech detected. Try the same phrase again.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">The phrase was too short. Repeat the same phrase again.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">The phrase was too quiet. Move closer to the microphone and try again.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">Speak the phrase more clearly and try again.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">Keep the phrase shorter and try again.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">Use a fresh natural phrase and try again.</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">Recording failed. Try the same phrase again.</string>
 </resources>
-
-
-
-
-
-
-
-
-

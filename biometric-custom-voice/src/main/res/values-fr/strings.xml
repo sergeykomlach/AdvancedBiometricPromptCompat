@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">Échantillon vocal %1$d sur %2$d enregistré</string>
     <string name="biometriccompat_voice_status_recording">Enregistrement de l’échantillon vocal...</string>
     <string name="biometriccompat_voice_status_checking">Vérification de la voix</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">Pour enregistrer votre voix, prononcez naturellement votre phrase secrète pendant 2 à 4 secondes. Tentative %1$d sur %2$d.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">Répétez encore une fois la même phrase secrète. Tentative %1$d sur %2$d.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">Prononcez naturellement votre phrase secrète.</string>
+    <string name="biometriccompat_voice_prompt_processing">Traitement de l’échantillon vocal</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">Aucune voix détectée. Essayez de redire la même phrase.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">La phrase était trop courte. Répétez encore une fois la même phrase.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">La phrase était trop faible. Rapprochez-vous du microphone et réessayez.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">Prononcez la phrase plus clairement et réessayez.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">Prononcez une phrase plus courte et réessayez.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">Prononcez une nouvelle phrase naturelle et réessayez.</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">L’enregistrement a échoué. Essayez de redire la même phrase.</string>
 </resources>
-
-
-
-
-
-

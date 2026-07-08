@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">Sampel suara %1$d dari %2$d disimpan</string>
     <string name="biometriccompat_voice_status_recording">Merekam sampel suara...</string>
     <string name="biometriccompat_voice_status_checking">Memeriksa suara</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">Untuk mendaftarkan suara Anda, ucapkan frasa sandi Anda secara natural selama 2-4 detik. Percobaan %1$d dari %2$d.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">Ulangi frasa sandi yang sama sekali lagi. Percobaan %1$d dari %2$d.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">Ucapkan frasa sandi Anda secara natural.</string>
+    <string name="biometriccompat_voice_prompt_processing">Memproses sampel suara</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">Tidak ada ucapan yang terdeteksi. Coba ucapkan frasa yang sama lagi.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">Frasa tadi terlalu pendek. Ulangi frasa yang sama sekali lagi.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">Frasa tadi terlalu pelan. Dekatkan diri ke mikrofon lalu coba lagi.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">Ucapkan frasa itu lebih jelas lalu coba lagi.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">Ucapkan frasa yang lebih pendek lalu coba lagi.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">Ucapkan frasa baru yang natural lalu coba lagi.</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">Perekaman gagal. Coba ucapkan frasa yang sama lagi.</string>
 </resources>
-
-
-
-
-
-

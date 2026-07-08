@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:VoiceAutoCaptureController.kt$VoiceAutoCaptureController$disposed.get() || !callback.isPromptActive() || session.isReadyToStartAuth() || isRecording.get()</ID>
+    <ID>ComplexCondition:VoiceTemplateStore.kt$VoiceTemplateStore$weights.size != means.size || weights.size &gt; MAX_GMM_COMPONENTS || means.first().size &gt; MAX_GMM_FRAME_SIZE || variances.any { it.size != means.first().size }</ID>
+    <ID>CyclomaticComplexMethod:VoiceAutoCaptureController.kt$VoiceAutoCaptureController$private fun startNextAttempt()</ID>
+    <ID>CyclomaticComplexMethod:VoiceBiometricManager.kt$VoiceBiometricManager$override fun authenticate( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:BasicVoiceEngine.kt$BasicVoiceEngine : VoiceEngine</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:CepstralVoiceEngine.kt$CepstralVoiceEngine : VoiceEngine</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:GmmVoiceModel.kt$GmmConfidenceDetails</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:GmmVoiceModel.kt$GmmVoiceModel</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoiceAudioPreprocessor.kt$VoicePreprocessMetrics</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoiceBiometricManager.kt$VoiceBiometricManager : AbstractSoftwareBiometricManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoiceEngine.kt$VoiceEmbeddingResult</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoiceEngine.kt$VoiceEngine</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoiceEngineProvider.kt$VoiceEngineProvider</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoicePromptFactory.kt$VoicePromptFactory : SoftwareBiometricPromptFactory</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoiceProvider.kt$VoiceProvider : SoftwareBiometricProvider</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoiceSample.kt$VoiceQualityIssue</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoiceSample.kt$VoiceSample</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoiceTemplateStore.kt$VoiceTemplate</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:VoiceTemplateStore.kt$VoiceTemplateStore</ID>
+    <ID>LongMethod:VoiceAudioPreprocessor.kt$VoiceAudioPreprocessor$fun preprocess(pcm: FloatArray, sampleRateHz: Int): VoicePreprocessResult</ID>
+    <ID>LongMethod:VoiceAutoCaptureController.kt$VoiceAutoCaptureController$private fun startNextAttempt()</ID>
+    <ID>LongMethod:VoiceBiometricManager.kt$VoiceBiometricManager$override fun authenticate( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
+    <ID>LongMethod:VoiceStreamingDetector.kt$VoiceStreamingDetector$private fun detectSpeechWindow(voiced: BooleanArray): SpeechWindow?</ID>
+    <ID>LongParameterList:VoiceStreamingDetector.kt$VoiceStreamingDetector$( private val sampleRateHz: Int, private val minVoiceRms: Float = 0.012f, private val noiseMultiplier: Float = 2.5f, private val speechStartFrames: Int = 3, private val shortPauseFrames: Int = 4, private val endSilenceFrames: Int = 12, private val minimumSampleMs: Long = 900L )</ID>
+    <ID>LoopWithTooManyJumpStatements:VoiceAutoCaptureController.kt$VoiceAutoCaptureController$while</ID>
+    <ID>LoopWithTooManyJumpStatements:VoiceStreamingDetector.kt$VoiceStreamingDetector$for</ID>
+    <ID>MagicNumber:BasicVoiceEngine.kt$BasicVoiceEngine$3</ID>
+    <ID>MagicNumber:CepstralVoiceEngine.kt$CepstralVoiceEngine$0.46</ID>
+    <ID>MagicNumber:CepstralVoiceEngine.kt$CepstralVoiceEngine$0.5</ID>
+    <ID>MagicNumber:CepstralVoiceEngine.kt$CepstralVoiceEngine$0.54</ID>
+    <ID>MagicNumber:CepstralVoiceEngine.kt$CepstralVoiceEngine$0.5f</ID>
+    <ID>MagicNumber:CepstralVoiceEngine.kt$CepstralVoiceEngine$1000.0</ID>
+    <ID>MagicNumber:CepstralVoiceEngine.kt$CepstralVoiceEngine$2.0</ID>
+    <ID>MagicNumber:CepstralVoiceEngine.kt$CepstralVoiceEngine$2595.0</ID>
+    <ID>MagicNumber:CepstralVoiceEngine.kt$CepstralVoiceEngine$700.0</ID>
+    <ID>MagicNumber:GmmVoiceModel.kt$GmmVoiceTrainer$0.5</ID>
+    <ID>MagicNumber:VoiceAudioPreprocessor.kt$VoiceAudioPreprocessor$1000</ID>
+    <ID>MagicNumber:VoiceAudioPreprocessor.kt$VoiceAudioPreprocessor$1000L</ID>
+    <ID>MagicNumber:VoiceAudioPreprocessor.kt$VoiceAudioPreprocessor$5</ID>
+    <ID>MagicNumber:VoiceEngine.kt$31</ID>
+    <ID>MagicNumber:VoiceSample.kt$0.000001</ID>
+    <ID>MagicNumber:VoiceSample.kt$1024</ID>
+    <ID>MagicNumber:VoiceSample.kt$8</ID>
+    <ID>MagicNumber:VoiceSample.kt$VoiceSample.Companion$1000L</ID>
+    <ID>MagicNumber:VoiceStreamingDetector.kt$VoiceStreamingDetector$1000L</ID>
+    <ID>MagicNumber:VoiceStreamingDetector.kt$VoiceStreamingDetector$3</ID>
+    <ID>MagicNumber:VoiceStreamingDetector.kt$VoiceStreamingDetector$5</ID>
+    <ID>MagicNumber:VoiceTemplateStore.kt$VoiceTemplateStore$3</ID>
+    <ID>MagicNumber:VoiceTemplateStore.kt$VoiceTemplateStore$4</ID>
+    <ID>MagicNumber:VoiceTemplateStore.kt$VoiceTemplateStore$5</ID>
+    <ID>MaxLineLength:VoiceAudioPreprocessor.kt$VoiceAudioPreprocessor$return VoicePreprocessResult(cleaned, VoiceQualityIssue.SAMPLE_MISSING, emptyMetrics.copy(clippedRatio = clippedRatio))</ID>
+    <ID>MaxLineLength:VoiceAudioPreprocessor.kt$VoiceAudioPreprocessor$return VoicePreprocessResult(cleaned, VoiceQualityIssue.SAMPLE_TOO_SHORT, emptyMetrics.copy(clippedRatio = clippedRatio))</ID>
+    <ID>NestedBlockDepth:BasicVoiceEngine.kt$BasicVoiceEngine$private fun frameFeatures(pcm: FloatArray, frameCount: Int): FloatArray</ID>
+    <ID>NestedBlockDepth:VoiceStreamingDetector.kt$VoiceStreamingDetector$private fun detectSpeechWindow(voiced: BooleanArray): SpeechWindow?</ID>
+    <ID>ReturnCount:BasicVoiceEngine.kt$BasicVoiceEngine$override fun extractEmbedding(sample: VoiceSample): VoiceEmbeddingResult?</ID>
+    <ID>ReturnCount:BasicVoiceEngine.kt$BasicVoiceEngine$private fun FloatArray.normalize(): FloatArray?</ID>
+    <ID>ReturnCount:CepstralVoiceEngine.kt$CepstralVoiceEngine$override fun extractEmbedding(sample: VoiceSample): VoiceEmbeddingResult?</ID>
+    <ID>ReturnCount:CepstralVoiceEngine.kt$CepstralVoiceEngine$private fun FloatArray.normalizedCopy(): FloatArray?</ID>
+    <ID>ReturnCount:VoiceAudioPreprocessor.kt$VoiceAudioPreprocessor$fun preprocess(pcm: FloatArray, sampleRateHz: Int): VoicePreprocessResult</ID>
+    <ID>ReturnCount:VoiceAudioPreprocessor.kt$VoiceAudioPreprocessor$private fun conditionVoicedSegment(trimmed: FloatArray): FloatArray</ID>
+    <ID>ReturnCount:VoiceAutoCaptureController.kt$VoiceAutoCaptureController$private fun startNextAttempt()</ID>
+    <ID>ReturnCount:VoiceBiometricManager.kt$VoiceBiometricManager$override fun authenticate( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
+    <ID>ReturnCount:VoicePromptData.kt$internal fun hasVoiceInput(extras: Bundle?): Boolean</ID>
+    <ID>ReturnCount:VoiceSample.kt$VoiceSample$fun qualityIssue(): VoiceQualityIssue</ID>
+    <ID>ReturnCount:VoiceSample.kt$VoiceSample.Companion$fun fromBundleSamples(extra: Bundle?): List&lt;VoiceSample&gt;</ID>
+    <ID>ReturnCount:VoiceSample.kt$VoiceSample.Companion$private fun safePcm(raw: FloatArray?, sampleRateHz: Int): FloatArray?</ID>
+    <ID>ReturnCount:VoiceSample.kt$internal fun FloatArray.isValidEmbedding(): Boolean</ID>
+    <ID>ReturnCount:VoiceScorer.kt$VoiceScorer$fun score(enrolled: FloatArray, probe: FloatArray): Float</ID>
+    <ID>ReturnCount:VoiceSignalConditioner.kt$VoiceSignalConditioner$fun condition(chunk: FloatArray): VoiceConditionedChunk</ID>
+    <ID>ReturnCount:VoiceStreamingDetector.kt$VoiceStreamingDetector$fun detect(chunks: List&lt;FloatArray&gt;): VoiceStreamingDetection</ID>
+    <ID>ReturnCount:VoiceStreamingDetector.kt$VoiceStreamingDetector$private fun detectSpeechWindow(voiced: BooleanArray): SpeechWindow?</ID>
+    <ID>ReturnCount:VoiceStreamingDetector.kt$VoiceStreamingDetector$private fun sampleSlice(chunks: List&lt;FloatArray&gt;, speechWindow: SpeechWindow): FloatArray?</ID>
+    <ID>ReturnCount:VoiceStreamingDetector.kt$VoiceStreamingDetector$private fun sharesCachedPrefix(chunks: List&lt;FloatArray&gt;): Boolean</ID>
+    <ID>ReturnCount:VoiceTemplateMatcher.kt$internal fun matchVoiceTemplatesDetailed( enrolledTemplates: List&lt;VoiceTemplate&gt;, probeEmbedding: FloatArray, probeFrames: List&lt;FloatArray&gt;, topK: Int ): VoiceTemplateMatch</ID>
+    <ID>ReturnCount:VoiceTemplateStore.kt$VoiceTemplateStore$private fun deserializeGmmModel(raw: String): GmmVoiceModel?</ID>
+    <ID>ReturnCount:VoiceTemplateStore.kt$VoiceTemplateStore$private fun deserializeTemplates(tag: String, raw: String): List&lt;VoiceTemplate&gt;</ID>
+    <ID>ReturnCount:VoiceTemplateStore.kt$private fun FloatArray.normalizedCopy(): FloatArray?</ID>
+    <ID>TooManyFunctions:CepstralVoiceEngine.kt$CepstralVoiceEngine : VoiceEngine</ID>
+    <ID>TooManyFunctions:GmmVoiceModel.kt$GmmVoiceTrainer</ID>
+    <ID>TooManyFunctions:VoiceAudioPreprocessor.kt$VoiceAudioPreprocessor</ID>
+    <ID>TooManyFunctions:VoiceAutoCaptureSession.kt$VoiceAutoCaptureSession</ID>
+    <ID>TooManyFunctions:VoiceBiometricManager.kt$VoiceBiometricManager : AbstractSoftwareBiometricManager</ID>
+    <ID>TooManyFunctions:VoiceStreamingDetector.kt$VoiceStreamingDetector</ID>
+    <ID>TooManyFunctions:VoiceTemplateStore.kt$VoiceTemplateStore</ID>
+    <ID>UnusedPrivateMember:VoiceStreamingDetector.kt$VoiceStreamingDetector$private fun minimumSampleCount(): Int</ID>
+  </CurrentIssues>
+</SmellBaseline>

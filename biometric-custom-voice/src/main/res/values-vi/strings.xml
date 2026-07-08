@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">Mẫu giọng nói %1$d trên %2$d đã được lưu</string>
     <string name="biometriccompat_voice_status_recording">Đang ghi mẫu giọng nói...</string>
     <string name="biometriccompat_voice_status_checking">Đang kiểm tra giọng nói</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">Để đăng ký giọng nói, hãy nói cụm mật khẩu của bạn một cách tự nhiên trong 2-4 giây. Lần thử %1$d/%2$d.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">Hãy lặp lại cùng cụm mật khẩu đó một lần nữa. Lần thử %1$d/%2$d.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">Hãy nói cụm mật khẩu của bạn một cách tự nhiên.</string>
+    <string name="biometriccompat_voice_prompt_processing">Đang xử lý mẫu giọng nói</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">Không phát hiện thấy lời nói. Hãy thử nói lại cùng câu đó.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">Câu nói quá ngắn. Hãy lặp lại cùng câu đó một lần nữa.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">Câu nói quá nhỏ. Hãy lại gần micrô hơn và thử lại.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">Hãy nói câu đó rõ hơn và thử lại.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">Hãy nói câu ngắn hơn và thử lại.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">Hãy nói một câu mới thật tự nhiên và thử lại.</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">Ghi âm không thành công. Hãy thử nói lại cùng câu đó.</string>
 </resources>
-
-
-
-
-
-

@@ -1,0 +1,224 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyFunctionBlock:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder${}</ID>
+    <ID>EmptyFunctionBlock:FaceRecognizeManager.kt$FaceRecognizeManager${}</ID>
+    <ID>EmptyFunctionBlock:IFAAFaceManager.kt$IFAAFaceManager.AuthenticatorCallback${}</ID>
+    <ID>EmptyFunctionBlock:IrisManager.kt$IrisManager.AuthenticationCallback${}</ID>
+    <ID>EmptyFunctionBlock:OplusFaceManager.kt$OplusFaceManager${ }</ID>
+    <ID>EmptyFunctionBlock:OplusFaceManager.kt$OplusFaceManager.OplusAuthenticationCallback${}</ID>
+    <ID>EmptyFunctionBlock:OppoMirrorFaceManager.kt$OppoMirrorFaceManager${ }</ID>
+    <ID>EmptyFunctionBlock:OppoMirrorFaceManager.kt$OppoMirrorFaceManager.AuthenticationCallback${}</ID>
+    <ID>EmptyFunctionBlock:SemBioFaceManager.kt$SemBioFaceManager${ }</ID>
+    <ID>EmptyFunctionBlock:SemBioFaceManager.kt$SemBioFaceManager.AuthenticationCallback${}</ID>
+    <ID>EmptyFunctionBlock:SemIrisManager.kt$SemIrisManager${ }</ID>
+    <ID>EmptyFunctionBlock:SemIrisManager.kt$SemIrisManager.AuthenticationCallback${}</ID>
+    <ID>EmptySecondaryConstructor:FaceAuthenticateOptions.kt$FaceAuthenticateOptions${}</ID>
+    <ID>FunctionOnlyReturningConstant:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$fun build(): FaceAuthenticateOptions?</ID>
+    <ID>FunctionOnlyReturningConstant:FaceManager.kt$FaceManager$fun getEnrolledFaces(): List&lt;Face&gt;?</ID>
+    <ID>FunctionOnlyReturningConstant:FaceManager.kt$FaceManager$fun getEnrolledFaces(userId: Int): List&lt;Face&gt;?</ID>
+    <ID>FunctionOnlyReturningConstant:FaceManager.kt$FaceManager$fun hasEnrolledTemplates(): Boolean</ID>
+    <ID>FunctionOnlyReturningConstant:FaceManager.kt$FaceManager$fun hasEnrolledTemplates(userId: Int): Boolean</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun authenticate(reqId: Int, type: Int, surface: Surface?): Int</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun cancelAuthenticate(reqId: Int): Int</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun cancelEnroll(reqId: Int): Int</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun enroll(reqId: Int, type: Int, arr: ByteArray?, surface: Surface?): Int</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun getEnrolledFaceIDs(): IntArray?</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun getFaceInfo(id: Int): FaceInfo?</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun getPayResult(arr: IntArray?, arr2: ByteArray?, arr3: IntArray?, arr4: ByteArray?): Int</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun init(): Int</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun postEnroll(): Int</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun preEnroll(): Long</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun preparePayInfo(arr1: ByteArray?, arr2: ByteArray?, arr3: ByteArray?): Int</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun release(): Int</ID>
+    <ID>FunctionOnlyReturningConstant:FaceRecognizeManager.kt$FaceRecognizeManager$fun remove(reqId: Int, type: Int): Int</ID>
+    <ID>FunctionOnlyReturningConstant:FingerprintManager.kt$FingerprintManager$fun hasEnrolledFingerprints(): Boolean</ID>
+    <ID>FunctionOnlyReturningConstant:IFAAFaceManagerFactory.kt$IFAAFaceManagerFactory$@Synchronized @JvmStatic fun getIFAAFaceManager(context: Context?): IFAAFaceManager?</ID>
+    <ID>FunctionOnlyReturningConstant:IFAAManagerFactory.kt$IFAAManagerFactory$@Synchronized @JvmStatic fun getIFAAManager(context: Context?, authType: Int): IFAAManager?</ID>
+    <ID>FunctionOnlyReturningConstant:IrisManager.kt$IrisManager$fun getEnrolledIrises(): List&lt;Iris&gt;?</ID>
+    <ID>FunctionOnlyReturningConstant:IrisManager.kt$IrisManager$fun getEnrolledIrises(userId: Int): List&lt;Iris&gt;?</ID>
+    <ID>FunctionOnlyReturningConstant:IrisManager.kt$IrisManager$fun hasEnrolledIrises(): Boolean</ID>
+    <ID>FunctionOnlyReturningConstant:OplusFaceManager.kt$OplusFaceManager$fun getLockoutAttemptDeadline(i: Int): Long</ID>
+    <ID>FunctionOnlyReturningConstant:OplusFaceManager.kt$OplusFaceManager$fun regsiterFaceCmdCallback(faceCommandCallback: FaceCommandCallback): Int</ID>
+    <ID>FunctionOnlyReturningConstant:OplusFaceManager.kt$OplusFaceManager$fun sendFaceCmd(i: Int, i2: Int, bArr: ByteArray?): Int</ID>
+    <ID>FunctionOnlyReturningConstant:OplusFaceManager.kt$OplusFaceManager$fun unregsiterFaceCmdCallback(faceCommandCallback: FaceCommandCallback): Int</ID>
+    <ID>FunctionOnlyReturningConstant:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$fun getEnrolledFaces(): List&lt;Face&gt;?</ID>
+    <ID>FunctionOnlyReturningConstant:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$fun getEnrolledFaces(userId: Int): List&lt;Face&gt;?</ID>
+    <ID>FunctionOnlyReturningConstant:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$fun hasEnrolledTemplates(): Boolean</ID>
+    <ID>FunctionOnlyReturningConstant:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$fun hasEnrolledTemplates(userId: Int): Boolean</ID>
+    <ID>FunctionOnlyReturningConstant:SemBioFaceManager.kt$SemBioFaceManager$@Synchronized @JvmStatic fun getInstance(context: Context?): SemBioFaceManager?</ID>
+    <ID>FunctionOnlyReturningConstant:SemBioFaceManager.kt$SemBioFaceManager$fun getEnrolledFaces(): List&lt;Face&gt;?</ID>
+    <ID>FunctionOnlyReturningConstant:SemBioFaceManager.kt$SemBioFaceManager$fun getEnrolledFaces(i: Int): List&lt;Face&gt;?</ID>
+    <ID>FunctionOnlyReturningConstant:SemBioFaceManager.kt$SemBioFaceManager$fun hasEnrolledFaces(): Boolean</ID>
+    <ID>FunctionOnlyReturningConstant:SemIrisManager.kt$SemIrisManager$@Synchronized @JvmStatic fun getSemIrisManager(context: Context?): SemIrisManager?</ID>
+    <ID>FunctionOnlyReturningConstant:SemIrisManager.kt$SemIrisManager$fun getEnrolledIrises(): List&lt;Iris&gt;?</ID>
+    <ID>FunctionOnlyReturningConstant:SemIrisManager.kt$SemIrisManager$fun getEnrolledIrises(i: Int): List&lt;Iris&gt;?</ID>
+    <ID>FunctionOnlyReturningConstant:SemIrisManager.kt$SemIrisManager$fun hasEnrolledIrises(): Boolean</ID>
+    <ID>FunctionOnlyReturningConstant:SemIrisManager.kt$SemIrisManager$fun hasEnrolledIrises(i: Int): Boolean</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:CryptoObject.kt$CryptoObject</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:Face.kt$Face</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FaceAuthenticateOptions.kt$FaceAuthenticateOptions</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FaceManager.kt$FaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FaceRecognizeManager.kt$FaceRecognizeManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:FingerprintManager.kt$FingerprintManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:IFAAFaceManager.kt$IFAAFaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:IFAAManager.kt$IFAAManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:IOplusBiometricFaceConstantsEx.kt$IOplusBiometricFaceConstantsEx</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:Iris.kt$Iris</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:IrisManager.kt$IrisManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:OplusFaceManager.kt$OplusFaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:OppoMirrorFaceManager.kt$OppoMirrorFaceManager</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SemBioFaceManager.kt$SemBioFaceManager$AuthenticationCallback</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SemBioFaceManager.kt$SemBioFaceManager$AuthenticationResult</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SemBioFaceManager.kt$SemBioFaceManager$CryptoObject</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SemIrisManager.kt$SemIrisManager$AuthenticationCallback</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SemIrisManager.kt$SemIrisManager$AuthenticationResult</ID>
+    <ID>LibraryEntitiesShouldNotBePublic:SemIrisManager.kt$SemIrisManager$CryptoObject</ID>
+    <ID>LongParameterList:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$(a: Int, b: Int, c: Int, d: Int, e: Int, g: String?, i: String?)</ID>
+    <ID>LongParameterList:FaceManager.kt$FaceManager$( crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?, callback: AuthenticationCallback, handler: Handler?, userId: Int, isKeyguardBypassEnabled: Boolean )</ID>
+    <ID>LongParameterList:FaceManager.kt$FaceManager$( crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?, flags: Int, callback: AuthenticationCallback, handler: Handler?, userId: Int )</ID>
+    <ID>LongParameterList:IrisManager.kt$IrisManager$( crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, userId: Int, isKeyguardBypassEnabled: Boolean )</ID>
+    <ID>LongParameterList:IrisManager.kt$IrisManager$( crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?, flags: Int, callback: AuthenticationCallback, handler: Handler?, userId: Int )</ID>
+    <ID>LongParameterList:OplusFaceManager.kt$OplusFaceManager$( cryptoObject: CryptoObject?, cancellationSignal: CancellationSignal?, i: Int, oplusAuthenticationCallback: OplusAuthenticationCallback?, i2: Int, bArr: ByteArray?, handler: Handler? )</ID>
+    <ID>LongParameterList:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$( crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?, flags: Int, callback: AuthenticationCallback?, handler: Handler?, userId: Int )</ID>
+    <ID>LongParameterList:SemBioFaceManager.kt$SemBioFaceManager$( cryptoObject: CryptoObject?, cancellationSignal: CancellationSignal?, i: Int, authenticationCallback: AuthenticationCallback?, handler: Handler?, i2: Int, bundle: Bundle?, view: View? )</ID>
+    <ID>LongParameterList:SemBioFaceManager.kt$SemBioFaceManager$( cryptoObject: CryptoObject?, cancellationSignal: CancellationSignal?, i: Int, authenticationCallback: AuthenticationCallback?, handler: Handler?, view: View? )</ID>
+    <ID>LongParameterList:SemIrisManager.kt$SemIrisManager$( cryptoObject: CryptoObject?, cancellationSignal: CancellationSignal?, i: Int, authenticationCallback: AuthenticationCallback?, handler: Handler?, i2: Int, bundle: Bundle?, view: View? )</ID>
+    <ID>LongParameterList:SemIrisManager.kt$SemIrisManager$( cryptoObject: CryptoObject?, cancellationSignal: CancellationSignal?, i: Int, authenticationCallback: AuthenticationCallback?, handler: Handler?, view: View? )</ID>
+    <ID>LongParameterList:SemIrisManager.kt$SemIrisManager$( cryptoObject: CryptoObject?, cancellationSignal: CancellationSignal?, i: Int, authenticationCallback: AuthenticationCallback?, handler: Handler?, view: View?, i2: Int )</ID>
+    <ID>MagicNumber:IFAAManager.kt$IFAAManager.Companion$24</ID>
+    <ID>MagicNumber:IFAAManager.kt$IFAAManager.Companion$28</ID>
+    <ID>MaxLineLength:IrisManager.kt$IrisManager.AuthenticationCallback$*</ID>
+    <ID>NewLineAtEndOfFile:CryptoObject.kt$android.hardware.biometrics.CryptoObject.kt</ID>
+    <ID>NewLineAtEndOfFile:Face.kt$android.hardware.face.Face.kt</ID>
+    <ID>NewLineAtEndOfFile:Face.kt$com.samsung.android.bio.face.Face.kt</ID>
+    <ID>NewLineAtEndOfFile:FaceAuthenticateOptions.kt$android.hardware.face.FaceAuthenticateOptions.kt</ID>
+    <ID>NewLineAtEndOfFile:FaceManager.kt$android.hardware.face.FaceManager.kt</ID>
+    <ID>NewLineAtEndOfFile:FaceRecognizeManager.kt$com.hihonor.android.facerecognition.FaceRecognizeManager.kt</ID>
+    <ID>NewLineAtEndOfFile:FaceRecognizeManager.kt$com.huawei.facerecognition.FaceRecognizeManager.kt</ID>
+    <ID>NewLineAtEndOfFile:IFAAFaceManager.kt$org.ifaa.android.manager.face.IFAAFaceManager.kt</ID>
+    <ID>NewLineAtEndOfFile:IFAAFaceManagerFactory.kt$org.ifaa.android.manager.face.IFAAFaceManagerFactory.kt</ID>
+    <ID>NewLineAtEndOfFile:IFAAManager.kt$org.ifaa.android.manager.IFAAManager.kt</ID>
+    <ID>NewLineAtEndOfFile:IFAAManagerFactory.kt$org.ifaa.android.manager.IFAAManagerFactory.kt</ID>
+    <ID>NewLineAtEndOfFile:IOplusBiometricFaceConstantsEx.kt$android.hardware.biometrics.IOplusBiometricFaceConstantsEx.kt</ID>
+    <ID>NewLineAtEndOfFile:Iris.kt$android.hardware.iris.Iris.kt</ID>
+    <ID>NewLineAtEndOfFile:Iris.kt$com.samsung.android.camera.iris.Iris.kt</ID>
+    <ID>NewLineAtEndOfFile:IrisManager.kt$android.hardware.iris.IrisManager.kt</ID>
+    <ID>NewLineAtEndOfFile:OplusFaceManager.kt$android.hardware.face.OplusFaceManager.kt</ID>
+    <ID>NewLineAtEndOfFile:OppoMirrorFaceManager.kt$android.hardware.face.OppoMirrorFaceManager.kt</ID>
+    <ID>NewLineAtEndOfFile:SemBioFaceManager.kt$com.samsung.android.bio.face.SemBioFaceManager.kt</ID>
+    <ID>NewLineAtEndOfFile:SemIrisManager.kt$com.samsung.android.camera.iris.SemIrisManager.kt</ID>
+    <ID>SafeCast:SemBioFaceManager.kt$SemBioFaceManager.CryptoObject$if (mCrypto is Cipher) mCrypto else null</ID>
+    <ID>SafeCast:SemBioFaceManager.kt$SemBioFaceManager.CryptoObject$if (mCrypto is Mac) mCrypto else null</ID>
+    <ID>SafeCast:SemBioFaceManager.kt$SemBioFaceManager.CryptoObject$if (mCrypto is Signature) mCrypto else null</ID>
+    <ID>SafeCast:SemIrisManager.kt$SemIrisManager.CryptoObject$if (mCrypto is Cipher) mCrypto else null</ID>
+    <ID>SafeCast:SemIrisManager.kt$SemIrisManager.CryptoObject$if (mCrypto is Mac) mCrypto else null</ID>
+    <ID>SafeCast:SemIrisManager.kt$SemIrisManager.CryptoObject$if (mCrypto is Signature) mCrypto else null</ID>
+    <ID>TooManyFunctions:FaceRecognizeManager.kt$FaceRecognizeManager</ID>
+    <ID>UnusedParameter:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$a: Int</ID>
+    <ID>UnusedParameter:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$a: String?</ID>
+    <ID>UnusedParameter:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$a: Int</ID>
+    <ID>UnusedParameter:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$a: String?</ID>
+    <ID>UnusedParameter:FaceManager.kt$FaceManager$callback: AuthenticationCallback</ID>
+    <ID>UnusedParameter:FaceManager.kt$FaceManager$cancel: CancellationSignal?</ID>
+    <ID>UnusedParameter:FaceManager.kt$FaceManager$crypto: android.hardware.biometrics.CryptoObject?</ID>
+    <ID>UnusedParameter:FaceManager.kt$FaceManager$flags: Int</ID>
+    <ID>UnusedParameter:FaceManager.kt$FaceManager$handler: Handler?</ID>
+    <ID>UnusedParameter:FaceManager.kt$FaceManager$isKeyguardBypassEnabled: Boolean</ID>
+    <ID>UnusedParameter:FaceManager.kt$FaceManager$options: FaceAuthenticateOptions</ID>
+    <ID>UnusedParameter:FaceManager.kt$FaceManager$userId: Int</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$arr1: ByteArray?</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$arr2: ByteArray?</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$arr3: ByteArray?</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$arr3: IntArray?</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$arr4: ByteArray?</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$arr: ByteArray?</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$arr: IntArray?</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$id: Int</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$reqId: Int</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$surface: Surface?</ID>
+    <ID>UnusedParameter:FaceRecognizeManager.kt$FaceRecognizeManager$type: Int</ID>
+    <ID>UnusedParameter:FingerprintManager.kt$FingerprintManager$callback: AuthenticationCallback?</ID>
+    <ID>UnusedParameter:FingerprintManager.kt$FingerprintManager$cancel: CancellationSignal?</ID>
+    <ID>UnusedParameter:FingerprintManager.kt$FingerprintManager$crypto: CryptoObject?</ID>
+    <ID>UnusedParameter:FingerprintManager.kt$FingerprintManager$flags: Int</ID>
+    <ID>UnusedParameter:FingerprintManager.kt$FingerprintManager$handler: Handler?</ID>
+    <ID>UnusedParameter:IFAAFaceManager.kt$IFAAFaceManager.AuthenticatorCallback$errCode: Int</ID>
+    <ID>UnusedParameter:IFAAFaceManager.kt$IFAAFaceManager.AuthenticatorCallback$errorCode: Int</ID>
+    <ID>UnusedParameter:IFAAFaceManager.kt$IFAAFaceManager.AuthenticatorCallback$status: Int</ID>
+    <ID>UnusedParameter:IFAAFaceManagerFactory.kt$IFAAFaceManagerFactory$context: Context?</ID>
+    <ID>UnusedParameter:IFAAManagerFactory.kt$IFAAManagerFactory$authType: Int</ID>
+    <ID>UnusedParameter:IFAAManagerFactory.kt$IFAAManagerFactory$context: Context?</ID>
+    <ID>UnusedParameter:IrisManager.kt$IrisManager$callback: AuthenticationCallback</ID>
+    <ID>UnusedParameter:IrisManager.kt$IrisManager$callback: AuthenticationCallback?</ID>
+    <ID>UnusedParameter:IrisManager.kt$IrisManager$cancel: CancellationSignal?</ID>
+    <ID>UnusedParameter:IrisManager.kt$IrisManager$crypto: android.hardware.biometrics.CryptoObject?</ID>
+    <ID>UnusedParameter:IrisManager.kt$IrisManager$flags: Int</ID>
+    <ID>UnusedParameter:IrisManager.kt$IrisManager$handler: Handler?</ID>
+    <ID>UnusedParameter:IrisManager.kt$IrisManager$isKeyguardBypassEnabled: Boolean</ID>
+    <ID>UnusedParameter:IrisManager.kt$IrisManager$userId: Int</ID>
+    <ID>UnusedParameter:IrisManager.kt$IrisManager.AuthenticationCallback$acquireInfo: Int</ID>
+    <ID>UnusedParameter:OplusFaceManager.kt$OplusFaceManager$bArr: ByteArray?</ID>
+    <ID>UnusedParameter:OplusFaceManager.kt$OplusFaceManager$cancellationSignal: CancellationSignal?</ID>
+    <ID>UnusedParameter:OplusFaceManager.kt$OplusFaceManager$cryptoObject: CryptoObject?</ID>
+    <ID>UnusedParameter:OplusFaceManager.kt$OplusFaceManager$faceCommandCallback: FaceCommandCallback</ID>
+    <ID>UnusedParameter:OplusFaceManager.kt$OplusFaceManager$handler: Handler?</ID>
+    <ID>UnusedParameter:OplusFaceManager.kt$OplusFaceManager$i2: Int</ID>
+    <ID>UnusedParameter:OplusFaceManager.kt$OplusFaceManager$i: Int</ID>
+    <ID>UnusedParameter:OplusFaceManager.kt$OplusFaceManager$oplusAuthenticationCallback: OplusAuthenticationCallback?</ID>
+    <ID>UnusedParameter:OplusFaceManager.kt$OplusFaceManager.OplusAuthenticationCallback$i: Int</ID>
+    <ID>UnusedParameter:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$callback: AuthenticationCallback?</ID>
+    <ID>UnusedParameter:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$cancel: CancellationSignal?</ID>
+    <ID>UnusedParameter:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$crypto: android.hardware.biometrics.CryptoObject?</ID>
+    <ID>UnusedParameter:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$flags: Int</ID>
+    <ID>UnusedParameter:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$handler: Handler?</ID>
+    <ID>UnusedParameter:OppoMirrorFaceManager.kt$OppoMirrorFaceManager$userId: Int</ID>
+    <ID>UnusedParameter:OppoMirrorFaceManager.kt$OppoMirrorFaceManager.AuthenticationCallback$acquireInfo: Int</ID>
+    <ID>UnusedParameter:OppoMirrorFaceManager.kt$OppoMirrorFaceManager.AuthenticationCallback$progressInfo: Int</ID>
+    <ID>UnusedParameter:SemBioFaceManager.kt$SemBioFaceManager$authenticationCallback: AuthenticationCallback?</ID>
+    <ID>UnusedParameter:SemBioFaceManager.kt$SemBioFaceManager$bundle: Bundle?</ID>
+    <ID>UnusedParameter:SemBioFaceManager.kt$SemBioFaceManager$cancellationSignal: CancellationSignal?</ID>
+    <ID>UnusedParameter:SemBioFaceManager.kt$SemBioFaceManager$context: Context?</ID>
+    <ID>UnusedParameter:SemBioFaceManager.kt$SemBioFaceManager$cryptoObject: CryptoObject?</ID>
+    <ID>UnusedParameter:SemBioFaceManager.kt$SemBioFaceManager$handler: Handler?</ID>
+    <ID>UnusedParameter:SemBioFaceManager.kt$SemBioFaceManager$i2: Int</ID>
+    <ID>UnusedParameter:SemBioFaceManager.kt$SemBioFaceManager$i: Int</ID>
+    <ID>UnusedParameter:SemBioFaceManager.kt$SemBioFaceManager$view: View?</ID>
+    <ID>UnusedParameter:SemBioFaceManager.kt$SemBioFaceManager.AuthenticationCallback$i: Int</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager$authenticationCallback: AuthenticationCallback?</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager$bundle: Bundle?</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager$cancellationSignal: CancellationSignal?</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager$context: Context?</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager$cryptoObject: CryptoObject?</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager$handler: Handler?</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager$i2: Int</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager$i: Int</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager$view: View?</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager.AuthenticationCallback$bArr: ByteArray?</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager.AuthenticationCallback$i2: Int</ID>
+    <ID>UnusedParameter:SemIrisManager.kt$SemIrisManager.AuthenticationCallback$i: Int</ID>
+    <ID>UnusedPrivateMember:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$private fun checkNotUsed()</ID>
+    <ID>UnusedPrivateMember:SemBioFaceManager.kt$SemBioFaceManager.CryptoObject$private fun setFidoResultData(bArr: ByteArray)</ID>
+    <ID>UnusedPrivateMember:SemIrisManager.kt$SemIrisManager.CryptoObject$private fun setFidoResultData(bArr: ByteArray)</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$a: Int</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$b: Int</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$c: Int</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$d: Int</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$e: Int</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$g: String?</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$i: String?</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions$parcel: Parcel?</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$private val mAttributionTag: String? = null</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$private val mAuthenticateReason = 0</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$private val mBuilderFieldsSet: Long = 0</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$private val mDisplayState = 0</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$private val mOpPackageName: String? = null</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$private val mSensorId = 0</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$private val mUserId = 0</ID>
+    <ID>UnusedPrivateProperty:FaceAuthenticateOptions.kt$FaceAuthenticateOptions.Builder$private val mWakeReason = 0</ID>
+    <ID>UnusedPrivateProperty:FaceRecognizeManager.kt$FaceRecognizeManager$callback: FaceRecognizeCallback?</ID>
+    <ID>UnusedPrivateProperty:FaceRecognizeManager.kt$FaceRecognizeManager$context: Context?</ID>
+    <ID>UnusedPrivateProperty:FaceRecognizeManager.kt$FaceRecognizeManager$private val mFaceCallback: FaceRecognizeCallback? = null</ID>
+  </CurrentIssues>
+</SmellBaseline>

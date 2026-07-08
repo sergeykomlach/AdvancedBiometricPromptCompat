@@ -45,10 +45,15 @@
     <string name="biometriccompat_voice_auto_sample_saved">Ses örneği %1$d / %2$d kaydedildi</string>
     <string name="biometriccompat_voice_status_recording">Ses örneği kaydediliyor...</string>
     <string name="biometriccompat_voice_status_checking">Ses kontrol ediliyor</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">Sesinizi kaydetmek için kod ifadenizi 2-4 saniye boyunca doğal şekilde söyleyin. Deneme %1$d/%2$d.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">Aynı kod ifadesini bir kez daha tekrarlayın. Deneme %1$d/%2$d.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">Kod ifadenizi doğal şekilde söyleyin.</string>
+    <string name="biometriccompat_voice_prompt_processing">Ses örneği işleniyor</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">Konuşma algılanmadı. Aynı ifadeyi tekrar söylemeyi deneyin.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">İfade çok kısaydı. Aynı ifadeyi bir kez daha tekrarlayın.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">İfade çok sessizdi. Mikrofona yaklaşın ve yeniden deneyin.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">İfadeyi daha net söyleyin ve yeniden deneyin.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">Daha kısa bir ifade söyleyin ve yeniden deneyin.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">Yeni ve doğal bir ifade söyleyin ve yeniden deneyin.</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">Kayıt başarısız oldu. Aynı ifadeyi tekrar söylemeyi deneyin.</string>
 </resources>
-
-
-
-
-
-
