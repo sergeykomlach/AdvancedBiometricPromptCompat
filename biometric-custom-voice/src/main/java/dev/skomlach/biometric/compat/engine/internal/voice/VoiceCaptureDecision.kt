@@ -2,6 +2,7 @@ package dev.skomlach.biometric.compat.engine.internal.voice
 
 internal enum class VoiceCaptureRejectReason {
     NONE,
+    RECORDER_FAILURE,
     NO_SPEECH,
     INCOMPLETE_SAMPLE,
     QUALITY_ISSUE

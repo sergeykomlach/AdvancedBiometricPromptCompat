@@ -16,32 +16,47 @@ class VoiceAutoCaptureSessionTest {
             existingExtras = null,
             phrase = "open sesame",
             callback = callback,
-            messages = testMessages()
+            promptMessageResolver = ::renderPrompt
         )
 
         session.start()
-        session.onSpeechDetected()
-        session.onSampleCaptured(validSample(seed = 1))
-        session.onSpeechDetected()
-        session.onSampleCaptured(validSample(seed = 2))
+        session.onCaptureOutcome(
+            VoiceCaptureOutcome.Accepted(
+                sample = validSample(seed = 1),
+                hadSpeechActivity = true
+            ),
+            nowMs = 1000L
+        )
+        session.onCaptureOutcome(
+            VoiceCaptureOutcome.Accepted(
+                sample = validSample(seed = 2),
+                hadSpeechActivity = true
+            ),
+            nowMs = 2000L
+        )
 
         assertFalse(session.isReadyToStartAuth())
         assertEquals(2, session.collectedSampleCount())
         assertEquals(
             listOf(
-                "ENROLL_START:1/3",
-                "VOICE_DETECTED",
-                "SAVED:1/3",
-                "ENROLL_START:2/3",
-                "VOICE_DETECTED",
-                "SAVED:2/3",
-                "ENROLL_START:3/3"
+                "ENROLL:1/3",
+                "SPEECH_DETECTED",
+                "PROCESSING",
+                "ENROLL:2/3",
+                "SPEECH_DETECTED",
+                "PROCESSING",
+                "ENROLL:3/3"
             ),
             callback.messages
         )
 
-        session.onSpeechDetected()
-        session.onSampleCaptured(validSample(seed = 3))
+        session.onCaptureOutcome(
+            VoiceCaptureOutcome.Accepted(
+                sample = validSample(seed = 3),
+                hadSpeechActivity = true
+            ),
+            nowMs = 3000L
+        )
 
         assertTrue(session.isReadyToStartAuth())
         assertEquals(3, session.collectedSampleCount())
@@ -49,15 +64,16 @@ class VoiceAutoCaptureSessionTest {
         assertEquals("open sesame", session.preparedExtras()?.getString(VOICE_EXTRA_PHRASE))
         assertEquals(
             listOf(
-                "ENROLL_START:1/3",
-                "VOICE_DETECTED",
-                "SAVED:1/3",
-                "ENROLL_START:2/3",
-                "VOICE_DETECTED",
-                "SAVED:2/3",
-                "ENROLL_START:3/3",
-                "VOICE_DETECTED",
-                "PROCESSING"
+                "ENROLL:1/3",
+                "SPEECH_DETECTED",
+                "PROCESSING",
+                "ENROLL:2/3",
+                "SPEECH_DETECTED",
+                "PROCESSING",
+                "ENROLL:3/3",
+                "SPEECH_DETECTED",
+                "PROCESSING",
+                "MATCHING"
             ),
             callback.messages
         )
@@ -71,18 +87,23 @@ class VoiceAutoCaptureSessionTest {
             existingExtras = Bundle(),
             phrase = null,
             callback = callback,
-            messages = testMessages()
+            promptMessageResolver = ::renderPrompt
         )
 
         session.start()
-        session.onSpeechDetected()
-        session.onSampleCaptured(validSample(seed = 7))
+        session.onCaptureOutcome(
+            VoiceCaptureOutcome.Accepted(
+                sample = validSample(seed = 7),
+                hadSpeechActivity = true
+            ),
+            nowMs = 1000L
+        )
 
         assertTrue(session.isReadyToStartAuth())
         assertEquals(1, session.collectedSampleCount())
         assertTrue(hasVoiceInput(session.preparedExtras()))
         assertEquals(
-            listOf("AUTH_START", "VOICE_DETECTED", "PROCESSING"),
+            listOf("AUTH", "SPEECH_DETECTED", "PROCESSING", "MATCHING"),
             callback.messages
         )
     }
@@ -95,17 +116,72 @@ class VoiceAutoCaptureSessionTest {
             existingExtras = null,
             phrase = null,
             callback = callback,
-            messages = testMessages()
+            promptMessageResolver = ::renderPrompt
         )
 
         session.start()
-        session.onSpeechDetected()
-        session.onRecoverableError("TRY_AGAIN")
+        session.onCaptureOutcome(
+            VoiceCaptureOutcome.Rejected(
+                decision = VoiceCaptureDecision(
+                    acceptedSample = null,
+                    rejectReason = VoiceCaptureRejectReason.NO_SPEECH,
+                    qualityIssue = VoiceQualityIssue.SAMPLE_MISSING,
+                    shouldNotifySpeechDetected = false,
+                    hadSpeechActivity = false
+                )
+            ),
+            nowMs = 1000L
+        )
 
         assertEquals(
-            listOf("ENROLL_START:1/3", "VOICE_DETECTED", "TRY_AGAIN", "ENROLL_START:1/3"),
+            listOf("ENROLL:1/3", "ENROLL:1/3\nNO_SPEECH"),
             callback.messages
         )
+    }
+
+    @Test
+    fun acceptedEnrollCaptureAdvancesToNextInstructionState() {
+        val callback = RecordingCallback()
+        val session = VoiceAutoCaptureSession(
+            enroll = true,
+            existingExtras = null,
+            phrase = "open sesame",
+            callback = callback,
+            sampleRateHz = 16_000,
+            promptMessageResolver = ::renderPrompt
+        )
+
+        session.start()
+        session.onCaptureOutcome(
+            VoiceCaptureOutcome.Accepted(
+                sample = FloatArray(16_000),
+                hadSpeechActivity = true
+            ),
+            nowMs = 1000L
+        )
+
+        assertEquals(1, session.collectedSampleCount())
+        assertEquals(
+            VoicePromptState.EnrollInstruction(step = 2, total = 3, retryReason = null),
+            callback.lastState
+        )
+    }
+
+    @Test
+    fun sessionExposesOverallInactivityTimeoutSeparatelyFromCaptureWindow() {
+        val callback = RecordingCallback()
+        val session = VoiceAutoCaptureSession(
+            enroll = false,
+            existingExtras = null,
+            phrase = null,
+            callback = callback,
+            promptMessageResolver = ::renderPrompt
+        )
+
+        session.start(nowMs = 1_000L)
+
+        assertFalse(session.shouldEmitTimeoutOutcome(nowMs = 30_000L))
+        assertTrue(session.shouldEmitTimeoutOutcome(nowMs = 31_001L))
     }
 
     private fun validSample(seed: Int): FloatArray {
@@ -114,21 +190,37 @@ class VoiceAutoCaptureSessionTest {
         }
     }
 
-    private fun testMessages(): VoiceAutoCaptureSession.Messages {
-        return VoiceAutoCaptureSession.Messages(
-            authStart = "AUTH_START",
-            voiceDetected = "VOICE_DETECTED",
-            processing = "PROCESSING",
-            enrollRecordingStarted = { current: Int, total: Int -> "ENROLL_START:$current/$total" },
-            sampleSavedTemplate = { current: Int, total: Int -> "SAVED:$current/$total" }
-        )
+    private fun renderPrompt(state: VoicePromptState, phrase: CharSequence?): VoicePromptRender {
+        return when (state) {
+            is VoicePromptState.EnrollInstruction -> VoicePromptRender(
+                primaryMessage = "ENROLL:${state.step}/${state.total}",
+                secondaryMessage = state.retryReason?.name
+            )
+
+            is VoicePromptState.AuthInstruction -> VoicePromptRender(
+                primaryMessage = "AUTH",
+                secondaryMessage = state.retryReason?.name
+            )
+
+            VoicePromptState.Listening -> VoicePromptRender("LISTENING")
+            VoicePromptState.SpeechDetected -> VoicePromptRender("SPEECH_DETECTED")
+            VoicePromptState.ProcessingCapture -> VoicePromptRender("PROCESSING")
+            VoicePromptState.Matching -> VoicePromptRender("MATCHING")
+            VoicePromptState.Timeout -> VoicePromptRender("TIMEOUT")
+            VoicePromptState.Lockout -> VoicePromptRender("LOCKOUT")
+        }
     }
 
     private class RecordingCallback : VoiceAutoCaptureSession.Callback {
         val messages = mutableListOf<String>()
+        var lastState: VoicePromptState? = null
 
         override fun onHelp(message: CharSequence) {
             messages += message.toString()
+        }
+
+        override fun onStateChanged(state: VoicePromptState) {
+            lastState = state
         }
 
         override fun onReady(extras: Bundle) = Unit

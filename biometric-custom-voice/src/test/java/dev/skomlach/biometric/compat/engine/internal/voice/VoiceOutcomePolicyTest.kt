@@ -63,6 +63,41 @@ class VoiceOutcomePolicyTest {
     }
 
     @Test
+    fun recorderFailureEventuallyLocksOut() {
+        val policy = VoiceOutcomePolicy(maxSuspiciousCaptureAttempts = 3, inactivityTimeoutMs = 30_000L)
+        var progress = VoiceOutcomeProgress(suspiciousCaptureAttempts = 0, lastProgressAtMs = 1000L)
+
+        repeat(2) { index ->
+            val retry = policy.onCaptureRejected(
+                progress = progress,
+                rejection = VoiceCaptureDecision(
+                    acceptedSample = null,
+                    rejectReason = VoiceCaptureRejectReason.RECORDER_FAILURE,
+                    qualityIssue = VoiceQualityIssue.NONE,
+                    shouldNotifySpeechDetected = false,
+                    hadSpeechActivity = false
+                ),
+                nowMs = 2000L + index
+            ) as VoiceOutcomeDecision.Retry
+            progress = retry.progress
+        }
+
+        val lastDecision = policy.onCaptureRejected(
+            progress = progress,
+            rejection = VoiceCaptureDecision(
+                acceptedSample = null,
+                rejectReason = VoiceCaptureRejectReason.RECORDER_FAILURE,
+                qualityIssue = VoiceQualityIssue.NONE,
+                shouldNotifySpeechDetected = false,
+                hadSpeechActivity = false
+            ),
+            nowMs = 3000L
+        )
+
+        assertTrue(lastDecision is VoiceOutcomeDecision.Lockout)
+    }
+
+    @Test
     fun inactivityTimeoutUsesSessionProgressInsteadOfRawAttemptCount() {
         val policy = VoiceOutcomePolicy()
 

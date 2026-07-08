@@ -40,9 +40,14 @@ internal class VoiceOutcomePolicy(
 }
 
 internal fun shouldCountTowardsAutoCaptureLockout(decision: VoiceCaptureDecision): Boolean {
-    return decision.rejectReason == VoiceCaptureRejectReason.QUALITY_ISSUE &&
-        decision.hadSpeechActivity &&
-        decision.qualityIssue in AUTO_CAPTURE_LOCKOUT_QUALITY_ISSUES
+    return when (decision.rejectReason) {
+        VoiceCaptureRejectReason.RECORDER_FAILURE -> true
+        VoiceCaptureRejectReason.QUALITY_ISSUE -> {
+            decision.hadSpeechActivity && decision.qualityIssue in AUTO_CAPTURE_LOCKOUT_QUALITY_ISSUES
+        }
+
+        else -> false
+    }
 }
 
 private val AUTO_CAPTURE_LOCKOUT_QUALITY_ISSUES = setOf(
