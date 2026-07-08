@@ -15,16 +15,6 @@ internal data class VoiceCaptureDecision(
     val hadSpeechActivity: Boolean
 )
 
-internal fun shouldCountTowardsAutoCaptureLockout(decision: VoiceCaptureDecision): Boolean {
-    return when (decision.rejectReason) {
-        VoiceCaptureRejectReason.NO_SPEECH -> false
-        VoiceCaptureRejectReason.INCOMPLETE_SAMPLE -> false
-        VoiceCaptureRejectReason.QUALITY_ISSUE ->
-            decision.hadSpeechActivity && decision.qualityIssue in AUTO_CAPTURE_LOCKOUT_QUALITY_ISSUES
-        VoiceCaptureRejectReason.NONE -> false
-    }
-}
-
 internal fun decideVoiceCaptureSample(
     detection: VoiceStreamingDetection,
     sampleRateHz: Int
@@ -67,9 +57,3 @@ internal fun decideVoiceCaptureSample(
         hadSpeechActivity = detection.detectedSpeech
     )
 }
-
-private val AUTO_CAPTURE_LOCKOUT_QUALITY_ISSUES = setOf(
-    VoiceQualityIssue.SAMPLE_TOO_LONG,
-    VoiceQualityIssue.SAMPLE_CLIPPED,
-    VoiceQualityIssue.SAMPLE_REPLAY_RISK
-)
