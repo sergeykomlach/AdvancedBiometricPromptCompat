@@ -36,6 +36,7 @@ import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptDelegate
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptHost
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptRegistry
+import dev.skomlach.biometric.compat.custom.SoftwarePromptStatus
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.impl.AuthCallback
 import dev.skomlach.biometric.compat.impl.AuthResult
@@ -168,7 +169,11 @@ class BiometricPromptCompatDialogImpl(
                         rootView = dialog.rootView,
                         callbacks = object : SoftwareBiometricPromptHost.Callbacks {
                             override fun onHelp(message: CharSequence) {
-                                this@BiometricPromptCompatDialogImpl.onHelp(message)
+                                onStatus(SoftwarePromptStatus(primaryText = message))
+                            }
+
+                            override fun onStatus(status: SoftwarePromptStatus) {
+                                this@BiometricPromptCompatDialogImpl.onSoftwareStatus(status)
                             }
 
                             override fun onReady(extras: android.os.Bundle?) {
@@ -343,23 +348,39 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun onHelp(msg: CharSequence?) {
-        e("BiometricPromptGenericImpl.onHelp - $msg")
+        onSoftwareStatus(
+            SoftwarePromptStatus(
+                primaryText = msg ?: ""
+            )
+        )
+    }
+
+    fun onSoftwareStatus(status: SoftwarePromptStatus) {
+        e("BiometricPromptGenericImpl.onHelp - ${status.asLegacyHelpMessage()}")
         ExecutorHelper.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
             dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON, primaryBiometricType)
 
-            dialog.status?.text = msg
+            dialog.status?.text = status.asLegacyHelpMessage()
             dialog.status?.setTextColor(
                 ContextCompat.getColor(
                     dialog.status!!.context,
-                    if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
+                    if (status.terminal) {
+                        R.color.material_red_500
+                    } else if (Utils.isAtLeastS) {
+                        R.color.material_blue_500
+                    } else {
+                        R.color.material_deep_teal_500
+                    }
                 )
             )
-            animateHandler.sendEmptyMessageDelayed(
-                WHAT_RESTORE_NORMAL_STATE,
-                2000
-            )
+            if (!status.terminal) {
+                animateHandler.sendEmptyMessageDelayed(
+                    WHAT_RESTORE_NORMAL_STATE,
+                    2000
+                )
+            }
         }
     }
 

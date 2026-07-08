@@ -140,6 +140,56 @@ class VoiceAutoCaptureSessionTest {
     }
 
     @Test
+    fun sessionSurfacesCanonicalRenderedPromptPayloadAlongsideStateTransition() {
+        val callback = RecordingCallback()
+        val session = VoiceAutoCaptureSession(
+            enroll = true,
+            existingExtras = null,
+            phrase = "open sesame",
+            callback = callback,
+            promptMessageResolver = ::renderPrompt
+        )
+
+        session.start()
+        session.onCaptureOutcome(
+            VoiceCaptureOutcome.Rejected(
+                decision = VoiceCaptureDecision(
+                    acceptedSample = null,
+                    rejectReason = VoiceCaptureRejectReason.NO_SPEECH,
+                    qualityIssue = VoiceQualityIssue.SAMPLE_MISSING,
+                    shouldNotifySpeechDetected = false,
+                    hadSpeechActivity = false
+                )
+            ),
+            nowMs = 1000L
+        )
+
+        assertEquals(
+            listOf(
+                VoicePromptUpdate(
+                    state = VoicePromptState.EnrollInstruction(step = 1, total = 3, retryReason = null),
+                    render = VoicePromptRender(
+                        primaryMessage = "ENROLL:1/3",
+                        secondaryMessage = null
+                    )
+                ),
+                VoicePromptUpdate(
+                    state = VoicePromptState.EnrollInstruction(
+                        step = 1,
+                        total = 3,
+                        retryReason = VoiceRetryReason.NO_SPEECH
+                    ),
+                    render = VoicePromptRender(
+                        primaryMessage = "ENROLL:1/3",
+                        secondaryMessage = "NO_SPEECH"
+                    )
+                )
+            ),
+            callback.promptUpdates
+        )
+    }
+
+    @Test
     fun acceptedEnrollCaptureAdvancesToNextInstructionState() {
         val callback = RecordingCallback()
         val session = VoiceAutoCaptureSession(
@@ -213,10 +263,17 @@ class VoiceAutoCaptureSessionTest {
 
     private class RecordingCallback : VoiceAutoCaptureSession.Callback {
         val messages = mutableListOf<String>()
+        val promptUpdates = mutableListOf<VoicePromptUpdate>()
         var lastState: VoicePromptState? = null
 
         override fun onHelp(message: CharSequence) {
             messages += message.toString()
+        }
+
+        override fun onPromptUpdated(state: VoicePromptState, render: VoicePromptRender) {
+            lastState = state
+            promptUpdates += VoicePromptUpdate(state, render)
+            messages += render.asHelpMessage()
         }
 
         override fun onStateChanged(state: VoicePromptState) {
@@ -231,4 +288,9 @@ class VoiceAutoCaptureSessionTest {
 
         override fun isPromptActive(): Boolean = true
     }
+
+    private data class VoicePromptUpdate(
+        val state: VoicePromptState,
+        val render: VoicePromptRender
+    )
 }

@@ -4,6 +4,7 @@ import android.os.Bundle
 import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptDelegate
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptHost
+import dev.skomlach.biometric.compat.custom.SoftwarePromptStatus
 
 internal class VoicePromptDelegate(
     private val host: SoftwareBiometricPromptHost
@@ -14,8 +15,10 @@ internal class VoicePromptDelegate(
         builder = host.builder,
         enroll = host.enroll,
         callback = object : VoiceAutoCaptureSession.Callback {
-            override fun onHelp(message: CharSequence) {
-                host.callbacks.onHelp(message)
+            override fun onPromptUpdated(state: VoicePromptState, render: VoicePromptRender) {
+                host.callbacks.onStatus(
+                    render.toSoftwarePromptStatus(state)
+                )
             }
 
             override fun onReady(extras: Bundle) {
@@ -48,4 +51,14 @@ internal class VoicePromptDelegate(
     }
 
     override fun isReadyToStartAuth(): Boolean = controller.isReadyToStartAuth()
+
+    private fun VoicePromptRender.toSoftwarePromptStatus(
+        state: VoicePromptState
+    ): SoftwarePromptStatus {
+        return SoftwarePromptStatus(
+            primaryText = primaryMessage,
+            secondaryText = secondaryMessage,
+            terminal = state == VoicePromptState.Timeout || state == VoicePromptState.Lockout
+        )
+    }
 }

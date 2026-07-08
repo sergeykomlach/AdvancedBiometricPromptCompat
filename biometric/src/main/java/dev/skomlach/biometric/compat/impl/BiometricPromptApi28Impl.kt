@@ -46,6 +46,7 @@ import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptRegistry
+import dev.skomlach.biometric.compat.custom.SoftwarePromptStatus
 import dev.skomlach.biometric.compat.planApi28StartAuthStage
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.biometricActivityDestroyedDescription
@@ -835,7 +836,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
         override fun onHelp(msg: CharSequence?) {
             if (!msg.isNullOrEmpty()) {
-                dialog?.onHelp(msg)
+                dialog?.onSoftwareStatus(SoftwarePromptStatus(primaryText = msg))
             }
         }
 

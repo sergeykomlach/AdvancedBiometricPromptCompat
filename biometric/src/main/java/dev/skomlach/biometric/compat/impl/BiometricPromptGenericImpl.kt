@@ -27,6 +27,7 @@ import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.EnrollTerminalStatus
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.CryptoSecurityLevel
+import dev.skomlach.biometric.compat.custom.SoftwarePromptStatus
 import dev.skomlach.biometric.compat.biometricRequiredCryptoMissingDescription
 import dev.skomlach.biometric.compat.resolveEnrollSessionOutcome
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
@@ -383,7 +384,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
         override fun onHelp(msg: CharSequence?) {
             if (!msg.isNullOrEmpty()) {
-                if (dialog != null) dialog?.onHelp(msg)
+                dialog?.onSoftwareStatus(SoftwarePromptStatus(primaryText = msg))
             }
         }
 

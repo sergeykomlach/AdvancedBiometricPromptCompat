@@ -23,11 +23,15 @@ internal class VoiceAutoCaptureSession(
     }
 ) {
     interface Callback {
-        fun onHelp(message: CharSequence)
+        fun onHelp(message: CharSequence) = Unit
         fun onReady(extras: Bundle)
         fun onError(result: AuthenticationResult)
         fun isPromptActive(): Boolean
         fun onStateChanged(state: VoicePromptState) = Unit
+        fun onPromptUpdated(state: VoicePromptState, render: VoicePromptRender) {
+            onStateChanged(state)
+            onHelp(render.asHelpMessage())
+        }
     }
 
     class Messages(
@@ -191,9 +195,8 @@ internal class VoiceAutoCaptureSession(
 
     private fun emitState(state: VoicePromptState): VoicePromptRender {
         currentState = state
-        callback.onStateChanged(state)
         val render = promptMessageResolver(state, phrase)
-        callback.onHelp(render.asHelpMessage())
+        callback.onPromptUpdated(state, render)
         return render
     }
 
@@ -233,13 +236,6 @@ internal class VoiceAutoCaptureSession(
 
     private fun requiredSamples(): Int = if (enroll) ENROLLMENT_SAMPLE_COUNT else 1
 
-    private fun VoicePromptRender.asHelpMessage(): String {
-        return listOfNotNull(
-            primaryMessage.takeIf { it.isNotBlank() },
-            secondaryMessage?.takeIf { it.isNotBlank() }
-        ).joinToString(separator = "\n")
-    }
-
     private fun VoiceCaptureDecision.toRetryReason(): VoiceRetryReason {
         return when (rejectReason) {
             VoiceCaptureRejectReason.RECORDER_FAILURE -> VoiceRetryReason.RECORDING_FAILED
@@ -263,4 +259,11 @@ internal class VoiceAutoCaptureSession(
         const val ENROLLMENT_SAMPLE_COUNT = 3
         const val DEFAULT_SAMPLE_RATE_HZ = 16_000
     }
+}
+
+internal fun VoicePromptRender.asHelpMessage(): String {
+    return listOfNotNull(
+        primaryMessage.takeIf { it.isNotBlank() },
+        secondaryMessage?.takeIf { it.isNotBlank() }
+    ).joinToString(separator = "\n")
 }
