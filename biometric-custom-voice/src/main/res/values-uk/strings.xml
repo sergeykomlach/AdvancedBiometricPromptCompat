@@ -45,6 +45,23 @@
     <string name="biometriccompat_voice_auto_sample_saved">Голосовий зразок %1$d із %2$d збережено</string>
     <string name="biometriccompat_voice_status_recording">Запис голосового зразка...</string>
     <string name="biometriccompat_voice_status_checking">Перевірка голосу</string>
+    <string name="biometriccompat_voice_prompt_enroll_first_instruction">Щоб зареєструвати голос, природно промовте кодову фразу протягом 2-4 секунд. Спроба %1$d із %2$d.</string>
+    <string name="biometriccompat_voice_prompt_enroll_repeat_instruction">Повторіть ту саму кодову фразу ще раз. Спроба %1$d із %2$d.</string>
+    <string name="biometriccompat_voice_prompt_auth_instruction">Природно промовте свою кодову фразу.</string>
+    <string name="biometriccompat_voice_prompt_phrase">Фраза: %1$s</string>
+    <string name="biometriccompat_voice_prompt_listening">Слухаємо голос</string>
+    <string name="biometriccompat_voice_prompt_detected">Голос виявлено</string>
+    <string name="biometriccompat_voice_prompt_processing">Обробка голосового зразка</string>
+    <string name="biometriccompat_voice_prompt_matching">Перевірка голосу</string>
+    <string name="biometriccompat_voice_prompt_timeout">Час очікування автентифікації голосом вичерпано</string>
+    <string name="biometriccompat_voice_prompt_lockout">Автентифікацію голосом тимчасово заблоковано</string>
+    <string name="biometriccompat_voice_prompt_retry_no_speech">Мовлення не виявлено. Спробуйте ще раз промовити ту саму фразу.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_short">Фраза була надто короткою. Повторіть ту саму фразу ще раз.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_quiet">Фраза була надто тихою. Підійдіть ближче до мікрофона й спробуйте ще раз.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_flat">Промовте фразу чіткіше й спробуйте ще раз.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_too_long">Промовте коротшу фразу й спробуйте ще раз.</string>
+    <string name="biometriccompat_voice_prompt_retry_sample_replay_risk">Промовте нову природну фразу й спробуйте ще раз.</string>
+    <string name="biometriccompat_voice_prompt_retry_recording_failed">Запис не вдався. Спробуйте ще раз промовити ту саму фразу.</string>
 </resources>
 
 
