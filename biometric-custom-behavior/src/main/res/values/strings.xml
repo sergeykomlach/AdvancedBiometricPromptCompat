@@ -3,6 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">Behavior authentication timed out</string>
     <string name="biometriccompat_behavior_help_unavailable">Behavior authentication is unavailable</string>
     <string name="biometriccompat_behavior_help_sample_missing">Behavior sample is missing or incomplete</string>
+    <string name="biometriccompat_behavior_error_capture_invalid">Capture was interrupted or invalid. Try again.</string>
+    <string name="biometriccompat_behavior_error_accessibility">An untrusted accessibility service is active. Disable it and try again.</string>
     <string name="biometriccompat_behavior_help_not_registered">No behavior profile is set up</string>
     <string name="biometriccompat_behavior_help_enrolled">Behavior profile saved: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">Behavior confirmed</string>

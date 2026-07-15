@@ -40,6 +40,14 @@ improves tolerance for natural behavior variance. Authentication evaluates the
 recent templates with a small top-k aggregation, similar to lightweight KNN
 matching, instead of trusting a single best sample.
 
+Built-in prompt capture is session-bound and time-limited. It uses an
+in-process nonce, accepts one submission, rejects exact recent payload replay,
+and invalidates the capture after obscured or cancelled input. Strict built-in
+capture also applies the existing accessibility/screen protection policy to
+the complete overlay. These controls improve capture integrity but are not a
+neural human-presence detector and do not protect against a compromised or
+rooted process.
+
 Enrollment and authentication reject low-quality samples before matching:
 typing phrases must be long enough and have useful timing variation, while
 signature samples must contain enough points, path length, and visible shape
@@ -67,7 +75,9 @@ views are provided, the prompt attaches temporary listeners and reuses those
 views; otherwise it creates temporary input controls inside the overlay.
 The built-in typing overlay uses a compact touch keyboard so the module can
 capture real key down/up timings instead of relying on soft-keyboard text change
-events.
+events. Consumer-owned typing views remain a compatibility path: their
+`TextWatcher`-derived timing is not treated as equivalent to strict built-in
+raw-event capture.
 
 The current implementation intentionally avoids bundling TensorFlow Lite or
 Python/SciPy. Public Android references for keystroke and online-signature

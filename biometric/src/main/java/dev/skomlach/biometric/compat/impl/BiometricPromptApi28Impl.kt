@@ -52,6 +52,7 @@ import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.biometricActivityDestroyedDescription
 import dev.skomlach.biometric.compat.biometricErrorWithCodeDescription
 import dev.skomlach.biometric.compat.biometricInternalErrorDescription
+import dev.skomlach.biometric.compat.normalizeBiometricErrorDescription
 import dev.skomlach.biometric.compat.biometricRequiredCryptoMissingDescription
 import dev.skomlach.biometric.compat.biometricRequiredCryptoRejectedDescription
 import dev.skomlach.biometric.compat.biometricStartAuthenticationDescription
@@ -288,7 +289,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                     AuthenticationResult(
                                         it,
                                         reason = AuthenticationFailureReason.CANCELED,
-                                        description = errString
+                                        description = normalizeBiometricErrorDescription(errString)
                                     )
                                 )
                             }
@@ -302,7 +303,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                     AuthenticationResult(
                                         it,
                                         reason = AuthenticationFailureReason.CANCELED_BY_USER,
-                                        description = errString
+                                        description = normalizeBiometricErrorDescription(errString)
                                     )
                                 )
                             }
@@ -428,6 +429,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val remainingPrimaryTypes = remainingPrimaryTypes()
         val remainingSecondaryTypes = remainingSecondaryTypes()
         val stagePlan = planApi28StartAuthStage(
+            confirmation = builder.getBiometricAuthRequest().confirmation,
             remainingPrimaryTypes = remainingPrimaryTypes,
             remainingSecondaryTypes = remainingSecondaryTypes,
             routeForType = builder::selectedRoute,

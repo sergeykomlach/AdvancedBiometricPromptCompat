@@ -71,6 +71,18 @@ data class TensorFlowFaceConfig(
     val maxHeadAngleX: Float = 22f,
     @FloatRange(from = 0.0, to = 45.0)
     val maxHeadAngleY: Float = 22f,
+    val faceChallengeEnabled: Boolean = true,
+    val requireRealCameraProviderForAuthentication: Boolean = true,
+    @IntRange(from = 2, to = 4)
+    val faceChallengeLength: Int = 2,
+    @FloatRange(from = 1.0, to = 20.0)
+    val faceChallengeYawDegrees: Float = 12f,
+    @FloatRange(from = 0.0, to = 10.0)
+    val faceChallengeToleranceDegrees: Float = 6f,
+    @IntRange(from = 500, to = 30_000)
+    val faceChallengeStepTimeoutMs: Long = 5_000L,
+    @IntRange(from = 1, to = 10)
+    val faceChallengeMaxRejectedAttempts: Int = 3,
     @IntRange(from = 64)
     val minFaceSizePx: Int = 150,
     @IntRange(from = 0, to = 255)
@@ -82,6 +94,7 @@ data class TensorFlowFaceConfig(
     @FloatRange(from = 1.0, to = 3.0)
     val livenessCropScale: Float = 1.60f,
     val antiSpoofingEnabled: Boolean = true,
+    val requireAntiSpoofingForAuthentication: Boolean = true,
     @FloatRange(from = 0.0, to = 1.0)
     val antiSpoofingScoreThreshold: Float = 0.28f,
     @IntRange(from = 1)
@@ -118,6 +131,21 @@ data class TensorFlowFaceConfig(
         }
         require(maxHeadAngleX in 0f..45f) { "maxHeadAngleX must be in 0..45" }
         require(maxHeadAngleY in 0f..45f) { "maxHeadAngleY must be in 0..45" }
+        require(faceChallengeLength in 2..4) {
+            "faceChallengeLength must be between 2 and 4"
+        }
+        require(faceChallengeYawDegrees in 1f..20f) {
+            "faceChallengeYawDegrees must be between 1 and 20"
+        }
+        require(faceChallengeToleranceDegrees in 0f..10f) {
+            "faceChallengeToleranceDegrees must be between 0 and 10"
+        }
+        require(faceChallengeStepTimeoutMs in 500L..30_000L) {
+            "faceChallengeStepTimeoutMs must be between 500 and 30000"
+        }
+        require(faceChallengeMaxRejectedAttempts in 1..10) {
+            "faceChallengeMaxRejectedAttempts must be between 1 and 10"
+        }
         require(minFaceSizePx >= 64) { "minFaceSizePx must be >= 64" }
         require(minBrightnessLuma in 0..255) { "minBrightnessLuma must be in 0..255" }
         require(minLaplacianScore >= 0) { "minLaplacianScore must be >= 0" }

@@ -26,6 +26,7 @@ import android.os.Bundle
 import android.view.SurfaceView
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.normalizeBiometricErrorDescription
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
@@ -478,7 +479,7 @@ object LegacyBiometric {
                     AuthenticationResult(
                         activeModules[tag],
                         reason = reason,
-                        description = desc
+                        description = normalizeBiometricErrorDescription(desc)
                     )
                 )
             }

@@ -42,4 +42,10 @@ class AuthenticationResultDescriptionTest {
 
         assertNull(result.withMissingPermissionDescription("Camera permission is required to use this feature.").description)
     }
+
+    @Test
+    fun blankPlatformErrorDescriptionIsNotExposedAsUserMessage() {
+        assertNull(normalizeBiometricErrorDescription("  "))
+        assertEquals("Canceled", normalizeBiometricErrorDescription("Canceled"))
+    }
 }

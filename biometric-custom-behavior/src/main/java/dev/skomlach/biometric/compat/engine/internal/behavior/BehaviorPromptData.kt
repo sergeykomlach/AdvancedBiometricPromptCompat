@@ -3,6 +3,46 @@ package dev.skomlach.biometric.compat.engine.internal.behavior
 import android.os.Bundle
 import dev.skomlach.biometric.compat.BehaviorAuthMode
 import dev.skomlach.biometric.compat.BundleBuilder
+import java.security.SecureRandom
+import java.util.concurrent.ConcurrentHashMap
+
+internal const val EXTRA_BEHAVIOR_SESSION_NONCE = "behavior.session_nonce"
+
+internal object BehaviorCaptureSessionRegistry {
+    private val random = SecureRandom()
+    private val activeSessions = ConcurrentHashMap<Long, BehaviorCaptureSessionToken>()
+
+    fun start(nowMs: Long): BehaviorCaptureSessionToken {
+        while (true) {
+            val token = BehaviorCaptureSessionToken(random.nextLong(), nowMs)
+            if (activeSessions.putIfAbsent(token.nonce, token) == null) return token
+        }
+    }
+
+    fun consume(
+        nonce: Long,
+        nowMs: Long,
+        maxDurationMs: Long
+    ): BehaviorCaptureSessionDecision {
+        val token = activeSessions[nonce]
+            ?: return BehaviorCaptureSessionDecision.INVALID_TOKEN
+        val decision = evaluateBehaviorCaptureSession(
+            nowMs = nowMs,
+            submitted = false,
+            token = token,
+            expectedNonce = nonce,
+            maxDurationMs = maxDurationMs
+        )
+        activeSessions.remove(nonce)
+        return decision
+    }
+
+    fun startedAt(nonce: Long): Long? = activeSessions[nonce]?.startedAtMs
+
+    fun invalidate(token: BehaviorCaptureSessionToken?) {
+        token?.let { activeSessions.remove(it.nonce) }
+    }
+}
 
 internal fun buildBehaviorExtras(
     existing: Bundle?,
@@ -11,7 +51,8 @@ internal fun buildBehaviorExtras(
     keyDownTimesMs: LongArray,
     keyUpTimesMs: LongArray,
     strokePoints: FloatArray,
-    enroll: Boolean
+    enroll: Boolean,
+    sessionToken: BehaviorCaptureSessionToken? = null
 ): Bundle {
     val extras = Bundle(existing ?: Bundle())
     clearBehaviorInput(extras)
@@ -26,6 +67,7 @@ internal fun buildBehaviorExtras(
     extras.putFloatArray(BehaviorSample.EXTRA_BEHAVIOR_POINTS, strokePoints.copyOf())
     extras.putInt(BehaviorSample.EXTRA_BEHAVIOR_POINTS_STRIDE, BehaviorSample.POINT_STRIDE)
     extras.putBoolean(BundleBuilder.ENROLL, enroll)
+    sessionToken?.let { extras.putLong(EXTRA_BEHAVIOR_SESSION_NONCE, it.nonce) }
     return extras
 }
 
@@ -36,6 +78,7 @@ internal fun clearBehaviorInput(extras: Bundle) {
     extras.remove(BehaviorSample.EXTRA_BEHAVIOR_KEY_UPS)
     extras.remove(BehaviorSample.EXTRA_BEHAVIOR_POINTS)
     extras.remove(BehaviorSample.EXTRA_BEHAVIOR_POINTS_STRIDE)
+    extras.remove(EXTRA_BEHAVIOR_SESSION_NONCE)
 }
 
 internal fun shouldInstallBehaviorPrompt(

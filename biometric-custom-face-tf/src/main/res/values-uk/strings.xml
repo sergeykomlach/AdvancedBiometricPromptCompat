@@ -40,6 +40,11 @@
     <string name="biometriccompat_tf_face_help_model_not_detected">Не видно вашого обличчя. Тримайте телефон на рівні очей</string>
     <string name="biometriccompat_tf_face_help_camera_error">Помилка камери (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">Камера для розпізнавання обличчя недоступна</string>
+    <string name="biometriccompat_tf_face_help_untrusted_capture">Потрібен захищений захват із камери</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">Сумістіть обличчя з камерою</string>
     <string name="biometriccompat_tf_face_prompt_start_enroll">Сумістіть обличчя, щоб налаштувати розблокування обличчям</string>
+    <string name="biometriccompat_tf_face_challenge_instruction">Для перевірки живості: %1$s</string>
+    <string name="biometriccompat_tf_face_challenge_center">дивіться прямо перед собою</string>
+    <string name="biometriccompat_tf_face_challenge_left">трохи поверніть голову ліворуч</string>
+    <string name="biometriccompat_tf_face_challenge_right">трохи поверніть голову праворуч</string>
 </resources>

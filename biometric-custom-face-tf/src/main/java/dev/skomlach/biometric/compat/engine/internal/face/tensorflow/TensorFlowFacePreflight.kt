@@ -5,6 +5,8 @@ internal enum class TensorFlowFacePreflightIssue {
     CAMERA_BLOCKED,
     CAMERA_IN_USE,
     NO_ENROLLED_BIOMETRIC,
+    ANTI_SPOOFING_UNAVAILABLE,
+    UNTRUSTED_CAPTURE_PROVIDER,
 }
 
 internal fun resolveTensorFlowFacePreflightIssue(
@@ -13,7 +15,10 @@ internal fun resolveTensorFlowFacePreflightIssue(
     isCameraBlocked: Boolean,
     isCameraInUse: Boolean,
     isEnrolling: Boolean,
-    hasEnrolledBiometric: Boolean
+    hasEnrolledBiometric: Boolean,
+    antiSpoofingAvailable: Boolean = true,
+    requireAntiSpoofing: Boolean = false,
+    requireRealCameraProvider: Boolean = false
 ): TensorFlowFacePreflightIssue? {
     if (!isHardwareDetected) {
         return TensorFlowFacePreflightIssue.HARDWARE_MISSING
@@ -26,6 +31,12 @@ internal fun resolveTensorFlowFacePreflightIssue(
     }
     if (!isEnrolling && !hasEnrolledBiometric) {
         return TensorFlowFacePreflightIssue.NO_ENROLLED_BIOMETRIC
+    }
+    if (!isEnrolling && requireRealCameraProvider && !usesRealCameraProvider) {
+        return TensorFlowFacePreflightIssue.UNTRUSTED_CAPTURE_PROVIDER
+    }
+    if (!isEnrolling && requireAntiSpoofing && !antiSpoofingAvailable) {
+        return TensorFlowFacePreflightIssue.ANTI_SPOOFING_UNAVAILABLE
     }
     return null
 }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -103,6 +104,70 @@ class BehaviorBiometricManager(
                 localized(R.string.biometriccompat_behavior_help_sample_missing)
             )
             return
+        }
+        val sessionNonce = extra
+            ?.takeIf { it.containsKey(EXTRA_BEHAVIOR_SESSION_NONCE) }
+            ?.getLong(EXTRA_BEHAVIOR_SESSION_NONCE)
+        val sessionStartedAtMs = sessionNonce?.let(BehaviorCaptureSessionRegistry::startedAt)
+        if (sessionNonce != null) {
+            val sessionDecision = BehaviorCaptureSessionRegistry.consume(
+                nonce = sessionNonce,
+                nowMs = SystemClock.elapsedRealtime(),
+                maxDurationMs = MAX_CAPTURE_DURATION_MS
+            )
+            if (sessionDecision != BehaviorCaptureSessionDecision.ACTIVE) {
+                e("BehaviorBiometricManager.authenticate session=$sessionDecision")
+                finishWithError(
+                    callback,
+                    CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                    localized(R.string.biometriccompat_behavior_error_capture_invalid)
+                )
+                return
+            }
+            val captureNowMs = SystemClock.elapsedRealtime()
+            val inputDecision = when (sample.mode) {
+                BehaviorMode.TYPING -> evaluateTypingIntegrity(
+                    downs = sample.keyDownTimesMs,
+                    ups = sample.keyUpTimesMs,
+                    phraseLength = sample.phrase?.length ?: 0,
+                    startedAtMs = sessionStartedAtMs ?: captureNowMs,
+                    nowMs = captureNowMs,
+                    maxInterEventGapMs = MAX_INTER_EVENT_GAP_MS
+                )
+                BehaviorMode.SIGNATURE,
+                BehaviorMode.COMBINED -> {
+                    val typingDecision = if (sample.mode == BehaviorMode.COMBINED) {
+                        evaluateTypingIntegrity(
+                            downs = sample.keyDownTimesMs,
+                            ups = sample.keyUpTimesMs,
+                            phraseLength = sample.phrase?.length ?: 0,
+                            startedAtMs = sessionStartedAtMs ?: captureNowMs,
+                            nowMs = captureNowMs,
+                            maxInterEventGapMs = MAX_INTER_EVENT_GAP_MS
+                        )
+                    } else {
+                        BehaviorInputIntegrityDecision.ACCEPT
+                    }
+                    if (typingDecision != BehaviorInputIntegrityDecision.ACCEPT) {
+                        typingDecision
+                    } else {
+                        evaluateSignatureIntegrity(
+                            points = sample.strokePoints,
+                            startedAtMs = sessionStartedAtMs ?: captureNowMs,
+                            nowMs = captureNowMs,
+                            cancelled = false
+                        )
+                    }
+                }
+            }
+            if (inputDecision != BehaviorInputIntegrityDecision.ACCEPT) {
+                finishWithError(
+                    callback,
+                    CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                    localized(R.string.biometriccompat_behavior_error_capture_invalid)
+                )
+                return
+            }
         }
         val qualityIssue = sample.qualityIssue()
         val metrics = sample.metrics().toLogString()
@@ -280,6 +345,8 @@ class BehaviorBiometricManager(
         const val COMBINED_MATCH_THRESHOLD = 0.83f
         const val TOP_K_TEMPLATES = 3
         const val RESULT_DELAY_MS = 500L
+        const val MAX_CAPTURE_DURATION_MS = 30_000L
+        const val MAX_INTER_EVENT_GAP_MS = 2_000L
 
         val LOCKOUT_POLICY = LockoutPolicy(
             maxFailedAttemptsBeforeLockout = 5,

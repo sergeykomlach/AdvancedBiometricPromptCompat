@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
+import android.os.SystemClock
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.custom.voice.R
@@ -25,6 +26,8 @@ class VoiceBiometricManager(
     override val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
 
     private val sessionActive = AtomicBoolean(false)
+    private var lastProbeFingerprint: Long? = null
+    private var lastProbeAtMs: Long = 0L
     private val prefs by lazy {
         SharedPreferenceProvider.getProtectedPreferences(LOCKOUT_STORAGE_NAME)
     }
@@ -123,6 +126,19 @@ class VoiceBiometricManager(
         }
         val sample = samples.first()
 
+        val trustIssue = samples
+            .map { evaluateVoiceSampleTrust(it, allowPrecomputedEmbedding = false) }
+            .firstOrNull { it != VoiceSampleTrustDecision.ACCEPT }
+        if (trustIssue != null) {
+            e("VoiceBiometricManager.authenticate rejected_untrusted_input=$trustIssue")
+            finishWithError(
+                callback,
+                CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                localized(R.string.biometriccompat_voice_help_sample_required)
+            )
+            return
+        }
+
         val sampleQualityIssue = samples
             .map { it.qualityIssue() }
             .firstOrNull { it != VoiceQualityIssue.NONE }
@@ -136,6 +152,44 @@ class VoiceBiometricManager(
             )
             return
         }
+
+        val sampleFingerprints = samples.map(::fingerprintVoiceSample)
+        val hasMissingFingerprint = sampleFingerprints.any { it == null }
+        val hasDuplicateSamples = sampleFingerprints.size != sampleFingerprints.toSet().size
+        if (hasMissingFingerprint || hasDuplicateSamples) {
+            e(
+                "VoiceBiometricManager.authenticate replay_risk=" +
+                    "missing=$hasMissingFingerprint duplicate=$hasDuplicateSamples"
+            )
+            finishWithError(
+                callback,
+                CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                qualityMessage(VoiceQualityIssue.SAMPLE_REPLAY_RISK)
+            )
+            return
+        }
+
+        val currentFingerprint = sampleFingerprints.first() ?: return
+        val nowMs = SystemClock.elapsedRealtime()
+        val isEnrollment = extra?.getBoolean(IS_ENROLLMENT_KEY, false) == true
+        if (!isEnrollment && evaluateVoiceReplay(
+                previousFingerprint = lastProbeFingerprint,
+                currentFingerprint = currentFingerprint,
+                nowMs = nowMs,
+                previousAtMs = lastProbeAtMs,
+                freshnessWindowMs = REPLAY_FRESHNESS_WINDOW_MS
+            ) == VoiceReplayDecision.REJECT_REPLAY
+        ) {
+            e("VoiceBiometricManager.authenticate replay_risk=recent_duplicate")
+            finishWithError(
+                callback,
+                CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                qualityMessage(VoiceQualityIssue.SAMPLE_REPLAY_RISK)
+            )
+            return
+        }
+        lastProbeFingerprint = currentFingerprint
+        lastProbeAtMs = nowMs
 
         val embeddingResults = samples.map { engine.extractEmbedding(it) }
         val preprocessMetrics = embeddingResults
@@ -160,7 +214,7 @@ class VoiceBiometricManager(
             return
         }
 
-        if (extra?.getBoolean(IS_ENROLLMENT_KEY, false) == true) {
+        if (isEnrollment) {
             val tag = store.saveAll(
                 extra.getString(ENROLLMENT_TAG_KEY),
                 sample.phrase,
@@ -195,8 +249,23 @@ class VoiceBiometricManager(
             return
         }
 
+        val phraseRequired = isVoicePhraseRequired(templates.map { it.phrase })
         val matchingTemplates = templates.filter { template ->
-            template.phrase == null || sample.phrase == null || template.phrase == sample.phrase
+            !phraseRequired || evaluateVoicePhraseChallenge(template.phrase, sample.phrase) ==
+                VoicePhraseChallengeDecision.ACCEPT
+        }
+        if (matchingTemplates.isEmpty()) {
+            val phraseChallenge = templates
+                .map { template -> evaluateVoicePhraseChallenge(template.phrase, sample.phrase) }
+                .firstOrNull { it != VoicePhraseChallengeDecision.ACCEPT }
+                ?: VoicePhraseChallengeDecision.REJECT_MISSING_PHRASE
+            e("VoiceBiometricManager.authenticate phrase_challenge=$phraseChallenge")
+            finishWithError(
+                callback,
+                CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                localized(R.string.biometriccompat_voice_help_not_matched)
+            )
+            return
         }
         val bestMatch = matchingTemplates
             .groupBy { it.tag }
@@ -318,6 +387,7 @@ class VoiceBiometricManager(
         private const val LOCKOUT_STORAGE_NAME = "voice_lockout"
         private const val MATCH_THRESHOLD = 0.78f
         private const val TOP_K_TEMPLATES = 3
+        private const val REPLAY_FRESHNESS_WINDOW_MS = 30_000L
 
         internal fun successResultDelayMsForTest(): Long = 0L
 

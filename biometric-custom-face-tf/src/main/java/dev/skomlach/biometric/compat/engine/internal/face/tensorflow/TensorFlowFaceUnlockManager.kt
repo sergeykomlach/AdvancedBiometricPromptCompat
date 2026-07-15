@@ -10,6 +10,7 @@ import android.os.CancellationSignal
 import android.os.Handler
 import android.os.Looper
 import android.os.HandlerThread
+import android.os.SystemClock
 import androidx.core.content.edit
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.get
@@ -21,6 +22,7 @@ import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.face.FaceLandmark
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssurance
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.IFrameProvider
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.RealCameraProvider
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
@@ -32,9 +34,11 @@ import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferen
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.security.SecureRandom
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
 import kotlin.math.atan2
+import kotlin.math.min
 import kotlin.math.sqrt
 
 class TensorFlowFaceUnlockManager(
@@ -167,6 +171,12 @@ class TensorFlowFaceUnlockManager(
     private var processedFrameCounter = 0
     private var consecutiveMatchCounter = 0
     private var lastMatchedId: String? = null
+    private val faceChallengeRandom = SecureRandom()
+    private var faceChallengeSessionNonce: Long? = null
+    private var faceChallengeActions: List<FaceChallengeAction> = emptyList()
+    private var faceChallengeIndex = 0
+    private var faceChallengeStepStartedAtMs = 0L
+    private var faceChallengeRejectedAttempts = 0
 
     private val faceDetector: FaceDetector? by lazy {
         try {
@@ -353,6 +363,11 @@ class TensorFlowFaceUnlockManager(
         processedFrameCounter = 0
         consecutiveMatchCounter = 0
         lastMatchedId = null
+        faceChallengeActions = emptyList()
+        faceChallengeIndex = 0
+        faceChallengeSessionNonce = null
+        faceChallengeStepStartedAtMs = 0L
+        faceChallengeRejectedAttempts = 0
         releaseSession(this)
         authCallback = null
         cancellationSignal = null
@@ -544,7 +559,10 @@ class TensorFlowFaceUnlockManager(
                 isCameraBlocked = usesRealCameraProvider && SensorPrivacyCheck.isCameraBlocked(),
                 isCameraInUse = usesRealCameraProvider && SensorPrivacyCheck.isCameraInUse(),
                 isEnrolling = isEnrolling,
-                hasEnrolledBiometric = hasEnrolledBiometric()
+                hasEnrolledBiometric = hasEnrolledBiometric(),
+                antiSpoofingAvailable = antiSpoofingEnabled,
+                requireAntiSpoofing = effectiveConfig.base.requireAntiSpoofingForAuthentication,
+                requireRealCameraProvider = effectiveConfig.base.requireRealCameraProviderForAuthentication
             )
         ) {
             TensorFlowFacePreflightIssue.HARDWARE_MISSING -> {
@@ -595,8 +613,49 @@ class TensorFlowFaceUnlockManager(
                 return
             }
 
+            TensorFlowFacePreflightIssue.ANTI_SPOOFING_UNAVAILABLE -> {
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_not_available
+                    )
+                )
+                stopAuthentication()
+                return
+            }
+
+            TensorFlowFacePreflightIssue.UNTRUSTED_CAPTURE_PROVIDER -> {
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_untrusted_capture
+                    )
+                )
+                stopAuthentication()
+                return
+            }
+
             null -> {
             }
+        }
+
+        if (!isEnrolling && effectiveConfig.base.faceChallengeEnabled) {
+            val nonce = faceChallengeRandom.nextLong()
+            faceChallengeSessionNonce = nonce
+            faceChallengeActions = faceChallengeSessionNonce
+                ?.let {
+                    generateFaceChallenge(
+                        sessionNonce = it,
+                        length = effectiveConfig.base.faceChallengeLength
+                    )
+                }
+                .orEmpty()
+            faceChallengeIndex = 0
+            faceChallengeStepStartedAtMs = SystemClock.elapsedRealtime()
+            faceChallengeRejectedAttempts = 0
+            emitFaceChallengeInstruction()
         }
 
         if (!canStartAuthenticationSession()) {
@@ -689,26 +748,34 @@ class TensorFlowFaceUnlockManager(
         }
     }
 
-    private fun isSpoofDetected(bitmap: Bitmap): Boolean {
-        val engine = antiSpoofing ?: return false
+    private fun isSpoofDetected(bitmap: Bitmap): SoftwareBiometricAssurance {
+        val engine = antiSpoofing ?: return SoftwareBiometricAssurance.UNAVAILABLE
         return try {
             val currentScore = engine.antiSpoofing(bitmap)
+            val currentDecision = classifyFaceAntiSpoofingScore(
+                score = currentScore,
+                threshold = effectiveConfig.antiSpoofingScoreThreshold
+            )
+            if (currentDecision == SoftwareBiometricAssurance.UNAVAILABLE) {
+                return currentDecision
+            }
             spoofScoresWindow.addLast(currentScore)
             while (spoofScoresWindow.size > effectiveConfig.antiSpoofingWindowSize) {
                 spoofScoresWindow.removeFirst()
             }
             if (spoofScoresWindow.size < effectiveConfig.antiSpoofingMinFramesToDecide) {
-                return false
+                return SoftwareBiometricAssurance.PASS
             }
             val averageScore = spoofScoresWindow.average().toFloat()
             val highScores =
                 spoofScoresWindow.count { it >= effectiveConfig.antiSpoofingScoreThreshold }
-            averageScore >= effectiveConfig.antiSpoofingScoreThreshold &&
+            val spoofDetected = averageScore >= effectiveConfig.antiSpoofingScoreThreshold &&
                     currentScore >= effectiveConfig.antiSpoofingScoreThreshold &&
                     highScores >= effectiveConfig.antiSpoofingMinFramesToDecide
+            if (spoofDetected) SoftwareBiometricAssurance.SPOOF else SoftwareBiometricAssurance.PASS
         } catch (e: Throwable) {
             LogCat.logException(e, TAG)
-            false
+            SoftwareBiometricAssurance.UNAVAILABLE
         }
     }
 
@@ -875,6 +942,19 @@ class TensorFlowFaceUnlockManager(
         }
     }
 
+    private fun handleSpoofFailure() {
+        if (shouldCountFaceSpoofFailure(isEnrolling)) {
+            handleFailedAttempt()
+        }
+        onAuthenticationError(
+            CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+            LocalizationHelper.getLocalizedString(
+                context,
+                R.string.biometriccompat_tf_face_help_model_fake_face_detected
+            )
+        )
+    }
+
     private fun processSingleFace(
         bitmap: Bitmap,
         face: Face
@@ -889,6 +969,10 @@ class TensorFlowFaceUnlockManager(
             abs(face.headEulerAngleY) > effectiveConfig.maxHeadAngleY
         ) {
             return FaceAttemptResult.InvalidFace
+        }
+
+        if (!isEnrolling && !isFaceChallengeSatisfied(face)) {
+            return FaceAttemptResult.MatchInProgress
         }
 
         val livenessCrop = createScaledFaceCrop(
@@ -929,16 +1013,10 @@ class TensorFlowFaceUnlockManager(
             )
             if (antiSpoofStageBefore == AntiSpoofingStage.BEFORE_RECOGNITION) {
                 antiSpoofCheckedThisFace = true
-                if (isSpoofDetected(livenessCrop)) {
+                if (isSpoofDetected(livenessCrop) != SoftwareBiometricAssurance.PASS) {
                     consecutiveMatchCounter = 0
                     lastMatchedId = null
-                    onAuthenticationError(
-                        CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.biometriccompat_tf_face_help_model_fake_face_detected
-                        )
-                    )
+                    handleSpoofFailure()
                     return FaceAttemptResult.Spoof
                 }
             }
@@ -968,16 +1046,10 @@ class TensorFlowFaceUnlockManager(
             if (isEnrolling) {
                 if (!antiSpoofCheckedThisFace &&
                     antiSpoofStageAfter == AntiSpoofingStage.AFTER_CANDIDATE &&
-                    isSpoofDetected(livenessCrop)
+                    isSpoofDetected(livenessCrop) != SoftwareBiometricAssurance.PASS
                 ) {
                     clearAntiSpoofingWindow()
-                    onAuthenticationError(
-                        CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.biometriccompat_tf_face_help_model_fake_face_detected
-                        )
-                    )
+                    handleSpoofFailure()
                     return FaceAttemptResult.Spoof
                 }
 
@@ -1003,18 +1075,12 @@ class TensorFlowFaceUnlockManager(
             if (!antiSpoofCheckedThisFace &&
                 matched &&
                 antiSpoofStageForMatch == AntiSpoofingStage.AFTER_CANDIDATE &&
-                isSpoofDetected(livenessCrop)
+                isSpoofDetected(livenessCrop) != SoftwareBiometricAssurance.PASS
             ) {
                 clearAntiSpoofingWindow()
                 consecutiveMatchCounter = 0
                 lastMatchedId = null
-                onAuthenticationError(
-                    CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                    LocalizationHelper.getLocalizedString(
-                        context,
-                        R.string.biometriccompat_tf_face_help_model_fake_face_detected
-                    )
-                )
+                handleSpoofFailure()
                 return FaceAttemptResult.Spoof
             }
 
@@ -1042,6 +1108,99 @@ class TensorFlowFaceUnlockManager(
             if (!alignedFace.isRecycled) alignedFace.recycle()
             if (!livenessCrop.isRecycled) livenessCrop.recycle()
         }
+    }
+
+    private fun isFaceChallengeSatisfied(face: Face): Boolean {
+        if (faceChallengeActions.isEmpty()) return true
+
+        val nowMs = SystemClock.elapsedRealtime()
+        when (
+            evaluateFaceChallengeGuard(
+                stepStartedAtMs = faceChallengeStepStartedAtMs,
+                nowMs = nowMs,
+                rejectedAttempts = faceChallengeRejectedAttempts,
+                maxRejectedAttempts = effectiveConfig.base.faceChallengeMaxRejectedAttempts,
+                stepTimeoutMs = effectiveConfig.base.faceChallengeStepTimeoutMs
+            )
+        ) {
+            FaceChallengeGuardDecision.TIMEOUT -> {
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_TIMEOUT,
+                    getTimeoutMessage().toString()
+                )
+                stopAuthentication()
+                return false
+            }
+
+            FaceChallengeGuardDecision.ATTEMPTS_EXCEEDED -> {
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_retry
+                    )
+                )
+                stopAuthentication()
+                return false
+            }
+
+            FaceChallengeGuardDecision.ALLOW -> Unit
+        }
+
+        val tolerance = effectiveConfig.base.faceChallengeToleranceDegrees
+        val targetMagnitude = min(
+            effectiveConfig.base.faceChallengeYawDegrees,
+            (effectiveConfig.maxHeadAngleY - tolerance).coerceAtLeast(1f)
+        )
+        return when (
+            advanceFaceChallenge(
+                expected = faceChallengeActions,
+                index = faceChallengeIndex,
+                yawDegrees = face.headEulerAngleY,
+                toleranceDegrees = tolerance,
+                targetYawMagnitudeDegrees = targetMagnitude
+            )
+        ) {
+            FaceChallengeDecision.IN_PROGRESS -> {
+                faceChallengeIndex++
+                faceChallengeStepStartedAtMs = nowMs
+                faceChallengeRejectedAttempts = 0
+                emitFaceChallengeInstruction()
+                false
+            }
+
+            FaceChallengeDecision.COMPLETE -> {
+                faceChallengeActions = emptyList()
+                faceChallengeIndex = 0
+                faceChallengeStepStartedAtMs = 0L
+                faceChallengeRejectedAttempts = 0
+                true
+            }
+
+            FaceChallengeDecision.REJECTED -> {
+                faceChallengeRejectedAttempts++
+                emitFaceChallengeInstruction()
+                false
+            }
+        }
+    }
+
+    private fun emitFaceChallengeInstruction() {
+        val action = faceChallengeActions.getOrNull(faceChallengeIndex) ?: return
+        val actionTextRes = when (action) {
+            FaceChallengeAction.CENTER -> R.string.biometriccompat_tf_face_challenge_center
+            FaceChallengeAction.LEFT -> R.string.biometriccompat_tf_face_challenge_left
+            FaceChallengeAction.RIGHT -> R.string.biometriccompat_tf_face_challenge_right
+        }
+        val actionText = LocalizationHelper.getLocalizedString(context, actionTextRes)
+        authCallback?.onAuthenticationHelp(
+            CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
+            LocalizationHelper.getLocalizedString(
+                context,
+                R.string.biometriccompat_tf_face_challenge_instruction,
+                actionText
+            )
+        )
     }
 
     private fun getAlignedFace(

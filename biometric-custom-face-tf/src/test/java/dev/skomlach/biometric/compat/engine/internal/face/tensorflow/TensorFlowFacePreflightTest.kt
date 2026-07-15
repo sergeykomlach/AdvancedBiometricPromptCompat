@@ -95,6 +95,22 @@ class TensorFlowFacePreflightTest {
     }
 
     @Test
+    fun resolveTensorFlowFacePreflightIssueRejectsInjectedProviderWhenRequired() {
+        assertEquals(
+            TensorFlowFacePreflightIssue.UNTRUSTED_CAPTURE_PROVIDER,
+            resolveTensorFlowFacePreflightIssue(
+                isHardwareDetected = true,
+                usesRealCameraProvider = false,
+                isCameraBlocked = false,
+                isCameraInUse = false,
+                isEnrolling = false,
+                hasEnrolledBiometric = true,
+                requireRealCameraProvider = true
+            )
+        )
+    }
+
+    @Test
     fun shouldStartTensorFlowFaceSessionReturnsFalseForInactiveSession() {
         assertEquals(false, shouldStartTensorFlowFaceSession(isSessionActive = false))
     }

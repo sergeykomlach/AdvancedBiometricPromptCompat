@@ -40,6 +40,11 @@
     <string name="biometriccompat_tf_face_help_model_not_detected">Can\u2019t see your face. Hold your phone at eye level</string>
     <string name="biometriccompat_tf_face_help_camera_error">Camera error (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">Face camera is unavailable</string>
+    <string name="biometriccompat_tf_face_help_untrusted_capture">A trusted camera capture is required</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">Align your face with the camera</string>
     <string name="biometriccompat_tf_face_prompt_start_enroll">Align your face to set up face unlock</string>
+    <string name="biometriccompat_tf_face_challenge_instruction">For liveness, %1$s</string>
+    <string name="biometriccompat_tf_face_challenge_center">look straight ahead</string>
+    <string name="biometriccompat_tf_face_challenge_left">turn your head slightly left</string>
+    <string name="biometriccompat_tf_face_challenge_right">turn your head slightly right</string>
 </resources>

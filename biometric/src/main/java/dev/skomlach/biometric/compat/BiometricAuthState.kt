@@ -164,6 +164,7 @@ internal data class Api28StartAuthStagePlan(
 )
 
 internal fun planApi28StartAuthStage(
+    confirmation: BiometricConfirmation = BiometricConfirmation.ALL,
     remainingPrimaryTypes: Collection<BiometricType>,
     remainingSecondaryTypes: Collection<BiometricType>,
     routeForType: (BiometricType) -> SelectedBiometricRoute?,
@@ -172,6 +173,8 @@ internal fun planApi28StartAuthStage(
     val shouldShowSystemPrompt = remainingPrimaryTypes.isNotEmpty()
     val legacyAuthTypes = if (!shouldShowSystemPrompt) {
         remainingSecondaryTypes.toList()
+    } else if (confirmation == BiometricConfirmation.ANY) {
+        emptyList()
     } else {
         remainingSecondaryTypes.filterNot { type ->
             val route = routeForType(type)
@@ -209,6 +212,10 @@ internal fun AuthenticationResult.withMissingPermissionDescription(
     }
     return copy(description = fallbackDescription)
 }
+
+internal fun normalizeBiometricErrorDescription(
+    description: CharSequence?
+): CharSequence? = description?.takeIf { it.isNotBlank() }
 
 internal fun isSkippablePreparationError(errMsgId: Int): Boolean {
     return when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {

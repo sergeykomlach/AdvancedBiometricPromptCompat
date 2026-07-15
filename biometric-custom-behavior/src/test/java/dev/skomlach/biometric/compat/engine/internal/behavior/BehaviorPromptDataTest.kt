@@ -56,4 +56,32 @@ class BehaviorPromptDataTest {
         assertEquals(16, sample?.strokePoints?.size)
         assertEquals(1, sample?.strokePoints?.last()?.strokeId)
     }
+
+    @Test
+    fun buildBehaviorExtrasCarriesOnlyInternalSessionNonceWhenProvided() {
+        val token = BehaviorCaptureSessionToken(nonce = 42L, startedAtMs = 1_000L)
+
+        val internalExtras = buildBehaviorExtras(
+            existing = null,
+            mode = BehaviorMode.TYPING,
+            phrase = "open sesame",
+            keyDownTimesMs = longArrayOf(1_000L, 1_120L, 1_260L),
+            keyUpTimesMs = longArrayOf(1_080L, 1_190L, 1_330L),
+            strokePoints = floatArrayOf(),
+            enroll = false,
+            sessionToken = token
+        )
+        val compatibilityExtras = buildBehaviorExtras(
+            existing = null,
+            mode = BehaviorMode.TYPING,
+            phrase = "open sesame",
+            keyDownTimesMs = longArrayOf(1_000L, 1_120L, 1_260L),
+            keyUpTimesMs = longArrayOf(1_080L, 1_190L, 1_330L),
+            strokePoints = floatArrayOf(),
+            enroll = false
+        )
+
+        assertEquals(42L, internalExtras.getLong(EXTRA_BEHAVIOR_SESSION_NONCE))
+        assertTrue(!compatibilityExtras.containsKey(EXTRA_BEHAVIOR_SESSION_NONCE))
+    }
 }
