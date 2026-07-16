@@ -85,13 +85,39 @@ class Api28StartAuthPlanTest {
     }
 
     @Test
-    fun `any confirmation does not start fallback while system prompt is active`() {
+    fun `mixed stage starts legacy hardware while system prompt is active`() {
+        val fingerprintRoute = SelectedBiometricRoute(
+            type = BiometricType.BIOMETRIC_FINGERPRINT,
+            provider = BiometricProviderType.HARDWARE,
+            usesBiometricPromptHardware = false,
+            permissions = emptyList()
+        )
+
         val plan = planApi28StartAuthStage(
-            confirmation = BiometricConfirmation.ANY,
             remainingPrimaryTypes = listOf(BiometricType.BIOMETRIC_FACE),
             remainingSecondaryTypes = listOf(BiometricType.BIOMETRIC_FINGERPRINT),
-            routeForType = { null },
+            routeForType = { fingerprintRoute },
             requiresReadyExtrasBeforeAuthentication = { false }
+        )
+
+        assertTrue(plan.shouldShowSystemPrompt)
+        assertEquals(listOf(BiometricType.BIOMETRIC_FINGERPRINT), plan.legacyAuthTypes)
+    }
+
+    @Test
+    fun `mixed stage defers software fallback that requires prepared extras`() {
+        val voiceRoute = SelectedBiometricRoute(
+            type = BiometricType.BIOMETRIC_VOICE,
+            provider = BiometricProviderType.SOFTWARE,
+            usesBiometricPromptHardware = false,
+            permissions = emptyList()
+        )
+
+        val plan = planApi28StartAuthStage(
+            remainingPrimaryTypes = listOf(BiometricType.BIOMETRIC_FACE),
+            remainingSecondaryTypes = listOf(BiometricType.BIOMETRIC_VOICE),
+            routeForType = { voiceRoute },
+            requiresReadyExtrasBeforeAuthentication = { true }
         )
 
         assertTrue(plan.shouldShowSystemPrompt)

@@ -572,7 +572,7 @@ class TensorFlowFaceUnlockManager(
                 isCameraInUse = usesRealCameraProvider && SensorPrivacyCheck.isCameraInUse(),
                 isEnrolling = isEnrolling,
                 hasEnrolledBiometric = hasEnrolledBiometric(),
-                antiSpoofingAvailable = antiSpoofingEnabled,
+                antiSpoofingAvailable = antiSpoofing != null,
                 requireAntiSpoofing = effectiveConfig.base.requireAntiSpoofingForAuthentication,
                 requireRealCameraProvider = effectiveConfig.base.requireRealCameraProviderForAuthentication
             )
@@ -1025,7 +1025,11 @@ class TensorFlowFaceUnlockManager(
             )
             if (antiSpoofStageBefore == AntiSpoofingStage.BEFORE_RECOGNITION) {
                 antiSpoofCheckedThisFace = true
-                if (isSpoofDetected(livenessCrop) != SoftwareBiometricAssurance.PASS) {
+                if (!isFaceAntiSpoofingAccepted(
+                        decision = isSpoofDetected(livenessCrop),
+                        requiredForAuthentication = effectiveConfig.base.requireAntiSpoofingForAuthentication
+                    )
+                ) {
                     consecutiveMatchCounter = 0
                     lastMatchedId = null
                     handleSpoofFailure()
@@ -1058,7 +1062,10 @@ class TensorFlowFaceUnlockManager(
             if (isEnrolling) {
                 if (!antiSpoofCheckedThisFace &&
                     antiSpoofStageAfter == AntiSpoofingStage.AFTER_CANDIDATE &&
-                    isSpoofDetected(livenessCrop) != SoftwareBiometricAssurance.PASS
+                    !isFaceAntiSpoofingAccepted(
+                        decision = isSpoofDetected(livenessCrop),
+                        requiredForAuthentication = effectiveConfig.base.requireAntiSpoofingForAuthentication
+                    )
                 ) {
                     clearAntiSpoofingWindow()
                     handleSpoofFailure()
@@ -1087,7 +1094,10 @@ class TensorFlowFaceUnlockManager(
             if (!antiSpoofCheckedThisFace &&
                 matched &&
                 antiSpoofStageForMatch == AntiSpoofingStage.AFTER_CANDIDATE &&
-                isSpoofDetected(livenessCrop) != SoftwareBiometricAssurance.PASS
+                !isFaceAntiSpoofingAccepted(
+                    decision = isSpoofDetected(livenessCrop),
+                    requiredForAuthentication = effectiveConfig.base.requireAntiSpoofingForAuthentication
+                )
             ) {
                 clearAntiSpoofingWindow()
                 consecutiveMatchCounter = 0

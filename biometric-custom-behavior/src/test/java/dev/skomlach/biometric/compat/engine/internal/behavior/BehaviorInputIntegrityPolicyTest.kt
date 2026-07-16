@@ -5,6 +5,21 @@ import org.junit.Test
 
 class BehaviorInputIntegrityPolicyTest {
     @Test
+    fun acceptsCompatibilityTypingEventsInMonotonicElapsedRealtimeDomain() {
+        assertEquals(
+            BehaviorInputIntegrityDecision.ACCEPT,
+            evaluateTypingIntegrity(
+                downs = listOf(10_000L, 10_120L, 10_260L),
+                ups = listOf(10_080L, 10_190L, 10_330L),
+                phraseLength = 3,
+                startedAtMs = 9_000L,
+                nowMs = 10_400L,
+                maxInterEventGapMs = 500L
+            )
+        )
+    }
+
+    @Test
     fun acceptsMonotonicTypingEventsWithinActiveWindow() {
         assertEquals(
             BehaviorInputIntegrityDecision.ACCEPT,

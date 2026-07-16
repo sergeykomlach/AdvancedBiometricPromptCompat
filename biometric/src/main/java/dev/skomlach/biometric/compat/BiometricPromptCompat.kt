@@ -2611,6 +2611,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return this
         }
 
+        /**
+         * @deprecated Precomputed embeddings are rejected by the Voice provider because
+         * they bypass trusted PCM capture. Use [setVoicePcmSample], [setVoicePcmSamples],
+         * or the provider's automatic capture flow instead.
+         */
+        @Deprecated(
+            message = "Precomputed voice embeddings are not accepted; provide PCM capture instead",
+            level = DeprecationLevel.WARNING
+        )
         fun setVoiceEmbedding(embedding: FloatArray?): Builder {
             val updatedExtras = voiceExtrasWithoutSamples()
             embedding

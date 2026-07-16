@@ -116,6 +116,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     private val isOpened = AtomicBoolean(false)
+    private val systemPromptStarted = AtomicBoolean(false)
     private val authCallTimestamp = AtomicLong(0)
     private val pendingPromptCryptoObject = AtomicReference<BiometricCryptoObject?>(null)
     private val canceled = HashSet<AuthenticationResult>()
@@ -401,6 +402,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         this.restartPredicate = defaultPredicate()
         this.authFinished.clear()
         this.biometricFragment.set(null)
+        this.systemPromptStarted.set(false)
         callback = cbk
         if (DevicesWithKnownBugs.isMissedBiometricUI) {
             //1) LG G8 do not have BiometricPrompt UI
@@ -429,7 +431,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val remainingPrimaryTypes = remainingPrimaryTypes()
         val remainingSecondaryTypes = remainingSecondaryTypes()
         val stagePlan = planApi28StartAuthStage(
-            confirmation = builder.getBiometricAuthRequest().confirmation,
             remainingPrimaryTypes = remainingPrimaryTypes,
             remainingSecondaryTypes = remainingSecondaryTypes,
             routeForType = builder::selectedRoute,
@@ -439,6 +440,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             "BiometricPromptApi28Impl.startAuth(): primary=$remainingPrimaryTypes " +
                     "secondary=$remainingSecondaryTypes plan=$stagePlan"
         )
+        if (stagePlan.shouldShowSystemPrompt) {
+            systemPromptStarted.set(true)
+        }
         val prompt = if (stagePlan.shouldShowSystemPrompt) {
             biometricPrompt ?: run {
                 callback?.onFailed(builder.getAllAvailableTypes().map {
@@ -766,7 +770,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
 
 
-        } else if (allList.isNotEmpty()) {
+        } else if (allList.isNotEmpty() &&
+            !(systemPromptStarted.get() &&
+                    builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY)
+        ) {
             if (dialog == null) {
                 dialog =
                     BiometricPromptCompatDialogImpl(

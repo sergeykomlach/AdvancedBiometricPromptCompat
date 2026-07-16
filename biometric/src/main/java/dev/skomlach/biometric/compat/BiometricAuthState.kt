@@ -164,7 +164,6 @@ internal data class Api28StartAuthStagePlan(
 )
 
 internal fun planApi28StartAuthStage(
-    confirmation: BiometricConfirmation = BiometricConfirmation.ALL,
     remainingPrimaryTypes: Collection<BiometricType>,
     remainingSecondaryTypes: Collection<BiometricType>,
     routeForType: (BiometricType) -> SelectedBiometricRoute?,
@@ -173,8 +172,6 @@ internal fun planApi28StartAuthStage(
     val shouldShowSystemPrompt = remainingPrimaryTypes.isNotEmpty()
     val legacyAuthTypes = if (!shouldShowSystemPrompt) {
         remainingSecondaryTypes.toList()
-    } else if (confirmation == BiometricConfirmation.ANY) {
-        emptyList()
     } else {
         remainingSecondaryTypes.filterNot { type ->
             val route = routeForType(type)

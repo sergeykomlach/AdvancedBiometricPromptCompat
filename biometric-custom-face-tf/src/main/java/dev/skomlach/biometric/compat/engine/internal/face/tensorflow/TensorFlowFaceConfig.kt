@@ -71,7 +71,7 @@ data class TensorFlowFaceConfig(
     val maxHeadAngleX: Float = 22f,
     @FloatRange(from = 0.0, to = 45.0)
     val maxHeadAngleY: Float = 22f,
-    val faceChallengeEnabled: Boolean = true,
+    val faceChallengeEnabled: Boolean = false,
     val requireRealCameraProviderForAuthentication: Boolean = true,
     @IntRange(from = 2, to = 4)
     val faceChallengeLength: Int = 2,
@@ -94,7 +94,7 @@ data class TensorFlowFaceConfig(
     @FloatRange(from = 1.0, to = 3.0)
     val livenessCropScale: Float = 1.60f,
     val antiSpoofingEnabled: Boolean = true,
-    val requireAntiSpoofingForAuthentication: Boolean = true,
+    val requireAntiSpoofingForAuthentication: Boolean = false,
     @FloatRange(from = 0.0, to = 1.0)
     val antiSpoofingScoreThreshold: Float = 0.28f,
     @IntRange(from = 1)

@@ -6,6 +6,14 @@ import org.junit.Test
 
 class FaceAntiSpoofingPolicyTest {
     @Test
+    fun compatibilityDefaultsDoNotRequireChallengeOrPadAvailability() {
+        val config = TensorFlowFaceConfig()
+
+        assertEquals(false, config.faceChallengeEnabled)
+        assertEquals(false, config.requireAntiSpoofingForAuthentication)
+    }
+
+    @Test
     fun classifiesScoreAgainstConfiguredThreshold() {
         assertEquals(
             SoftwareBiometricAssurance.PASS,
@@ -46,6 +54,52 @@ class FaceAntiSpoofingPolicyTest {
                 hasEnrolledBiometric = true,
                 antiSpoofingAvailable = false,
                 requireAntiSpoofing = true
+            )
+        )
+    }
+
+    @Test
+    fun unavailablePadIsAllowedOnlyWhenAuthenticationDoesNotRequireIt() {
+        assertEquals(
+            true,
+            isFaceAntiSpoofingAccepted(
+                decision = SoftwareBiometricAssurance.UNAVAILABLE,
+                requiredForAuthentication = false
+            )
+        )
+        assertEquals(
+            false,
+            isFaceAntiSpoofingAccepted(
+                decision = SoftwareBiometricAssurance.UNAVAILABLE,
+                requiredForAuthentication = true
+            )
+        )
+    }
+
+    @Test
+    fun spoofIsRejectedRegardlessOfPadRequirement() {
+        assertEquals(
+            false,
+            isFaceAntiSpoofingAccepted(
+                decision = SoftwareBiometricAssurance.SPOOF,
+                requiredForAuthentication = false
+            )
+        )
+    }
+
+    @Test
+    fun optionalAntiSpoofingDoesNotBlockEnrolledAuthenticationWhenModelIsUnavailable() {
+        assertEquals(
+            null,
+            resolveTensorFlowFacePreflightIssue(
+                isHardwareDetected = true,
+                usesRealCameraProvider = true,
+                isCameraBlocked = false,
+                isCameraInUse = false,
+                isEnrolling = false,
+                hasEnrolledBiometric = true,
+                antiSpoofingAvailable = false,
+                requireAntiSpoofing = false
             )
         )
     }
