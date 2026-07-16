@@ -37,6 +37,12 @@ import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Com
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_TIMEOUT
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_USER_CANCELED
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityDecision
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityPolicy
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricSessionGuard
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricSessionToken
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricTerminalState
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -81,6 +87,8 @@ class SoftwareBiometricModule(
 ) :
     AbstractBiometricModule(method) {
     private val timeoutHandler = Handler(ExecutorHelper.handler.looper)
+    private val sessionGuard = SoftwareBiometricSessionGuard()
+    private var activeSessionToken: SoftwareBiometricSessionToken? = null
     private var enrollBundle: Bundle? = null
     private var timeoutRunnable = Runnable {}
 
@@ -203,6 +211,11 @@ class SoftwareBiometricModule(
     ) {
         manager?.let {
             try {
+                activeSessionToken?.let { previous ->
+                    sessionGuard.tryTerminate(previous, SoftwareBiometricTerminalState.CANCELLED)
+                }
+                val sessionToken = sessionGuard.start()
+                activeSessionToken = sessionToken
                 // Why getCancellationSignalObject returns an Object is unexplained
                 (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
                     ?: throw IllegalArgumentException("CancellationSignal can't be null")
@@ -215,12 +228,21 @@ class SoftwareBiometricModule(
                             AuthenticationFailureReason.TIMEOUT,
                             manager?.getTimeoutMessage()
                         )
+                        sessionGuard.tryTerminate(
+                            sessionToken,
+                            SoftwareBiometricTerminalState.EXPIRED
+                        )
                         this.originalCancellationSignal?.cancel()
                     }
                 }.also {
                     timeoutRunnable = it
                 }, 30_000L)
-                authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                authenticateInternal(
+                    biometricCryptoObject,
+                    listener,
+                    restartPredicate,
+                    sessionToken
+                )
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")
@@ -237,12 +259,35 @@ class SoftwareBiometricModule(
     private fun authenticateInternal(
         biometricCryptoObject: BiometricCryptoObject?,
         listener: AuthenticationListener?,
-        restartPredicate: RestartPredicate?
+        restartPredicate: RestartPredicate?,
+        sessionToken: SoftwareBiometricSessionToken
     ) {
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
-                if (biometricCryptoObject.hasUsableCrypto() && !it.supportsCryptoObject) {
+                // Build the provider-facing object once so the common gate and provider
+                // invocation observe the same cryptographic request.
+                val crypto = if (biometricCryptoObject == null) null else {
+                    if (biometricCryptoObject.cipher != null)
+                        AbstractSoftwareBiometricManager.CryptoObject(biometricCryptoObject.cipher)
+                    else if (biometricCryptoObject.mac != null)
+                        AbstractSoftwareBiometricManager.CryptoObject(biometricCryptoObject.mac)
+                    else if (biometricCryptoObject.signature != null)
+                        AbstractSoftwareBiometricManager.CryptoObject(biometricCryptoObject.signature)
+                    else
+                        null
+                }
+                val securityDecision = SoftwareBiometricSecurityPolicy.evaluate(
+                    profile = it.securityProfile,
+                    requestedType = biometricMethod.biometricType,
+                    cryptoObject = crypto,
+                    trustedCapture = it.trustedCaptureForAuthentication,
+                    compatibilityCapture = it.securityProfile.assurance ==
+                        SoftwareBiometricAssuranceLevel.LEGACY_COMPATIBILITY
+                )
+                if (securityDecision != SoftwareBiometricSecurityDecision.ALLOW ||
+                    (biometricCryptoObject.hasUsableCrypto() && !it.supportsCryptoObject)
+                ) {
                     timeoutHandler.removeCallbacks(timeoutRunnable)
                     listener?.onFailure(
                         tag(),
@@ -254,6 +299,10 @@ class SoftwareBiometricModule(
                 }
                 val cancellationSignal = CancellationSignal()
                 originalCancellationSignal?.setOnCancelListener {
+                    sessionGuard.tryTerminate(
+                        sessionToken,
+                        SoftwareBiometricTerminalState.CANCELLED
+                    )
                     if (!cancellationSignal.isCanceled) {
                         timeoutHandler.removeCallbacks(timeoutRunnable)
                         cancellationSignal.cancel()
@@ -268,20 +317,9 @@ class SoftwareBiometricModule(
                         biometricCryptoObject,
                         restartPredicate,
                         cancellationSignal,
-                        listener
+                        listener,
+                        sessionToken
                     )
-
-                // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                val crypto = if (biometricCryptoObject == null) null else {
-                    if (biometricCryptoObject.cipher != null)
-                        AbstractSoftwareBiometricManager.CryptoObject(biometricCryptoObject.cipher)
-                    else if (biometricCryptoObject.mac != null)
-                        AbstractSoftwareBiometricManager.CryptoObject(biometricCryptoObject.mac)
-                    else if (biometricCryptoObject.signature != null)
-                        AbstractSoftwareBiometricManager.CryptoObject(biometricCryptoObject.signature)
-                    else
-                        null
-                }
 
                 d("$name.authenticate:  Crypto=$crypto")
                 authCallTimestamp.set(System.currentTimeMillis())
@@ -333,7 +371,8 @@ class SoftwareBiometricModule(
         private val biometricCryptoObject: BiometricCryptoObject?,
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: CancellationSignal?,
-        private val listener: AuthenticationListener?
+        private val listener: AuthenticationListener?,
+        private val sessionToken: SoftwareBiometricSessionToken
     ) : AbstractSoftwareBiometricManager.AuthenticationCallback() {
         private var errorTs = 0L
         private val skipTimeout =
@@ -406,7 +445,12 @@ class SoftwareBiometricModule(
                 selfCanceled = true
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
-                    authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                    authenticateInternal(
+                        biometricCryptoObject,
+                        listener,
+                        restartPredicate,
+                        sessionToken
+                    )
                 }, skipTimeout.toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
@@ -417,7 +461,12 @@ class SoftwareBiometricModule(
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
-                        authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                        authenticateInternal(
+                            biometricCryptoObject,
+                            listener,
+                            restartPredicate,
+                            sessionToken
+                        )
                     }, skipTimeout.toLong())
                 } else {
                     failureReason = resolveSoftwareFailureReason(
@@ -454,6 +503,23 @@ class SoftwareBiometricModule(
                 return
             errorTs = tmp
             try {
+                if (!sessionGuard.tryTerminate(
+                        sessionToken,
+                        SoftwareBiometricTerminalState.SUCCEEDED
+                    )
+                ) {
+                    return
+                }
+                if (result?.cryptoObject != null &&
+                    this@SoftwareBiometricModule.manager?.securityProfile?.supportsCryptoObject != true
+                ) {
+                    listener?.onFailure(
+                        tag(),
+                        AuthenticationFailureReason.CRYPTO_ERROR,
+                        softwareBiometricHardwareBackedCryptoUnsupportedDescription(name)
+                    )
+                    return
+                }
                 listener?.onSuccess(
                     tag(),
                     BiometricCryptoObject(

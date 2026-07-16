@@ -71,6 +71,16 @@ abstract class AbstractSoftwareBiometricManager {
      */
     open val supportsCryptoObject: Boolean = false
 
+    /**
+     * Security metadata used by common routing and success-delivery policy.
+     * Legacy providers receive a conservative non-cryptographic profile.
+     */
+    open val securityProfile: SoftwareBiometricSecurityProfile
+        get() = SoftwareBiometricSecurityProfile.conservativeDefault(biometricType)
+
+    /** True only when the provider has bound this authentication to its trusted capture source. */
+    open val trustedCaptureForAuthentication: Boolean = false
+
     protected data class LockoutPolicy(
         val maxFailedAttemptsBeforeLockout: Int,
         val maxTemporaryLockoutsBeforePermanent: Int,

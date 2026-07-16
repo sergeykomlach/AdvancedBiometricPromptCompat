@@ -1,6 +1,8 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
 import android.os.Bundle
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricInputDecision
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricInputPolicy
 
 enum class VoiceQualityIssue {
     NONE,
@@ -81,7 +83,9 @@ data class VoiceSample(
             val maxSamples = ((sampleRateHz.toLong() * MAX_RAW_AUDIO_DURATION_MS) / 1000L)
                 .coerceAtMost(Int.MAX_VALUE.toLong())
                 .toInt()
-            if (raw.size > maxSamples) return null
+            if (SoftwareBiometricInputPolicy.validateSize(raw.size, maxSamples) !=
+                SoftwareBiometricInputDecision.ACCEPT
+            ) return null
             return raw.copyOf()
         }
 

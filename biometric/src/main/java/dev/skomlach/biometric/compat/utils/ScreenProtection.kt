@@ -115,43 +115,66 @@ object ScreenProtection {
         disableWindow: Boolean = true,
         includeHostActivity: Boolean = false
     ) {
-        try {
-            if (disableWindow) {
+        // FLAG_SECURE is the mandatory protection. Keep it outside the optional
+        // Android-version-specific controls so their failures cannot hide or
+        // accidentally bypass the primary security decision.
+        if (disableWindow) {
+            try {
                 window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                window.context?.let {
-                    if (it is Activity)
-                        if (includeHostActivity && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            it.setRecentsScreenshotEnabled(false)
-                        }
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && PermissionUtils.INSTANCE.hasSelfPermissions(
-                        Manifest.permission.HIDE_OVERLAY_WINDOWS
+            } catch (error: Throwable) {
+                BiometricLoggerImpl.e("ScreenProtection", "addFlags(FLAG_SECURE) failed", error)
+                try {
+                    window.setFlags(
+                        WindowManager.LayoutParams.FLAG_SECURE,
+                        WindowManager.LayoutParams.FLAG_SECURE
                     )
-                )
-                    try {
-                        window.setHideOverlayWindows(true)
-                    } catch (se: SecurityException) {
-                    }
-            } else {
-                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                window.context?.let {
-                    if (it is Activity)
-                        if (includeHostActivity && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            it.setRecentsScreenshotEnabled(true)
-                        }
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && PermissionUtils.INSTANCE.hasSelfPermissions(
-                        Manifest.permission.HIDE_OVERLAY_WINDOWS
+                } catch (fallbackError: Throwable) {
+                    BiometricLoggerImpl.e(
+                        "ScreenProtection",
+                        "SECURITY FAILURE: setFlags(FLAG_SECURE) fallback failed",
+                        fallbackError
                     )
-                )
-                    try {
-                        window.setHideOverlayWindows(false)
-                    } catch (se: SecurityException) {
-
-                    }
+                    throw fallbackError
+                }
             }
-        } catch (e: Exception) {
+        } else {
+            try {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            } catch (error: Throwable) {
+                BiometricLoggerImpl.e("ScreenProtection", "clearFlags(FLAG_SECURE) failed", error)
+                try {
+                    window.setFlags(
+                        0,
+                        WindowManager.LayoutParams.FLAG_SECURE
+                    )
+                } catch (fallbackError: Throwable) {
+                    BiometricLoggerImpl.e(
+                        "ScreenProtection",
+                        "setFlags(clear FLAG_SECURE) fallback failed",
+                        fallbackError
+                    )
+                    throw fallbackError
+                }
+            }
+        }
 
+        if (includeHostActivity && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            runCatching {
+                (window.context as? Activity)?.setRecentsScreenshotEnabled(disableWindow)
+            }.onFailure { error ->
+                BiometricLoggerImpl.e("ScreenProtection", error)
+            }
+        }
+
+        val canHideOverlays = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && runCatching {
+            PermissionUtils.INSTANCE.hasSelfPermissions(Manifest.permission.HIDE_OVERLAY_WINDOWS)
+        }.getOrDefault(false)
+        if (canHideOverlays) {
+            runCatching {
+                window.setHideOverlayWindows(disableWindow)
+            }.onFailure { error ->
+                BiometricLoggerImpl.e("ScreenProtection", error)
+            }
         }
     }
 
@@ -160,22 +183,13 @@ object ScreenProtection {
         disableWindow: Boolean = true,
         includeHostActivity: Boolean = false
     ) {
-        try {
-            if (window == null) return
-            applyProtectionInWindowInternal(
-                window,
-                disableWindow,
-                includeHostActivity
-            )
-            applyProtectionInView(
-                window?.findViewById(
-                    Window.ID_ANDROID_CONTENT
-                ) ?: return,
-                disableWindow
-            )
-        } catch (_: Exception) {
+        if (window == null) return
 
-        }
+        applyProtectionInWindowInternal(window, disableWindow, includeHostActivity)
+        applyProtectionInView(
+            window.findViewById(Window.ID_ANDROID_CONTENT) ?: return,
+            disableWindow
+        )
     }
 
     fun applyProtectionInView(

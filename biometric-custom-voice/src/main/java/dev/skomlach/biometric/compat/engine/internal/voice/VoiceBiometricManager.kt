@@ -10,6 +10,8 @@ import android.os.Handler
 import android.os.SystemClock
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
 import dev.skomlach.biometric.custom.voice.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.storage.SharedPreferenceProvider
@@ -24,6 +26,16 @@ class VoiceBiometricManager(
 
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_VOICE
     override val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
+    override val securityProfile: SoftwareBiometricSecurityProfile =
+        SoftwareBiometricSecurityProfile(
+            biometricType = BiometricType.BIOMETRIC_VOICE,
+            assurance = SoftwareBiometricAssuranceLevel.ACTIVE_CHALLENGE,
+            requiresTrustedCapture = true,
+            allowsCompatibilityCapture = false,
+            supportsCryptoObject = false,
+            maxCaptureDurationMs = 30_000L
+        )
+    override val trustedCaptureForAuthentication: Boolean = true
 
     private val sessionActive = AtomicBoolean(false)
     private var lastProbeFingerprint: Long? = null

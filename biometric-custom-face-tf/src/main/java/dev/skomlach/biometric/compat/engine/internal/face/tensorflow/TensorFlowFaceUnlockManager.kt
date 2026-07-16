@@ -23,6 +23,8 @@ import com.google.mlkit.vision.face.FaceLandmark
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssurance
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.IFrameProvider
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.RealCameraProvider
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
@@ -46,6 +48,16 @@ class TensorFlowFaceUnlockManager(
 ) : AbstractSoftwareBiometricManager() {
 
     override val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
+    override val securityProfile: SoftwareBiometricSecurityProfile =
+        SoftwareBiometricSecurityProfile(
+            biometricType = BiometricType.BIOMETRIC_FACE,
+            assurance = SoftwareBiometricAssuranceLevel.ACTIVE_CHALLENGE,
+            requiresTrustedCapture = true,
+            allowsCompatibilityCapture = false,
+            supportsCryptoObject = false,
+            maxCaptureDurationMs = 30_000L
+        )
+    override val trustedCaptureForAuthentication: Boolean = true
 
     companion object {
         private const val TAG = "TensorFlowFaceUnlockManager"

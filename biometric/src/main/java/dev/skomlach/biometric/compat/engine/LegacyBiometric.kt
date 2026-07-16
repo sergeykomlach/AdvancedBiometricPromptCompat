@@ -208,6 +208,7 @@ object LegacyBiometric {
             customLoading = true
             val loader = ServiceLoader.load(SoftwareBiometricProvider::class.java)
             val newSoftwareModules = HashMap<BiometricMethod, BiometricModule>()
+            val ambiguousTypes = HashSet<BiometricType>()
 
             for (provider in loader) {
                 try {
@@ -218,7 +219,23 @@ object LegacyBiometric {
                         customModuleHashMap.values.any { it.biometricType == targetType }
                     }
 
-                    if (!isAlreadyRegistered) {
+                    if (isAlreadyRegistered) {
+                        ambiguousTypes += targetType
+                        val conflictingMethods = synchronized(customModuleHashMap) {
+                            customModuleHashMap.entries
+                                .filter { it.value.biometricType == targetType }
+                                .map { it.key }
+                        }
+                        conflictingMethods.forEach { customModuleHashMap.remove(it) }
+                        newSoftwareModules.keys
+                            .filter { it.biometricType == targetType }
+                            .toList()
+                            .forEach { newSoftwareModules.remove(it) }
+                        e(
+                            "BiometricAuthentication",
+                            "Rejected ambiguous software biometric type: $targetType"
+                        )
+                    } else if (!ambiguousTypes.contains(targetType)) {
                         val biometricMethod = BiometricMethod.createCustomModule(
                             customManager::class.java.name.hashCode(),
                             targetType

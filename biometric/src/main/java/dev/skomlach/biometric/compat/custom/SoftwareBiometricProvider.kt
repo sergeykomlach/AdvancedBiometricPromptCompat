@@ -22,6 +22,9 @@ package dev.skomlach.biometric.compat.custom
 import android.content.Context
 
 abstract class SoftwareBiometricProvider {
+    /** Higher values win when multiple prompt factories target one modality. */
+    open val promptFactoryPriority: Int = 0
+
     abstract fun getCustomManager(context: Context): AbstractSoftwareBiometricManager
 
     open fun getPromptFactory(): SoftwareBiometricPromptFactory? = null

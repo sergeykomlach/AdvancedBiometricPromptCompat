@@ -27,6 +27,8 @@ import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
 import dev.skomlach.biometric.zkfinger.R
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
@@ -41,6 +43,16 @@ class ZkFingerUnlockManager(
 ) : AbstractSoftwareBiometricManager() {
 
     override val priority: Int = PRIORITY_ABOVE_SYSTEM_HARDWARE
+    override val securityProfile: SoftwareBiometricSecurityProfile =
+        SoftwareBiometricSecurityProfile(
+            biometricType = BiometricType.BIOMETRIC_FINGERPRINT,
+            assurance = SoftwareBiometricAssuranceLevel.VENDOR_BACKED,
+            requiresTrustedCapture = true,
+            allowsCompatibilityCapture = false,
+            supportsCryptoObject = false,
+            maxCaptureDurationMs = 30_000L
+        )
+    override val trustedCaptureForAuthentication: Boolean = true
 
     companion object {
         const val IS_ENROLLMENT_KEY = "is_enrollment"

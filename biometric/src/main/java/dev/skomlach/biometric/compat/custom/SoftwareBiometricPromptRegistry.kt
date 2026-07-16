@@ -19,16 +19,20 @@ internal object SoftwareBiometricPromptRegistry {
         type: BiometricType,
         providers: Iterable<SoftwareBiometricProvider>
     ): SoftwareBiometricPromptFactory? {
+        val matches = mutableListOf<Pair<Int, SoftwareBiometricPromptFactory>>()
         providers.forEach { provider ->
             try {
                 val factory = provider.getPromptFactory()
                 if (factory?.biometricType == type) {
-                    return factory
+                    matches += provider.promptFactoryPriority to factory
                 }
             } catch (t: Throwable) {
                 BiometricLoggerImpl.e(t, "SoftwareBiometricPromptRegistry.provider")
             }
         }
-        return null
+        if (matches.isEmpty()) return null
+        val sorted = matches.sortedByDescending { it.first }
+        if (sorted.size > 1 && sorted[0].first == sorted[1].first) return null
+        return sorted.first().second
     }
 }
