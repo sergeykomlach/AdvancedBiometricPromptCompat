@@ -12,6 +12,7 @@ internal enum class BehaviorCaptureSessionDecision {
     ALREADY_SUBMITTED
 }
 
+@Suppress("ReturnCount")
 internal fun evaluateBehaviorCaptureSession(
     nowMs: Long,
     submitted: Boolean,

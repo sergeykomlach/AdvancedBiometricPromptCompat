@@ -11,6 +11,7 @@ internal enum class BehaviorAccessibilityDecision {
     REJECT_UNTRUSTED_SERVICE
 }
 
+@Suppress("ReturnCount")
 internal fun evaluateBehaviorAccessibility(
     strict: Boolean,
     hasWhitelistedService: Boolean,

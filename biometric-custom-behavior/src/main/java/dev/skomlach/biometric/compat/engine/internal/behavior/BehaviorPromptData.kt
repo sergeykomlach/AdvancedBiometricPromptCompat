@@ -44,6 +44,7 @@ internal object BehaviorCaptureSessionRegistry {
     }
 }
 
+@Suppress("LongParameterList")
 internal fun buildBehaviorExtras(
     existing: Bundle?,
     mode: BehaviorMode,

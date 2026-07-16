@@ -75,6 +75,7 @@ class BehaviorBiometricManager(
 
     override fun getEnrolls(): Collection<String> = store.templateNames()
 
+    @Suppress("CyclomaticComplexMethod", "LongMethod", "ReturnCount")
     override fun authenticate(
         crypto: CryptoObject?,
         flags: Int,

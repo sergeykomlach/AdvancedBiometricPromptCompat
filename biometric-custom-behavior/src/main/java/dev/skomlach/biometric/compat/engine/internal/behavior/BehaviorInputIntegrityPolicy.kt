@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName")
+
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
 import kotlin.math.abs
@@ -12,6 +14,7 @@ internal enum class BehaviorInputIntegrityDecision {
     CANCELLED_CAPTURE
 }
 
+@Suppress("LongParameterList", "ReturnCount")
 internal fun evaluateTypingIntegrity(
     downs: List<Long>,
     ups: List<Long>,
@@ -44,6 +47,7 @@ internal fun evaluateTypingIntegrity(
     return BehaviorInputIntegrityDecision.ACCEPT
 }
 
+@Suppress("CyclomaticComplexMethod", "ComplexCondition", "ReturnCount")
 internal fun evaluateSignatureIntegrity(
     points: List<BehaviorPoint>,
     startedAtMs: Long,

@@ -478,6 +478,7 @@ internal class BehaviorCaptureController(
         points.clear()
     }
 
+    @Suppress("LongMethod", "CyclomaticComplexMethod", "ReturnCount")
     private fun prepareExtras() {
         if (prepared || captureInvalidated) return
         val mode = selectedMode()

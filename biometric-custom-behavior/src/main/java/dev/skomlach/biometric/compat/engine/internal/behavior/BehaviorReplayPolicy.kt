@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName")
+
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
 internal enum class BehaviorReplayDecision {
