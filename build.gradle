@@ -26,8 +26,8 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.4'
-    ext.libsMinorVersion = "rc-34"
-    ext.libsVersionCode = 274
+    ext.libsMinorVersion = "rc-35"
+    ext.libsVersionCode = 275
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -110,18 +110,11 @@ allprojects {
     }
 
     afterEvaluate {
-        def android = extensions.findByName("android")
-        if (android != null) {
-            def variants = android.hasProperty("applicationVariants") ?
-                    android.applicationVariants : android.libraryVariants
-
-            variants.configureEach { variant ->
-                if (variant.buildType.name == "debug") {
-                    variant.assembleProvider.configure {
-                        if (runOncePerWeek) finalizedBy("codeQualityCheckOncePerWeek")
-                        else finalizedBy("codeQualityCheck")
-                    }
-                }
+        if (plugins.hasPlugin("com.android.application") ||
+                plugins.hasPlugin("com.android.library")) {
+            tasks.matching { it.name == "assembleDebug" }.configureEach {
+                if (runOncePerWeek) finalizedBy("codeQualityCheckOncePerWeek")
+                else finalizedBy("codeQualityCheck")
             }
         }
     }
@@ -134,6 +127,17 @@ subprojects { project ->
 
 tasks.register('clean', Delete) {
     delete rootProject.buildDir
+}
+
+def releaseExcludedModules = ['app', 'biometric-custom-behavior']
+
+tasks.register('publishRelease') {
+    group = 'publishing'
+    description = 'Publishes all release libraries to Sonatype and closes the staging repository.'
+    dependsOn(subprojects
+            .findAll { project -> !releaseExcludedModules.contains(project.name) }
+            .collect { project -> ":${project.name}:publishReleasePublicationToSonatypeRepository" })
+    finalizedBy(':common:postRelease')
 }
 
 apply plugin: 'io.codearte.nexus-staging'
