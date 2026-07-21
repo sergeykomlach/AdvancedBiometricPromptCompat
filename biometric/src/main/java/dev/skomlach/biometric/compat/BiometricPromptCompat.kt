@@ -1169,7 +1169,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         if (!shouldStopAfterPermissionDenied(
                 builder.enroll,
                 deniedPermissions,
-                builder.getAllAvailableTypes().isNotEmpty()
+                hasUsableBiometricRoute(
+                    builder.getAllAvailableTypes().map { builder.selectedRoute(it) }
+                )
             )
         ) {
             return false

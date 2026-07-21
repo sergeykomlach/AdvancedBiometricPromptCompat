@@ -48,4 +48,36 @@ class BiometricPermissionPolicyTest {
             )
         )
     }
+
+    @Test
+    fun permissionDeniedRoutePolicyTreatsSystemRouteAsUsableWithoutLegacyFallback() {
+        val systemRoute = SelectedBiometricRoute(
+            type = BiometricType.BIOMETRIC_FINGERPRINT,
+            provider = BiometricProviderType.HARDWARE,
+            usesBiometricPromptHardware = true,
+            permissions = listOf(Manifest.permission.USE_BIOMETRIC)
+        )
+
+        assertTrue(hasUsableBiometricRoute(listOf(systemRoute)))
+        assertFalse(hasPendingLegacyBiometricRoute(listOf(systemRoute)))
+    }
+
+    @Test
+    fun permissionDeniedRoutePolicyKeepsIndependentLegacyFallback() {
+        val legacyRoute = SelectedBiometricRoute(
+            type = BiometricType.BIOMETRIC_FINGERPRINT,
+            provider = BiometricProviderType.SOFTWARE,
+            usesBiometricPromptHardware = false,
+            permissions = listOf(Manifest.permission.RECORD_AUDIO)
+        )
+
+        assertTrue(hasUsableBiometricRoute(listOf(legacyRoute)))
+        assertTrue(hasPendingLegacyBiometricRoute(listOf(legacyRoute)))
+    }
+
+    @Test
+    fun permissionDeniedRoutePolicyRejectsEmptyRoutes() {
+        assertFalse(hasUsableBiometricRoute(emptyList()))
+        assertFalse(hasPendingLegacyBiometricRoute(emptyList()))
+    }
 }

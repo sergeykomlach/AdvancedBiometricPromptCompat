@@ -19,6 +19,18 @@
 
 package dev.skomlach.biometric.compat
 
+internal fun hasUsableBiometricRoute(
+    routes: Collection<SelectedBiometricRoute?>
+): Boolean {
+    return routes.any { it != null }
+}
+
+internal fun hasPendingLegacyBiometricRoute(
+    routes: Collection<SelectedBiometricRoute?>
+): Boolean {
+    return routes.any { route -> route?.usesBiometricPromptHardware == false }
+}
+
 /**
  * Enrollment permission denial is terminal only when no other selected route remains usable.
  * Runtime authentication keeps other fallback routes available.
