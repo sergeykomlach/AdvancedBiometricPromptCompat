@@ -21,21 +21,16 @@ package dev.skomlach.common.multiwindow
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Point
 import android.graphics.Rect
-import android.hardware.display.DisplayManager
 import android.os.Build
-import android.view.Display
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
-import android.view.Surface
 import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.Window
-import android.view.WindowManager
-import androidx.collection.LruCache
-import androidx.window.WindowHelper
 import dev.skomlach.common.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.getFixedContext
@@ -43,8 +38,6 @@ import dev.skomlach.common.logging.LogCat
 
 class MultiWindowSupport private constructor() {
     companion object {
-        private val realScreenSize = LruCache<Configuration, Point>(1)
-
         @SuppressLint("StaticFieldLeak")
         private val instance = MultiWindowSupport()
         fun get(): MultiWindowSupport {
@@ -113,21 +106,13 @@ class MultiWindowSupport private constructor() {
     }
 
     fun isWindowOnScreenBottom(): Boolean {
-        val rect = Rect()
-        val decorView = AndroidContext.activity?.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
-            ?: return false
-        decorView.getGlobalVisibleRect(rect)
-        if (rect.width() == 0 && rect.height() == 0) {
-            return false
-        }
-        val realScreenSize = realScreenSize
-        val locationOnScreen = IntArray(2)
-        decorView.getLocationOnScreen(locationOnScreen)
-        val isWindowOnScreenBottom =
-            isInMultiWindow && (realScreenSize.y / 2 < locationOnScreen[1] + (rect.width() / 2))
+        val windowState = currentWindowStateWithLegacyFallback()
+        val isWindowOnScreenBottom = windowState.isWindowOnScreenBottom
         val sb = StringBuilder()
         sb.append(AndroidContext.activity?.javaClass?.simpleName + " Activity screen:")
         log("isWindowOnScreenBottom $isWindowOnScreenBottom", sb)
+        log("currentWindow ${windowState.currentBounds}", sb)
+        log("maximumWindow ${windowState.maximumBounds}", sb)
         LogCat.logError(sb.toString())
         return isWindowOnScreenBottom
     }
@@ -137,38 +122,84 @@ class MultiWindowSupport private constructor() {
     //general way - for OEM devices (Samsung, LG, Huawei) and/or in case API24 not fired for some reasons
     val isInMultiWindow: Boolean
         get() {
-            //Should work on API24+ and support almost all devices types, include Chromebooks and foldable devices
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val windowState = currentWindowStateWithLegacyFallback()
+            val sb = StringBuilder()
+            sb.append(AndroidContext.activity?.javaClass?.simpleName + " Activity screen:")
+            log("isMultiWindow ${windowState.isInWindowedMode}", sb)
+            log("platform ${windowState.isPlatformMultiWindow}", sb)
+            log("pip ${windowState.isPictureInPicture}", sb)
+            log("bubble ${windowState.isLaunchedFromBubble}", sb)
+            log("legacy ${windowState.isLegacyMultiWindow}", sb)
+            log("constrained ${windowState.isCurrentWindowConstrained}", sb)
+            log("currentWindow ${windowState.currentBounds}", sb)
+            log("maximumWindow ${windowState.maximumBounds}", sb)
+            LogCat.logError(sb.toString())
+            return windowState.isInWindowedMode
+        }
 
-                val isMultiWindow = AndroidContext.activity?.isInMultiWindowMode == true
-                val sb = StringBuilder()
-                sb.append(AndroidContext.activity?.javaClass?.simpleName + " Activity screen:")
-                log("isMultiWindow $isMultiWindow", sb)
-                LogCat.logError(sb.toString())
-                return isMultiWindow
+    private fun checkLegacyMultiWindow(): Boolean {
+        //http://open-wiki.flyme.cn/index.php?title=%E5%88%86%E5%B1%8F%E9%80%82%E9%85%8D%E6%96%87%E6%A1%A3
+        try {
+            val clazz = Class.forName("meizu.splitmode.FlymeSplitModeManager")
+            val b = clazz.getMethod("getInstance", Context::class.java)
+            val instance = b.invoke(null, AndroidContext.activity ?: return false)
+            val m = clazz.getMethod("isSplitMode")
+            val isMultiWindow = m.invoke(instance) as Boolean
+            val sb = StringBuilder()
+            sb.append(AndroidContext.activity?.javaClass?.simpleName + " Activity screen:")
+            log("isMultiWindow $isMultiWindow", sb)
+            LogCat.logError(sb.toString())
+            if (isMultiWindow) {
+                return true
+            }
+        } catch (ignore: Throwable) {
+        }
+        return if (AndroidContext.activity != null) {
+            //general way - for OEM devices (Samsung, LG, Huawei) and/or in case API24 not fired for some reasons
+            checkIsInMultiWindow()
+        } else {
+            false
+        }
+    }
+
+    val isLaunchedFromBubble: Boolean
+        get() = currentWindowState().isLaunchedFromBubble
+
+    val isInPictureInPicture: Boolean
+        get() = currentWindowState().isPictureInPicture
+
+    internal val windowOrientation: WindowOrientation
+        get() = currentWindowState().orientation
+
+    val canLockCurrentOrientation: Boolean
+        get() {
+            val windowState = currentWindowStateWithLegacyFallback()
+            return !windowState.isInWindowedMode && windowState.orientation != WindowOrientation.SQUARE
+        }
+
+    val requestedScreenOrientation: Int
+        get() {
+            val requestedOrientation = currentWindowState().requestedOrientation
+            return if (requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
+                ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             } else {
-                //http://open-wiki.flyme.cn/index.php?title=%E5%88%86%E5%B1%8F%E9%80%82%E9%85%8D%E6%96%87%E6%A1%A3
-                try {
-                    val clazz = Class.forName("meizu.splitmode.FlymeSplitModeManager")
-                    val b = clazz.getMethod("getInstance", Context::class.java)
-                    val instance = b.invoke(null, AndroidContext.activity ?: return false)
-                    val m = clazz.getMethod("isSplitMode")
-                    val isMultiWindow = m.invoke(instance) as Boolean
-                    val sb = StringBuilder()
-                    sb.append(AndroidContext.activity?.javaClass?.simpleName + " Activity screen:")
-                    log("isMultiWindow $isMultiWindow", sb)
-                    LogCat.logError(sb.toString())
-                    return isMultiWindow
-                } catch (ignore: Throwable) {
-                }
-                return if (AndroidContext.activity != null) {
-                    //general way - for OEM devices (Samsung, LG, Huawei) and/or in case API24 not fired for some reasons
-                    checkIsInMultiWindow()
-                } else {
-                    false
-                }
+                requestedOrientation
             }
         }
+
+    fun resolveDialogWidth(configuredWidthPx: Int): Int {
+        val windowState = currentWindowState()
+        return resolveDialogWidthPx(
+            configuredWidthPx = configuredWidthPx,
+            currentBounds = windowState.currentBounds,
+            safeInsets = windowState.safeInsets
+        )
+    }
+
+    fun currentWindowSize(): Point {
+        val bounds = currentWindowState().currentBounds
+        return Point(bounds.width, bounds.height)
+    }
 
     fun getNavBarDividerHeight(): Int {
         val res = (AndroidContext.activity ?: AndroidContext.appContext).resources
@@ -232,27 +263,11 @@ class MultiWindowSupport private constructor() {
         }
 
     fun hasNavBar(): Boolean {
-        val realSize = realScreenSize
-        val realHeight = realSize.y
-        val realWidth = realSize.x
-        var bounds = Rect()
-        AndroidContext.activity?.let {
-            bounds = WindowHelper.getCurrentWindowMetrics(it)
-        } ?: run {
-            val windowManager =
-                AndroidContext.appContext.getFixedContext()
-                    .getSystemService(Context.WINDOW_SERVICE) as WindowManager
-            val oldDisplay = windowManager.defaultDisplay
-            val display =
-                (if (Build.VERSION.SDK_INT >= 30) try {
-                    AndroidContext.appContext.display
-                } catch (e: Throwable) {
-                    oldDisplay
-                } else oldDisplay) ?: oldDisplay
-            display?.getRectSize(bounds)
-        }
-        val displayHeight = bounds.height()
-        val displayWidth = bounds.width()
+        val windowState = currentWindowState()
+        val realHeight = windowState.physicalDisplayBounds.height
+        val realWidth = windowState.physicalDisplayBounds.width
+        val displayHeight = windowState.currentBounds.height
+        val displayWidth = windowState.currentBounds.width
         if (realWidth - displayWidth > 0 || realHeight - displayHeight > 0) {
             return true
         }
@@ -288,94 +303,44 @@ class MultiWindowSupport private constructor() {
         }//This should be close, as lower API devices should not have window navigation bars//this may not be 100% accurate, but it's all we've got//reflection for this weird in-between time
 
 
-    private fun Context.realScreenSizePx(): Point {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-
-            AndroidContext.activity?.let { act ->
-                val b = act.windowManager.maximumWindowMetrics.bounds
-                return Point(b.width(), b.height())
-            }
-
-
-            val dm = getFixedContext().getSystemService(DisplayManager::class.java)
-            val disp = dm?.getDisplay(Display.DEFAULT_DISPLAY)
-                ?: this.display
-            disp?.mode?.let { mode ->
-                val rotation = (disp as? Display)?.rotation
-                    ?: this.display?.rotation
-                    ?: Surface.ROTATION_0
-                val nativeW = mode.physicalWidth
-                val nativeH = mode.physicalHeight
-                return when (rotation) {
-                    Surface.ROTATION_90, Surface.ROTATION_270 -> Point(nativeH, nativeW)
-                    else -> Point(nativeW, nativeH)
-                }
-            }
-
-
-            val m = resources.displayMetrics
-            return Point(m.widthPixels, m.heightPixels)
-        }
-
-        @Suppress("DEPRECATION")
-        run {
-            val wm = getFixedContext().getSystemService(Context.WINDOW_SERVICE) as WindowManager
-            val p = Point()
-            @Suppress("DEPRECATION") wm.defaultDisplay.getRealSize(p)
-            return p
-        }
-    }
-
     //new pleasant way to get real metrics
     val realScreenSize: Point
         get() {
-            val configuration =
-                (AndroidContext.activity ?: AndroidContext.appContext).resources.configuration
-            val point = Companion.realScreenSize[configuration]
-            return if (point != null) {
-                point
-            } else {
-                val size = (AndroidContext.activity ?: AndroidContext.appContext).realScreenSizePx()
-                Companion.realScreenSize.put(configuration, size)
-                size
-            }
+            val bounds = currentWindowState().physicalDisplayBounds
+            return Point(bounds.width, bounds.height)
         }
+    @get:Suppress("DEPRECATION")
     val screenOrientation: Int
         get() {
-            var orientation = (AndroidContext.activity
-                ?: AndroidContext.appContext).resources.configuration.orientation
-            var bounds = Rect()
-            AndroidContext.activity?.let {
-                bounds = WindowHelper.getCurrentWindowMetrics(it)
-            } ?: run {
-                val windowManager =
-                    AndroidContext.appContext.getFixedContext()
-                        .getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                val oldDisplay = windowManager.defaultDisplay
-                val display =
-                    (if (Build.VERSION.SDK_INT >= 30) try {
-                        AndroidContext.appContext.display
-                    } catch (e: Throwable) {
-                        oldDisplay
-                    } else oldDisplay) ?: oldDisplay
-                display?.getRectSize(bounds)
+            val orientation = currentWindowState().configurationOrientation
+            return if (orientation == Configuration.ORIENTATION_SQUARE) {
+                Configuration.ORIENTATION_PORTRAIT
+            } else {
+                orientation
             }
-
-            val max = bounds.width().coerceAtLeast(bounds.height()).coerceAtLeast(1).toDouble()
-            val min = bounds.width().coerceAtMost(bounds.height()).coerceAtLeast(1).toDouble()
-            val isSquare = (max / min) <= 1.25 //difference in 25% - system bars height
-            if (isSquare) {
-                orientation = Configuration.ORIENTATION_PORTRAIT
-            } else
-                if (orientation == Configuration.ORIENTATION_UNDEFINED || orientation == Configuration.ORIENTATION_SQUARE) {
-                    orientation = if (bounds.width() < bounds.height()) {
-                        Configuration.ORIENTATION_PORTRAIT
-                    } else {
-                        Configuration.ORIENTATION_LANDSCAPE
-                    }
-                }
-            return orientation
         }
 
+    private fun currentWindowState(
+        legacyMultiWindow: Boolean = false
+    ): WindowState {
+        return buildWindowState(
+            activity = AndroidContext.activity,
+            fallbackContext = AndroidContext.appContext.getFixedContext(),
+            isLegacyMultiWindow = legacyMultiWindow
+        )
+    }
+
+    private fun currentWindowStateWithLegacyFallback(): WindowState {
+        val windowState = currentWindowState()
+        if (windowState.isInWindowedMode || AndroidContext.activity == null) {
+            return windowState
+        }
+        val legacyMultiWindow = checkLegacyMultiWindow()
+        return if (legacyMultiWindow) {
+            currentWindowState(legacyMultiWindow = true)
+        } else {
+            windowState
+        }
+    }
 
 }

@@ -332,18 +332,30 @@ class WindowForegroundBlurring(
     private fun updateDefaultColor(bm: Bitmap) {
         BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor")
         try {
-            val rect = Rect()
-            biometricsLayout?.getGlobalVisibleRect(rect)
+            val biometricsRect = Rect()
+            biometricsLayout?.getGlobalVisibleRect(biometricsRect)
+            val contentRect = Rect()
+            contentView?.getGlobalVisibleRect(contentRect)
 
-            if (rect.isEmpty) return
+            if (biometricsRect.isEmpty || contentRect.isEmpty) return
+            val crop = resolveBitmapCropBounds(
+                targetScreenLeft = biometricsRect.left,
+                targetScreenTop = biometricsRect.top,
+                targetWidth = biometricsRect.width(),
+                targetHeight = biometricsRect.height(),
+                bitmapHostScreenLeft = contentRect.left,
+                bitmapHostScreenTop = contentRect.top,
+                bitmapWidth = bm.width,
+                bitmapHeight = bm.height
+            ) ?: return
             val newBm = Bitmap.createBitmap(
                 bm,
-                rect.left,
-                rect.top,
-                rect.width(),
-                rect.height()
+                crop.left,
+                crop.top,
+                crop.width,
+                crop.height
             )
-            BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor $rect")
+            BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor $crop")
             Palette.from(newBm).generate { palette ->
                 try {
                     val paletteDefColor =
@@ -530,4 +542,38 @@ class WindowForegroundBlurring(
         ERROR,
         SUCCESS
     }
+}
+
+internal data class BitmapCropBounds(
+    val left: Int,
+    val top: Int,
+    val width: Int,
+    val height: Int
+)
+
+internal fun resolveBitmapCropBounds(
+    targetScreenLeft: Int,
+    targetScreenTop: Int,
+    targetWidth: Int,
+    targetHeight: Int,
+    bitmapHostScreenLeft: Int,
+    bitmapHostScreenTop: Int,
+    bitmapWidth: Int,
+    bitmapHeight: Int
+): BitmapCropBounds? {
+    if (targetWidth <= 0 || targetHeight <= 0 || bitmapWidth <= 0 || bitmapHeight <= 0) {
+        return null
+    }
+    val localLeft = targetScreenLeft - bitmapHostScreenLeft
+    val localTop = targetScreenTop - bitmapHostScreenTop
+    val left = localLeft.coerceIn(0, bitmapWidth)
+    val top = localTop.coerceIn(0, bitmapHeight)
+    val right = (localLeft + targetWidth).coerceIn(0, bitmapWidth)
+    val bottom = (localTop + targetHeight).coerceIn(0, bitmapHeight)
+    val width = right - left
+    val height = bottom - top
+    if (width <= 0 || height <= 0) {
+        return null
+    }
+    return BitmapCropBounds(left = left, top = top, width = width, height = height)
 }

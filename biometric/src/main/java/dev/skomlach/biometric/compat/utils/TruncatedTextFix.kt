@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.utils
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.SurfaceView
 import android.view.View
@@ -81,7 +80,13 @@ object TruncatedTextFix {
         }
         val config =
             AndroidContext.appConfiguration ?: AndroidContext.appContext.resources.configuration
-        val cache = getTruncatedText(config)
+        val windowSize = builder.getMultiWindowSupport().currentWindowSize()
+        val cacheKey = buildTruncatedTextCacheKey(
+            configurationKey = config.toString(),
+            windowWidthPx = windowSize.x,
+            windowHeightPx = windowSize.y
+        )
+        val cache = getTruncatedText(cacheKey)
         val map = cache?.map?.toMutableMap() ?: HashMap()
         if (map.isNotEmpty()) {
             var totalCount = 0
@@ -149,7 +154,7 @@ object TruncatedTextFix {
             val negativeButton: Button? = rootView?.findViewById(android.R.id.button1)
             val action = {
                 windowView.removeView(layout)
-                setTruncatedText(config, TruncatedText(map))
+                setTruncatedText(cacheKey, TruncatedText(map))
                 onTruncateChecked.onDone()
             }
             val counter = AtomicInteger(4)
@@ -313,14 +318,13 @@ object TruncatedTextFix {
         return false
     }
 
-    private fun getTruncatedText(config: Configuration): TruncatedText? {
-        val data = config.toString()
-        cache.get(data)?.let {
+    private fun getTruncatedText(cacheKey: String): TruncatedText? {
+        cache.get(cacheKey)?.let {
             return it
         }
         return (try {
             val json =
-                pref.getString(data, null)
+                pref.getString(cacheKey, null)
             if (json.isNullOrEmpty()) {
                 TruncatedText(HashMap())
             } else {
@@ -328,20 +332,27 @@ object TruncatedTextFix {
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
-            pref.edit().remove(data).apply()
+            pref.edit().remove(cacheKey).apply()
             TruncatedText(HashMap())
         }).also {
-            cache.put(data, it)
+            cache.put(cacheKey, it)
         }
     }
 
-    private fun setTruncatedText(config: Configuration, truncatedText: TruncatedText) {
+    private fun setTruncatedText(cacheKey: String, truncatedText: TruncatedText) {
         val json = Gson().toJson(truncatedText, TruncatedText::class.java)
-        val data: String = config.toString()
-        cache.put(data, truncatedText)
-        pref.edit().putString(data, json)
+        cache.put(cacheKey, truncatedText)
+        pref.edit().putString(cacheKey, json)
             .apply()
     }
 
     data class TruncatedText(val map: Map<String, String?>)
+}
+
+internal fun buildTruncatedTextCacheKey(
+    configurationKey: String,
+    windowWidthPx: Int,
+    windowHeightPx: Int
+): String {
+    return "$configurationKey|window=${windowWidthPx.coerceAtLeast(0)}x${windowHeightPx.coerceAtLeast(0)}"
 }

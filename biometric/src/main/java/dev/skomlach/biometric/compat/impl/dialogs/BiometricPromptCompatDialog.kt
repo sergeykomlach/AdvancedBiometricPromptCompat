@@ -62,6 +62,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.multiwindow.MultiWindowSupport
 import dev.skomlach.common.statusbar.ColorUtil
 import dev.skomlach.common.themes.monet.SystemColorScheme
 import dev.skomlach.common.themes.monet.toArgb
@@ -271,7 +272,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 val wlp = w.attributes
                 val configuredWidth = resources.getDimensionPixelSize(R.dimen.dialog_width)
                 wlp.width = if (configuredWidth > 0) {
-                    configuredWidth.coerceAtMost(resources.displayMetrics.widthPixels)
+                    MultiWindowSupport.get().resolveDialogWidth(configuredWidth)
                 } else {
                     WindowManager.LayoutParams.MATCH_PARENT
                 }

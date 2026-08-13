@@ -769,6 +769,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
 
                     private var lastKnownOrientation = AtomicInteger(0)
+                    private var orientationLocked = AtomicBoolean(false)
                     override fun onSucceeded(result: Set<AuthenticationResult>) {
                         if (builder.isUIOpened.get()) {
                             super.onSucceeded(result)
@@ -924,13 +925,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     override fun onUIOpened() {
                         if (!builder.isUIOpened.get()) {
                             builder.isUIOpened.set(true)
-                            if (DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
+                            val multiWindowSupport = builder.getMultiWindowSupport()
+                            if (DevicesWithKnownBugs.hasUnderDisplayFingerprint &&
+                                multiWindowSupport.canLockCurrentOrientation
+                            ) {
                                 lastKnownOrientation.set(
                                     builder.getActivity()?.requestedOrientation
-                                        ?: builder.getMultiWindowSupport().screenOrientation
+                                        ?: multiWindowSupport.requestedScreenOrientation
                                 )
+                                orientationLocked.set(true)
                                 builder.getActivity()?.requestedOrientation =
-                                    builder.getMultiWindowSupport().screenOrientation
+                                    multiWindowSupport.requestedScreenOrientation
                             }
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
                             val s =
@@ -976,7 +981,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         if (builder.isUIOpened.get()) {
                             builder.isUIOpened.set(false)
                             builder.release()
-                            if (DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
+                            if (DevicesWithKnownBugs.hasUnderDisplayFingerprint &&
+                                orientationLocked.getAndSet(false)
+                            ) {
                                 builder.getActivity()?.requestedOrientation =
                                     lastKnownOrientation.get()
                             }
