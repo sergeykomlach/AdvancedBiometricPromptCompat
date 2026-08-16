@@ -62,8 +62,17 @@ object StatusBarTools {
         isAppLightTheme: Boolean? = null
     ) {
         val runnable = Runnable {
-            setStatusBarColor(window, colorStatusBar, isAppLightTheme)
-            setNavBarColor(window, colorNavBar, dividerColor, isAppLightTheme)
+            val resolvedStatusBarColor =
+                setStatusBarColor(window, colorStatusBar, isAppLightTheme)
+            val resolvedNavigationBarColor =
+                setNavBarColor(window, colorNavBar, dividerColor, isAppLightTheme)
+            if (resolvedStatusBarColor != null && resolvedNavigationBarColor != null) {
+                updateTaskDescriptionCompat(
+                    window,
+                    resolvedStatusBarColor,
+                    resolvedNavigationBarColor
+                )
+            }
         }
         val view = window.decorView
         if (HelperTool.isVisible(view, 100)) {
@@ -85,10 +94,10 @@ object StatusBarTools {
     private fun setNavBarColor(
         window: Window, @ColorInt c: Int, @ColorInt dividerColor: Int,
         isAppLightTheme: Boolean?
-    ) {
+    ): Int? {
         var color = c
         try {
-            if (TURNOFF_TINT) return
+            if (TURNOFF_TINT) return null
             if (translucentNavBar) color = Color.TRANSPARENT
             val isDark = isAppLightTheme?.let {
                 if (ColorUtil.colorDistance(
@@ -132,16 +141,18 @@ object StatusBarTools {
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
+            return null
         }
+        return color
     }
 
     private fun setStatusBarColor(
         window: Window, @ColorInt c: Int,
         isAppLightTheme: Boolean?
-    ) {
+    ): Int? {
         var color = c
         try {
-            if (TURNOFF_TINT) return
+            if (TURNOFF_TINT) return null
             if (translucentStatusBar) color = Color.TRANSPARENT
             val isDark = isAppLightTheme?.let {
                 if (ColorUtil.colorDistance(
@@ -181,7 +192,9 @@ object StatusBarTools {
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
+            return null
         }
+        return color
     }
 
     private fun isNightMode(context: Context): Boolean {
