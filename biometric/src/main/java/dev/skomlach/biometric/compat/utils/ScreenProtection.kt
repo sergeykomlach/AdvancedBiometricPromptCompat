@@ -30,7 +30,6 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider
-import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -239,7 +238,7 @@ object ScreenProtection {
             ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         )
 
-        if (BuildCompat.isAtLeastU()) {
+        invokeAccessibilityDataSensitiveApiOrNull(supportsAccessibilityDataSensitiveApi()) {
             view.setAccessibilityDataSensitive(View.ACCESSIBILITY_DATA_SENSITIVE_YES)
         }
 
@@ -262,8 +261,8 @@ object ScreenProtection {
             }
         }
 
-        if (BuildCompat.isAtLeastU()) {
-            state.accessibilityDataSensitive?.let {
+        state.accessibilityDataSensitive?.let {
+            invokeAccessibilityDataSensitiveApiOrNull(supportsAccessibilityDataSensitiveApi()) {
                 view.setAccessibilityDataSensitive(it)
             }
         }
@@ -283,10 +282,10 @@ object ScreenProtection {
                 null
             },
             originalAccessibilityDelegate = getCurrentAccessibilityDelegateCompat(view),
-            accessibilityDataSensitive = if (BuildCompat.isAtLeastU()) {
+            accessibilityDataSensitive = invokeAccessibilityDataSensitiveApiOrNull(
+                supportsAccessibilityDataSensitiveApi()
+            ) {
                 if (view.isAccessibilityDataSensitive) View.ACCESSIBILITY_DATA_SENSITIVE_YES else View.ACCESSIBILITY_DATA_SENSITIVE_NO
-            } else {
-                null
             }
         )
 
@@ -300,5 +299,21 @@ object ScreenProtection {
         } catch (_: Throwable) {
             null
         }
+    }
+}
+
+private fun supportsAccessibilityDataSensitiveApi(): Boolean =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+
+internal fun <T> invokeAccessibilityDataSensitiveApiOrNull(
+    isSupported: Boolean,
+    apiCall: () -> T
+): T? {
+    if (!isSupported) return null
+
+    return try {
+        apiCall()
+    } catch (_: NoSuchMethodError) {
+        null
     }
 }
