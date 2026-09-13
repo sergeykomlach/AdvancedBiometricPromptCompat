@@ -39,6 +39,7 @@ import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
+import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.FrameLayout
@@ -118,17 +119,39 @@ class BiometricPromptCompatDialog : DialogFragment() {
     private lateinit var viewModel: DialogViewModel
     override fun dismiss() {
         if (isAdded) {
-            val fragmentManager = parentFragmentManager
-            val dialogFragment = fragmentManager.findFragmentByTag(
-                TAG
-            ) as BiometricPromptCompatDialog?
-            if (dialogFragment != null) {
-                if (dialogFragment.isAdded) {
-                    dialogFragment.dismissAllowingStateLoss()
-                } else {
-                    fragmentManager.beginTransaction().remove(dialogFragment)
-                        .commitAllowingStateLoss()
+            val closeAction = {
+                val fragmentManager = parentFragmentManager
+                val dialogFragment = fragmentManager.findFragmentByTag(
+                    TAG
+                ) as BiometricPromptCompatDialog?
+                if (dialogFragment != null) {
+                    if (dialogFragment.isAdded) {
+                        dialogFragment.dismissAllowingStateLoss()
+                    } else {
+                        fragmentManager.beginTransaction().remove(dialogFragment)
+                            .commitAllowingStateLoss()
+                    }
                 }
+            }
+            dialog?.window?.let { w ->
+                (w.decorView as ViewGroup?)
+                    ?.getChildAt(0)?.startAnimation(
+                        AnimationUtils.loadAnimation(
+                            w.context, R.anim.move_out
+                        ).apply {
+                            this.setAnimationListener(object : Animation.AnimationListener {
+                                override fun onAnimationEnd(animation: Animation?) {
+                                    closeAction.invoke()
+                                }
+
+                                override fun onAnimationRepeat(animation: Animation?) {}
+
+                                override fun onAnimationStart(animation: Animation?) {}
+                            })
+                        }
+                    )
+            } ?: run {
+                closeAction.invoke()
             }
         }
     }
