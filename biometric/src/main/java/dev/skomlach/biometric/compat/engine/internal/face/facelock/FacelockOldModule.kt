@@ -319,6 +319,7 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
         }
 
         fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?): Void? {
+            if (helpString.isNullOrBlank()) return null
             d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
             return null
         }

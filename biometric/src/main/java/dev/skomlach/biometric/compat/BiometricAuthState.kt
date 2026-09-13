@@ -347,6 +347,25 @@ internal fun resolveEffectiveEnrollTypes(
         .filter(isActive)
 }
 
+internal enum class BiometricSetupContinuation {
+    CANCELED,
+    COMPLETE_SYSTEM_ENROLLMENT,
+    ENROLL_SOFTWARE,
+    CONFIRM_HARDWARE
+}
+
+internal fun resolveBiometricSetupContinuation(
+    hardwareEnrollmentStillRequired: Boolean,
+    hasSoftwareEnrollmentTargets: Boolean,
+    hardwareEnrolledThisRun: Boolean,
+    requiresCrypto: Boolean = false
+): BiometricSetupContinuation = when {
+    hardwareEnrollmentStillRequired -> BiometricSetupContinuation.CANCELED
+    hasSoftwareEnrollmentTargets -> BiometricSetupContinuation.ENROLL_SOFTWARE
+    hardwareEnrolledThisRun && !requiresCrypto -> BiometricSetupContinuation.COMPLETE_SYSTEM_ENROLLMENT
+    else -> BiometricSetupContinuation.CONFIRM_HARDWARE
+}
+
 internal enum class EnrollTerminalStatus {
     CONTINUE,
     SUCCEEDED,

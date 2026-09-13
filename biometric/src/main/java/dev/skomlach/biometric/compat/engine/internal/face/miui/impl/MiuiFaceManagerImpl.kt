@@ -1255,6 +1255,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
     private fun sendAcquiredResult(deviceId: Long, clientInfo: Int, vendorCode: Int) {
         val msg =
             MiuiCodeToString.getAcquiredString(clientInfo, vendorCode) //getMessageInfo(clientInfo);
+        if (msg.isNullOrBlank()) return
         val enrollmentCallback = mEnrollmentCallback
         if (enrollmentCallback != null) {
             enrollmentCallback.onEnrollmentHelp(clientInfo, msg)

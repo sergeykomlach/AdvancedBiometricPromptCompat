@@ -376,6 +376,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
+            if (helpString.isNullOrBlank()) return
             d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
             listener?.onHelp(helpString)
         }

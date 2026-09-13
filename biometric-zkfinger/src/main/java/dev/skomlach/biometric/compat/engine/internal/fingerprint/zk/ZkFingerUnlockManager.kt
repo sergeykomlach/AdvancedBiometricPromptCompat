@@ -864,7 +864,7 @@ class ZkFingerUnlockManager(
     }
 
     private fun postHelp(msg: CharSequence?) {
-        if (!captureSession.isActive) return
+        if (!captureSession.isActive || msg.isNullOrBlank()) return
         val callback = authCallback
         callbackHandler.post {
             callback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL, msg)

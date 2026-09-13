@@ -320,6 +320,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
 
         @Deprecated("Deprecated in Java")
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
+            if (helpString.isNullOrBlank()) return
             d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
             listener?.onHelp(helpString)
         }

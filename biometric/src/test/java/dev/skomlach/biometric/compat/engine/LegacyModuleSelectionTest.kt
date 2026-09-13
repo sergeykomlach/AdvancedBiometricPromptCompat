@@ -43,6 +43,18 @@ class LegacyModuleSelectionTest {
         assertSame(systemModule, selected)
     }
 
+    @Test
+    fun `hardware setup uses the enrolled OEM module just like authentication`() {
+        val platformModule = FakeModule(priority = BiometricModule.PRIORITY_SYSTEM_HARDWARE, tag = 201)
+        val miuiModule = FakeModule(priority = BiometricModule.PRIORITY_SYSTEM_HARDWARE, tag = 207)
+        val continuation = dev.skomlach.biometric.compat.resolveBiometricSetupContinuation(false, false, false)
+        val selected = selectPreferredBiometricModule(
+            listOf(platformModule to moduleState(false), miuiModule to moduleState(true)),
+            enroll = continuation == dev.skomlach.biometric.compat.BiometricSetupContinuation.ENROLL_SOFTWARE
+        )
+        assertSame(miuiModule, selected)
+    }
+
     private fun moduleState(enrolled: Boolean): BiometricModuleState {
         return BiometricModuleState(
             managerAccessible = true,

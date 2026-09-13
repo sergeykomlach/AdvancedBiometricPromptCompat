@@ -323,7 +323,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private lateinit var oldTitle: CharSequence
     private val oldIsBiometricReadyForUsage =
         BiometricManagerCompat.isBiometricSensorPermanentlyLocked(builder.getBiometricAuthRequest())
-    private val impl: IBiometricPromptImpl by lazy {
+    private val implementationCache = AuthFlowRouteCache<Unit, IBiometricPromptImpl>()
+    private val backgroundDetectorCache = AuthFlowRouteCache<Unit, AppBackgroundDetector>()
+    private val impl: IBiometricPromptImpl get() = implementationCache.getOrPut(Unit) {
         val isBiometricPrompt = shouldUseBiometricPromptImpl()
         BiometricLoggerImpl.d(
             "BiometricPromptCompat.IBiometricPromptImpl - " +
@@ -338,7 +340,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         iBiometricPromptImpl
     }
-    private val appBackgroundDetector: AppBackgroundDetector by lazy {
+    private val appBackgroundDetector: AppBackgroundDetector get() = backgroundDetectorCache.getOrPut(Unit) {
         AppBackgroundDetector(impl) {
             if (!builder.forceDeviceCredential()) {
                 BiometricLoggerImpl.e("BiometricPromptCompat.AppBackgroundDetector()")
@@ -374,23 +376,29 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         val authFlowId = authFlowGeneration.incrementAndGet()
         ownedAuthFlowGeneration.set(authFlowId)
+        implementationCache.beginFlow(authFlowId)
+        backgroundDetectorCache.beginFlow(authFlowId)
         authCanceled.set(false)
+        val requestSystemEnrollment = enrollNewHardwareBiometric &&
+                BiometricManagerCompat.getAuthSnapshot(
+                    builder.getBiometricAuthRequest().withProvider(BiometricProviderType.HARDWARE)
+                ).state.hardwareDetected
         // Configure mutable builder state only after this call owns the shared flow gate.
         builder.enroll = true
-        awaitingSystemEnrollment = enrollNewHardwareBiometric
+        awaitingSystemEnrollment = requestSystemEnrollment
         builder.resetEnrollSessionState()
         builder.beginAuthFlow(authFlowId)
         activeAuthCallback = callback
         activeCompletion = null
         implementationStarted = false
-        val enrolledHardwareBeforeSystemSetup = if (enrollNewHardwareBiometric) {
+        val enrolledHardwareBeforeSystemSetup = if (requestSystemEnrollment) {
             builder.getEnrolledHardwareScopeTypes()
         } else {
             emptySet()
         }
         BiometricLoggerImpl.e {
-            "BiometricPromptCompat.enroll enrollNewHardwareBiometric=" +
-                    "$enrollNewHardwareBiometric; list=${builder.getAllAvailableTypes()}"
+            "BiometricPromptCompat.enroll requestSystemEnrollment=" +
+                    "$requestSystemEnrollment; list=${builder.getAllAvailableTypes()}"
         }
         if (!API_ENABLED) {
             val failureResults = builder.getAllAvailableTypes().map {
@@ -406,98 +414,89 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             )
             return
         }
-        val softwareSetup = softwareSetup@{
-            if (!isCurrentAuthFlow(authFlowId)) {
-                return@softwareSetup
-            }
+        val continueSetup: () -> Unit = continueSetup@{
+            if (!isCurrentAuthFlow(authFlowId)) return@continueSetup
             builder.invalidateSelectedRoutes()
             awaitingSystemEnrollment = false
-            if (enrollNewHardwareBiometric) {
-                val newlyEnrolledHardwareTypes = builder.getEnrolledHardwareScopeTypes()
-                    .subtract(enrolledHardwareBeforeSystemSetup)
-                if (newlyEnrolledHardwareTypes.isNotEmpty()) {
-                    builder.markEnrollConfirmedTypes(newlyEnrolledHardwareTypes)
+            val enrolledHardware = builder.getEnrolledHardwareScopeTypes()
+            val newlyEnrolledHardware = if (requestSystemEnrollment) {
+                enrolledHardware - enrolledHardwareBeforeSystemSetup
+            } else emptySet()
+            val continuation = resolveBiometricSetupContinuation(
+                hardwareEnrollmentStillRequired = requestSystemEnrollment &&
+                        enrolledHardware.isEmpty(),
+                hasSoftwareEnrollmentTargets = builder.hasSoftwareEnrollTargets(),
+                hardwareEnrolledThisRun = newlyEnrolledHardware.isNotEmpty(),
+                requiresCrypto = builder.getCryptographyPurpose() != null
+            )
+            BiometricLoggerImpl.d("BiometricPromptCompat.setup continuation=$continuation")
+            when (continuation) {
+                BiometricSetupContinuation.CANCELED -> {
+                    val results = emptyEffectiveBiometricCancellationResults(builder.getEnrollScopeTypes())
+                    dispatchAfterFlowFinished(
+                        finishFlow = { finishAuthFlow(authFlowId) },
+                        dispatch = { callback.onCanceled(results) }
+                    )
                 }
-                val newHardwareEnroll = isHardwareEnrollmentNeeded(builder.getBiometricAuthRequest())
-                if (builder.getPendingEnrollTypes().isNotEmpty()) {
+                BiometricSetupContinuation.COMPLETE_SYSTEM_ENROLLMENT -> {
+                    builder.markEnrollConfirmedTypes(newlyEnrolledHardware)
+                    finishAndDispatchEnrollTerminalOutcome(
+                        authFlowId = authFlowId,
+                        callback = callback,
+                        successResults = enrolledHardware.mapTo(LinkedHashSet()) { AuthenticationResult(it) }
+                    )
+                }
+                BiometricSetupContinuation.ENROLL_SOFTWARE,
+                BiometricSetupContinuation.CONFIRM_HARDWARE -> {
+                    // Hardware setup confirms existing templates using the ordinary auth route.
+                    // Only software providers receive the flag that creates a new enrollment.
+                    builder.enroll = continuation == BiometricSetupContinuation.ENROLL_SOFTWARE
+                    builder.invalidateSelectedRoutes()
                     runAuthPreflight(
                         callback = callback,
                         authFlowId = authFlowId,
                         authTask = {
+                            // A denied software permission may leave only hardware confirmation.
+                            if (builder.enroll && !builder.hasSoftwareEnrollTargets()) {
+                                builder.enroll = false
+                                builder.invalidateSelectedRoutes()
+                            }
                             startAuth(callback, authFlowId, preflightCompleted = true)
                         },
-                        requestNotificationPermission = false,
-                        shouldPrepareModules = { true }
+                        requestNotificationPermission = true
                     )
-                } else {
-                    val canceledResults = if (newHardwareEnroll) {
-                        builder.getEnrollScopeTypes().mapTo(LinkedHashSet()) { type ->
-                            AuthenticationResult(
-                                type,
-                                reason = AuthenticationFailureReason.CANCELED_BY_USER
-                            )
-                        }
-                    } else {
-                        emptySet()
-                    }
-                    finishAndDispatchEnrollTerminalOutcome(
-                        authFlowId = authFlowId,
-                        callback = callback,
-                        canceledResults = canceledResults
-                    )
-                }
-            } else {
-                if (builder.getPendingEnrollTypes().isEmpty()) {
-                    finishAndDispatchEnrollTerminalOutcome(
-                        authFlowId = authFlowId,
-                        callback = callback
-                    )
-                } else {
-                    startAuth(callback, authFlowId, preflightCompleted = true)
                 }
             }
         }
-        val systemSetup = systemSetup@{
-            if (!isCurrentAuthFlow(authFlowId)) {
-                return@systemSetup
-            }
-            if (enrollNewHardwareBiometric) {
+        waitUntilReadyForAuth(callback, System.currentTimeMillis(), authFlowId) { _, _ ->
+            if (requestSystemEnrollment) {
                 builder.getActivity()?.let {
                     InitiateSystemBiometricEnrollFragment.showFragment(
                         it,
                         builder.getBiometricAuthRequest(),
-                        softwareSetup
+                        continueSetup
                     )
-                } ?: run {
-                    softwareSetup.invoke()
-                }
+                } ?: continueSetup.invoke()
             } else {
-                softwareSetup.invoke()
+                continueSetup.invoke()
             }
         }
-        waitUntilReadyForAuth(callback, System.currentTimeMillis(), authFlowId) { _, _ ->
-            runAuthPreflight(
-                callback = callback,
-                authFlowId = authFlowId,
-                authTask = systemSetup,
-                shouldPrepareModules = { !enrollNewHardwareBiometric }
-            )
-        }
-
     }
+
 
     private fun finishAndDispatchEnrollTerminalOutcome(
         authFlowId: Long,
         callback: AuthenticationCallback,
         failureResults: Set<AuthenticationResult> = emptySet(),
-        canceledResults: Set<AuthenticationResult> = emptySet()
+        canceledResults: Set<AuthenticationResult> = emptySet(),
+        successResults: Set<AuthenticationResult> = builder.getPreSatisfiedEnrollResults()
     ) {
         val scopeTypes = builder.getCurrentEnrollCompletionTypes()
             .ifEmpty { builder.getEnrollScopeTypes() }
         val outcome = resolveEnrollSessionOutcome(
             confirmation = builder.getBiometricAuthRequest().confirmation,
             scopeTypes = scopeTypes,
-            successResults = builder.getPreSatisfiedEnrollResults(),
+            successResults = successResults,
             confirmedTypes = builder.getConfirmedEnrollTypes(),
             failureResults = failureResults,
             canceledResults = canceledResults,
@@ -531,6 +530,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         val authFlowId = authFlowGeneration.incrementAndGet()
         ownedAuthFlowGeneration.set(authFlowId)
+        implementationCache.beginFlow(authFlowId)
+        backgroundDetectorCache.beginFlow(authFlowId)
         authCanceled.set(false)
         builder.enroll = false
         awaitingSystemEnrollment = false
@@ -1488,9 +1489,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return false
         }
 
-        if (builder.enroll && builder.hasSoftwareEnrollTargets() &&
-            builder.getPrimaryAvailableTypes().any { builder.selectedRoute(it)?.usesBiometricPromptHardware == true }
-        ) return true
+        if (builder.hasSoftwareEnrollTargets()) return false
 
         if (isHigherPrioritySoftwareSelectedThanBiometricPrompt()) {
             return false

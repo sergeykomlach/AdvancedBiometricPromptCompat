@@ -202,6 +202,7 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
         }
 
         fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?): Void? {
+            if (helpString.isNullOrBlank()) return null
             d("$name.onAuthenticationError: $helpMsgId-$helpString")
             return null
         }

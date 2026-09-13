@@ -284,8 +284,7 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         }
 
         override fun onAuthenticationStatus(helpMsgId: Int) {
-            d("$name.onAuthenticationHelp: $helpMsgId")
-            listener?.onHelp(null)
+            d("$name.onAuthenticationStatus: $helpMsgId")
         }
 
         override fun onAuthenticationSucceeded() {
