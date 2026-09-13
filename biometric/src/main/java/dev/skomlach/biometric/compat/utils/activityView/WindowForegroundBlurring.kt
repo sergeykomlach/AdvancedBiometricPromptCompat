@@ -75,6 +75,10 @@ class WindowForegroundBlurring(
         captureScheduled = false
         updateBackground()
     }
+    private val captureFrameCallback = Runnable {
+        // Run capture after this frame's traversal, giving the dialog a chance to draw first.
+        if (isBlurViewAttachedToHost && captureScheduled) parentView.post(captureRunnable)
+    }
     private val paletteResults = BackdropPaletteResults()
     private var hasBackdropColor = false
 
@@ -168,7 +172,7 @@ class WindowForegroundBlurring(
         if (!isBlurViewAttachedToHost || !captureRequested || captureScheduled) return
         val delay = blurCaptureLatch.delayUntilReady(SystemClock.uptimeMillis()) ?: return
         captureScheduled = true
-        parentView.postDelayed(captureRunnable, delay)
+        parentView.postOnAnimationDelayed(captureFrameCallback, delay)
     }
 
     private fun updateBackground() {
@@ -189,25 +193,50 @@ class WindowForegroundBlurring(
         BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
         try {
             BlurUtil.takeScreenshotAndBlur(captureTarget) { originalBitmap, blurredBitmap ->
-                ExecutorHelper.removeCallbacks(timeout)
-                if (blurCaptureLatch.finish(captureToken, SystemClock.uptimeMillis()) && isBlurViewAttachedToHost) {
-                    val currentBitmap = (v?.background as? BitmapDrawable)?.bitmap
-                    val unchanged = blurredBitmap != null && currentBitmap != null &&
-                        !currentBitmap.isRecycled && blurredBitmap.sameAs(currentBitmap)
-                    if (unchanged) {
-                        if (blurredBitmap !== currentBitmap) blurredBitmap.recycle()
-                    } else if (blurredBitmap != null) {
-                        setDrawable(blurredBitmap)
-                    }
-                    if (blurredBitmap != null && (!unchanged || !hasBackdropColor)) {
-                        updateDefaultColor(originalBitmap)
-                    } else if (!originalBitmap.isRecycled) {
-                        originalBitmap.recycle()
-                    }
-                } else {
+                if (!blurCaptureLatch.owns(captureToken) || !isBlurViewAttachedToHost) {
+                    ExecutorHelper.removeCallbacks(timeout)
                     recycleUnusedCapture(originalBitmap, blurredBitmap)
+                    return@takeScreenshotAndBlur
                 }
-                scheduleBackgroundUpdate()
+                val currentBitmap = (v?.background as? BitmapDrawable)?.bitmap
+                fun publishResult(matchesPrevious: Boolean) {
+                    ExecutorHelper.removeCallbacks(timeout)
+                    try {
+                        if (blurCaptureLatch.finish(captureToken, SystemClock.uptimeMillis()) && isBlurViewAttachedToHost) {
+                            val unchanged = matchesPrevious &&
+                                    (v?.background as? BitmapDrawable)?.bitmap === currentBitmap
+                            if (unchanged) {
+                                if (blurredBitmap !== currentBitmap) blurredBitmap?.recycle()
+                            } else if (blurredBitmap != null) {
+                                setDrawable(blurredBitmap)
+                            }
+                            if (blurredBitmap != null && (!unchanged || !hasBackdropColor)) {
+                                updateDefaultColor(originalBitmap)
+                            } else if (!originalBitmap.isRecycled) {
+                                originalBitmap.recycle()
+                            }
+                        } else {
+                            recycleUnusedCapture(originalBitmap, blurredBitmap)
+                        }
+                    } finally {
+                        scheduleBackgroundUpdate()
+                    }
+                }
+                if (blurredBitmap == null || currentBitmap == null) {
+                    publishResult(false)
+                } else {
+                    // Published bitmaps stay owned by their drawable; do not recycle them while
+                    // a worker holds a reference. Unpublished captures are released after comparison.
+                    ExecutorHelper.startOnBackground {
+                        val unchanged = try {
+                            !currentBitmap.isRecycled && blurredBitmap.sameAs(currentBitmap)
+                        } catch (error: Throwable) {
+                            BiometricLoggerImpl.e(error)
+                            false
+                        }
+                        ExecutorHelper.post { publishResult(unchanged) }
+                    }
+                }
             }
         } catch (e: Throwable) {
             ExecutorHelper.removeCallbacks(timeout)
@@ -310,6 +339,7 @@ class WindowForegroundBlurring(
         captureRequested = false
         captureScheduled = false
         parentView.removeCallbacks(captureRunnable)
+        parentView.removeCallbacks(captureFrameCallback)
         paletteCaptureLatch.reset()
         paletteResults.reset()
         hasBackdropColor = false

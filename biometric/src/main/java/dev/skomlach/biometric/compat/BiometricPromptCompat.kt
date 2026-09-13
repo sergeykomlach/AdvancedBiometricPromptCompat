@@ -27,6 +27,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Looper
+import android.os.SystemClock
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.annotation.CallSuper
@@ -516,6 +517,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun authenticate(callbackOuter: AuthenticationCallback) {
+        val authStartedAt = SystemClock.uptimeMillis()
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate() stage1")
         startTs = System.currentTimeMillis()
         val callback = callbackOuter.withMissingPermissionDescriptions()
@@ -529,6 +531,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         val authFlowId = authFlowGeneration.incrementAndGet()
+        BiometricLoggerImpl.d {
+            "BiometricDialogTiming: auth_start uptimeMs=$authStartedAt flow=$authFlowId"
+        }
         ownedAuthFlowGeneration.set(authFlowId)
         implementationCache.beginFlow(authFlowId)
         backgroundDetectorCache.beginFlow(authFlowId)

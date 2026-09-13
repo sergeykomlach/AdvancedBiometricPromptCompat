@@ -28,6 +28,9 @@ internal class BlurCaptureLatch(private val minCaptureIntervalMillis: Long = 0L)
     private var nextCaptureAt = 0L
 
     @Synchronized
+    fun owns(token: Long): Boolean = activeToken == token
+
+    @Synchronized
     fun delayUntilReady(now: Long): Long? =
         if (activeToken != null) null else (nextCaptureAt - now).coerceAtLeast(0L)
 

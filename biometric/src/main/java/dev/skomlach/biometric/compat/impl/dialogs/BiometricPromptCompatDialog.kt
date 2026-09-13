@@ -30,6 +30,7 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -50,8 +51,10 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDialog
 import androidx.core.content.ContextCompat
 import androidx.core.os.BuildCompat
+import androidx.core.view.OneShotPreDrawListener
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnAttach
+import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -61,6 +64,7 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.BroadcastTools
@@ -105,10 +109,16 @@ class BiometricPromptCompatDialog : DialogFragment() {
     private var focusListener: WindowFocusChangedListener? = null
     val isShowing: Boolean
         get() = dialog?.isShowing == true
+    internal val isActive: Boolean
+        get() = isShowing && !dismissStarted
+    internal var bindInitialContent: (() -> Unit)? = null
     private var dismissDialogInterface: DialogInterface.OnDismissListener? = null
     private var cancelDialogInterface: DialogInterface.OnCancelListener? = null
     private var onShowDialogInterface: DialogInterface.OnShowListener? = null
     private var dismissStarted = false
+    private var pendingEnterAnimation: OneShotPreDrawListener? = null
+    private var firstDrawObserver: ViewTreeObserver? = null
+    private var firstDrawListener: ViewTreeObserver.OnDrawListener? = null
     private var hostLayoutObserver: ViewTreeObserver? = null
     private val hostLayoutListener = ViewTreeObserver.OnGlobalLayoutListener { updateDialogWindowSize() }
 
@@ -131,6 +141,8 @@ class BiometricPromptCompatDialog : DialogFragment() {
         if (!isAdded || dismissStarted) return
         // Cancellation can synchronously request dismissal again through the auth callback.
         dismissStarted = true
+        pendingEnterAnimation?.removeListener()
+        pendingEnterAnimation = null
         try {
             onCancel?.invoke()
         } finally {
@@ -258,6 +270,8 @@ class BiometricPromptCompatDialog : DialogFragment() {
         negativeButton = rootView?.findViewById(android.R.id.button1)
         fingerprintIcon = rootView?.findViewById(R.id.fingerprint_icon)
         authPreview = rootView?.findViewById(R.id.auth_preview)
+        // wrap_content must see the initial text and visibility before its first measurement.
+        bindInitialContent?.invoke()
         authPreview?.layoutParams?.let {
             val params = it as FrameLayout.LayoutParams
             val view = rootView?.findViewById<FrameLayout>(R.id.auth_content_container)
@@ -271,6 +285,9 @@ class BiometricPromptCompatDialog : DialogFragment() {
     }
 
     override fun onDestroyView() {
+        pendingEnterAnimation?.removeListener()
+        pendingEnterAnimation = null
+        clearFirstDrawListener()
         hostLayoutObserver?.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(hostLayoutListener)
         hostLayoutObserver = null
         authPreview?.holder?.surface?.release()
@@ -317,16 +334,65 @@ class BiometricPromptCompatDialog : DialogFragment() {
             it.addOnGlobalLayoutListener(hostLayoutListener)
         }
         updateDialogWindowSize()
+        observeFirstContentDraw(view)
+        // This one-shot callback allows the frame to draw; it never waits for OnShow/auth.
+        pendingEnterAnimation = view.doOnPreDraw {
+            pendingEnterAnimation = null
+            if (!isActive || this.view !== view) return@doOnPreDraw
+            val animationView = (dialog?.window?.decorView as? ViewGroup)?.getChildAt(0)
+                ?: return@doOnPreDraw
+            animationView.startAnimation(
+                AnimationUtils.loadAnimation(animationView.context, R.anim.move_in).apply {
+                    setAnimationListener(object : Animation.AnimationListener {
+                        override fun onAnimationEnd(animation: Animation?) {
+                            if (isActive && this@BiometricPromptCompatDialog.view === view) {
+                                logDialogTiming("enter_animation_end")
+                            }
+                        }
+
+                        override fun onAnimationRepeat(animation: Animation?) {}
+                        override fun onAnimationStart(animation: Animation?) {}
+                    })
+                }
+            )
+        }
         dialog?.let {
-            it.window?.let { w ->
-                (w.decorView as ViewGroup?)
-                    ?.getChildAt(0)?.startAnimation(
-                        AnimationUtils.loadAnimation(
-                            w.context, R.anim.move_in
-                        )
-                    )
-            }
             it.setOnDismissListener(dismissDialogInterface)
+        }
+    }
+
+    private fun observeFirstContentDraw(view: View) {
+        if (!BiometricLoggerImpl.DEBUG) return
+        firstDrawObserver = view.viewTreeObserver
+        firstDrawListener = object : ViewTreeObserver.OnDrawListener {
+            private var recorded = false
+
+            override fun onDraw() {
+                if (recorded) return
+                recorded = true
+                // Draw dispatch on the UI thread, not GPU completion or display presentation.
+                if (isActive) logDialogTiming("first_content_draw")
+                view.post {
+                    if (firstDrawListener === this) clearFirstDrawListener()
+                }
+            }
+        }
+        firstDrawObserver?.addOnDrawListener(firstDrawListener)
+    }
+
+    private fun clearFirstDrawListener() {
+        firstDrawListener?.let { listener ->
+            firstDrawObserver?.takeIf { it.isAlive }?.removeOnDrawListener(listener)
+        }
+        firstDrawListener = null
+        firstDrawObserver = null
+    }
+
+    private fun logDialogTiming(event: String) {
+        BiometricLoggerImpl.d {
+            val content = rootView?.findViewById<View>(R.id.dialogLayout)
+            "BiometricDialogTiming: $event uptimeMs=${SystemClock.uptimeMillis()} " +
+                    "dialog=${System.identityHashCode(this)} width=${content?.width} height=${content?.height}"
         }
     }
 

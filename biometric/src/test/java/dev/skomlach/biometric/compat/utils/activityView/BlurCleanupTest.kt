@@ -7,6 +7,19 @@ import org.junit.Test
 class BlurCleanupTest {
 
     @Test
+    fun pendingComparisonKeepsCaptureBusyUntilPublicationAndContributesToItsCost() {
+        val latch = BlurCaptureLatch(minCaptureIntervalMillis = 50L)
+        val token = latch.tryStart(1_000L)!!
+        // Capture/blur finished at 1040, but the worker is still comparing the result.
+        assertEquals(true, latch.owns(token))
+        assertNull(latch.tryStart(1_040L))
+        assertNull(latch.delayUntilReady(1_060L))
+        assertEquals(true, latch.finish(token, 1_070L))
+        assertEquals(false, latch.owns(token))
+        assertEquals(70L, latch.delayUntilReady(1_070L))
+    }
+
+    @Test
     fun fastCaptureWaitsUntilTheTwentyFpsDeadline() {
         val latch = BlurCaptureLatch(minCaptureIntervalMillis = 50L)
         val token = latch.tryStart(1_000L)!!
@@ -54,6 +67,7 @@ class BlurCleanupTest {
         val latch = BlurCaptureLatch(minCaptureIntervalMillis = 50L)
         val old = latch.tryStart(1_000L)!!
         latch.reset()
+        assertEquals(false, latch.owns(old))
         val current = latch.tryStart(1_010L)!!
         assertEquals(false, latch.finish(old, 1_020L))
         assertNull(latch.delayUntilReady(1_020L))
@@ -85,12 +99,15 @@ class BlurCleanupTest {
         assertEquals(true, first != null)
         assertEquals(false, latch.tryStart() != null)
         assertEquals(true, latch.finish(first!!))
+        assertEquals(false, latch.owns(first))
 
         val second = latch.tryStart()
         assertEquals(true, second != null)
+        assertEquals(true, latch.owns(second!!))
+        assertEquals(false, latch.owns(first))
         assertEquals(false, latch.finish(first))
         assertEquals(false, latch.tryStart() != null)
-        assertEquals(true, latch.finish(second!!))
+        assertEquals(true, latch.finish(second))
         assertEquals(true, latch.tryStart() != null)
     }
 

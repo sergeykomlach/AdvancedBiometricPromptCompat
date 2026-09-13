@@ -122,9 +122,7 @@ class BiometricPromptCompatDialogImpl(
                 authCallback?.stopAuth()
             }
         }
-        dialog.setOnShowListener {
-            e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. started.")
-
+        dialog.bindInitialContent = {
             if (compatBuilder.getTitle() == null) {
                 dialog.title?.visibility = View.GONE
             } else {
@@ -160,6 +158,12 @@ class BiometricPromptCompatDialogImpl(
                 false,
                 primaryBiometricType
             )
+        }
+        dialog.setOnShowListener {
+            // A first-frame button/outside tap can cancel before the queued OnShow arrives.
+            if (!dialog.isActive) return@setOnShowListener
+            e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. started.")
+
             softwarePromptDelegate = SoftwareBiometricPromptRegistry.resolve(primaryBiometricType)
                 ?.create(
                     SoftwareBiometricPromptHost(
@@ -185,7 +189,7 @@ class BiometricPromptCompatDialogImpl(
                                 authCallback?.onPreAuthFailure(result)
                             }
 
-                            override fun isPromptActive(): Boolean = dialog.isShowing
+                            override fun isPromptActive(): Boolean = dialog.isActive
                         }
                     )
                 )?.also { delegate ->
@@ -298,7 +302,7 @@ class BiometricPromptCompatDialogImpl(
     }
 
     private fun startAuth() {
-        if (!inProgress.get() && dialog.isShowing) {
+        if (!inProgress.get() && dialog.isActive) {
             if (softwarePromptDelegate?.isReadyToStartAuth() == false) {
                 return
             }
