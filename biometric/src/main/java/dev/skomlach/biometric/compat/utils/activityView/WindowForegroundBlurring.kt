@@ -25,11 +25,14 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.RenderEffect
 import android.graphics.Shader
+import android.graphics.drawable.BitmapDrawable
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnAttach
@@ -64,8 +67,16 @@ class WindowForegroundBlurring(
     private var contentView: ViewGroup? = null
     private var v: View? = null
     private var renderEffect: RenderEffect? = null
-    private val blurCaptureLatch = BlurCaptureLatch()
+    private val blurCaptureLatch = BlurCaptureLatch(minCaptureIntervalMillis = 50L)
     private val paletteCaptureLatch = BlurCaptureLatch()
+    private var captureRequested = false
+    private var captureScheduled = false
+    private val captureRunnable = Runnable {
+        captureScheduled = false
+        updateBackground()
+    }
+    private val paletteResults = BackdropPaletteResults()
+    private var hasBackdropColor = false
 
     @Volatile
     private var isBlurViewAttachedToHost = false
@@ -107,7 +118,7 @@ class WindowForegroundBlurring(
             }
         }
     private val onDrawListener = ViewTreeObserver.OnPreDrawListener {
-        updateBackground()
+        requestBackgroundUpdate()
         true
     }
 
@@ -148,6 +159,18 @@ class WindowForegroundBlurring(
 
     }
 
+    private fun requestBackgroundUpdate() {
+        captureRequested = true
+        scheduleBackgroundUpdate()
+    }
+
+    private fun scheduleBackgroundUpdate() {
+        if (!isBlurViewAttachedToHost || !captureRequested || captureScheduled) return
+        val delay = blurCaptureLatch.delayUntilReady(SystemClock.uptimeMillis()) ?: return
+        captureScheduled = true
+        parentView.postDelayed(captureRunnable, delay)
+    }
+
     private fun updateBackground() {
         if (!isBlurViewAttachedToHost)
             return
@@ -157,23 +180,39 @@ class WindowForegroundBlurring(
         }
         val captureTarget = contentView ?: return
         if (captureTarget.width <= 0 || captureTarget.height <= 0) return
-        val captureToken = blurCaptureLatch.tryStart() ?: return
-        ExecutorHelper.postDelayed(
-            { blurCaptureLatch.finish(captureToken) },
-            BLUR_CAPTURE_TIMEOUT_MS
-        )
+        val captureToken = blurCaptureLatch.tryStart(SystemClock.uptimeMillis()) ?: return
+        captureRequested = false
+        val timeout = Runnable {
+            if (blurCaptureLatch.finish(captureToken, SystemClock.uptimeMillis())) scheduleBackgroundUpdate()
+        }
+        ExecutorHelper.postDelayed(timeout, BLUR_CAPTURE_TIMEOUT_MS)
         BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
         try {
             BlurUtil.takeScreenshotAndBlur(captureTarget) { originalBitmap, blurredBitmap ->
-                if (blurCaptureLatch.finish(captureToken) && isBlurViewAttachedToHost) {
-                    setDrawable(blurredBitmap)
-                    updateDefaultColor(originalBitmap)
+                ExecutorHelper.removeCallbacks(timeout)
+                if (blurCaptureLatch.finish(captureToken, SystemClock.uptimeMillis()) && isBlurViewAttachedToHost) {
+                    val currentBitmap = (v?.background as? BitmapDrawable)?.bitmap
+                    val unchanged = blurredBitmap != null && currentBitmap != null &&
+                        !currentBitmap.isRecycled && blurredBitmap.sameAs(currentBitmap)
+                    if (unchanged) {
+                        if (blurredBitmap !== currentBitmap) blurredBitmap.recycle()
+                    } else if (blurredBitmap != null) {
+                        setDrawable(blurredBitmap)
+                    }
+                    if (blurredBitmap != null && (!unchanged || !hasBackdropColor)) {
+                        updateDefaultColor(originalBitmap)
+                    } else if (!originalBitmap.isRecycled) {
+                        originalBitmap.recycle()
+                    }
                 } else {
                     recycleUnusedCapture(originalBitmap, blurredBitmap)
                 }
+                scheduleBackgroundUpdate()
             }
         } catch (e: Throwable) {
-            blurCaptureLatch.finish(captureToken)
+            ExecutorHelper.removeCallbacks(timeout)
+            blurCaptureLatch.finish(captureToken, SystemClock.uptimeMillis())
+            scheduleBackgroundUpdate()
             BiometricLoggerImpl.e(e)
         }
     }
@@ -243,7 +282,7 @@ class WindowForegroundBlurring(
 
 
             if (shouldCaptureBlurBitmap(Utils.isAtLeastS)) {
-                updateBackground()
+                requestBackgroundUpdate()
             } else {
                 applyRenderEffect()
                 v?.post { captureBackdropPalette() }
@@ -268,7 +307,12 @@ class WindowForegroundBlurring(
         val wasAttached = isBlurViewAttachedToHost
         isBlurViewAttachedToHost = false
         blurCaptureLatch.reset()
+        captureRequested = false
+        captureScheduled = false
+        parentView.removeCallbacks(captureRunnable)
         paletteCaptureLatch.reset()
+        paletteResults.reset()
+        hasBackdropColor = false
         if (wasAttached) {
             try {
                 parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
@@ -368,13 +412,18 @@ class WindowForegroundBlurring(
 
     private fun updateDefaultColor(bm: Bitmap) {
         BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor")
+        val request = paletteResults.nextRequest()
+        var paletteBitmap: Bitmap? = null
         try {
             val biometricsRect = Rect()
-            biometricsLayout?.getGlobalVisibleRect(biometricsRect)
+            biometricsLayout?.findViewById<View>(R.id.biometrics)?.getGlobalVisibleRect(biometricsRect)
             val contentRect = Rect()
             contentView?.getGlobalVisibleRect(contentRect)
 
-            if (biometricsRect.isEmpty || contentRect.isEmpty) return
+            if (biometricsRect.isEmpty || contentRect.isEmpty) {
+                if (!bm.isRecycled) bm.recycle()
+                return
+            }
             val crop = resolveBitmapCropBounds(
                 targetScreenLeft = biometricsRect.left,
                 targetScreenTop = biometricsRect.top,
@@ -384,7 +433,10 @@ class WindowForegroundBlurring(
                 bitmapHostScreenTop = contentRect.top,
                 bitmapWidth = bm.width,
                 bitmapHeight = bm.height
-            ) ?: return
+            ) ?: run {
+                if (!bm.isRecycled) bm.recycle()
+                return
+            }
             val newBm = Bitmap.createBitmap(
                 bm,
                 crop.left,
@@ -392,12 +444,15 @@ class WindowForegroundBlurring(
                 crop.width,
                 crop.height
             )
+            paletteBitmap = newBm
             BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor $crop")
             if (newBm !== bm && !bm.isRecycled) {
                 bm.recycle()
             }
-            Palette.from(newBm).generate { palette ->
+            // Keep near-white/black backgrounds instead of Palette's default artwork filtering.
+            Palette.from(newBm).clearFilters().clearTargets().generate { palette ->
                 try {
+                    if (!isBlurViewAttachedToHost || !paletteResults.accept(request)) return@generate
                     val paletteDefColor =
                         palette?.getDominantColor(Color.TRANSPARENT)?.also { color ->
                             e(
@@ -413,9 +468,16 @@ class WindowForegroundBlurring(
                             )
                         } ?: Color.TRANSPARENT
 
-                    defaultColor = if (paletteDefColor != Color.TRANSPARENT) {
-                        val isDark = ColorUtil.isDark(paletteDefColor)
-                        DialogMainColor.getColor(context, !isDark)
+                    val previousColor = defaultColor
+                    hasBackdropColor = paletteDefColor != Color.TRANSPARENT
+                    defaultColor = if (hasBackdropColor) {
+                        val lightColor = DialogMainColor.getColor(context, false)
+                        val darkColor = DialogMainColor.getColor(context, true)
+                        if (shouldUseDarkBackdropIcons(
+                                backgroundLuminance = ColorUtils.calculateLuminance(paletteDefColor),
+                                lightIconLuminance = ColorUtils.calculateLuminance(lightColor),
+                                darkIconLuminance = ColorUtils.calculateLuminance(darkColor)
+                            )) darkColor else lightColor
                     } else {
                         val isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
                         DialogMainColor.getColor(context, !isDark)
@@ -432,7 +494,7 @@ class WindowForegroundBlurring(
                             )
                         }"
                     )
-                    updateIcons()
+                    if (defaultColor != previousColor) updateIcons()
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)
                 } finally {
@@ -441,6 +503,7 @@ class WindowForegroundBlurring(
             }
 
         } catch (e: Throwable) {
+            paletteBitmap?.takeUnless { it.isRecycled }?.recycle()
             if (!bm.isRecycled) bm.recycle()
             BiometricLoggerImpl.e(e)
         }

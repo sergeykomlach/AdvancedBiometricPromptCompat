@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="BiometricPromptDialogAnimation" parent="">
+        <item name="android:windowEnterAnimation">@anim/move_in</item>
+        <item name="android:windowExitAnimation">@anim/move_out</item>
+    </style>
+</resources>

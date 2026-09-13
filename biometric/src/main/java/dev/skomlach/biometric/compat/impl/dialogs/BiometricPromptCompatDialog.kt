@@ -108,6 +108,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
     private var dismissDialogInterface: DialogInterface.OnDismissListener? = null
     private var cancelDialogInterface: DialogInterface.OnCancelListener? = null
     private var onShowDialogInterface: DialogInterface.OnShowListener? = null
+    private var dismissStarted = false
     private var hostLayoutObserver: ViewTreeObserver? = null
     private val hostLayoutListener = ViewTreeObserver.OnGlobalLayoutListener { updateDialogWindowSize() }
 
@@ -117,40 +118,52 @@ class BiometricPromptCompatDialog : DialogFragment() {
         }
     }
     private lateinit var viewModel: DialogViewModel
+
+    override fun onCancel(dialog: DialogInterface) {
+        dismissWithAnimation { cancelDialogInterface?.onCancel(dialog) }
+    }
+
     override fun dismiss() {
+        dismissWithAnimation()
+    }
+
+    private fun dismissWithAnimation(onCancel: (() -> Unit)? = null) {
+        if (!isAdded || dismissStarted) return
+        // Cancellation can synchronously request dismissal again through the auth callback.
+        dismissStarted = true
+        try {
+            onCancel?.invoke()
+        } finally {
+            animateDismiss()
+        }
+    }
+
+    private fun animateDismiss() {
         if (isAdded) {
+            val closingDialog = dialog
             val closeAction = {
-                val fragmentManager = parentFragmentManager
-                val dialogFragment = fragmentManager.findFragmentByTag(
-                    TAG
-                ) as BiometricPromptCompatDialog?
-                if (dialogFragment != null) {
-                    if (dialogFragment.isAdded) {
-                        dialogFragment.dismissAllowingStateLoss()
-                    } else {
-                        fragmentManager.beginTransaction().remove(dialogFragment)
-                            .commitAllowingStateLoss()
-                    }
+                if (isAdded && dialog === closingDialog) {
+                    dismissAllowingStateLoss()
                 }
             }
-            dialog?.window?.let { w ->
-                (w.decorView as ViewGroup?)
-                    ?.getChildAt(0)?.startAnimation(
-                        AnimationUtils.loadAnimation(
-                            w.context, R.anim.move_out
-                        ).apply {
-                            this.setAnimationListener(object : Animation.AnimationListener {
-                                override fun onAnimationEnd(animation: Animation?) {
-                                    closeAction.invoke()
-                                }
+            val animationView = (closingDialog?.window?.decorView as? ViewGroup)?.getChildAt(0)
+            if (animationView != null && ViewCompat.isAttachedToWindow(animationView) && isShowing) {
+                animationView.startAnimation(
+                    AnimationUtils.loadAnimation(
+                        animationView.context, R.anim.move_out
+                    ).apply {
+                        setAnimationListener(object : Animation.AnimationListener {
+                            override fun onAnimationEnd(animation: Animation?) {
+                                closeAction.invoke()
+                            }
 
-                                override fun onAnimationRepeat(animation: Animation?) {}
+                            override fun onAnimationRepeat(animation: Animation?) {}
 
-                                override fun onAnimationStart(animation: Animation?) {}
-                            })
-                        }
-                    )
-            } ?: run {
+                            override fun onAnimationStart(animation: Animation?) {}
+                        })
+                    }
+                )
+            } else {
                 closeAction.invoke()
             }
         }
@@ -182,9 +195,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
     }
 
     fun setOnCancelListener(dialogInterface: DialogInterface.OnCancelListener) {
-        dialog?.setOnCancelListener(dialogInterface) ?: run {
-            this.cancelDialogInterface = dialogInterface
-        }
+        this.cancelDialogInterface = dialogInterface
     }
 
     fun setOnShowListener(dialogInterface: DialogInterface.OnShowListener) {
@@ -267,7 +278,13 @@ class BiometricPromptCompatDialog : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return AppCompatDialog(ContextThemeWrapper(requireContext(), theme), theme).apply {
+        dismissStarted = false
+        return object : AppCompatDialog(ContextThemeWrapper(requireContext(), theme), theme) {
+            override fun cancel() {
+                // Dialog.cancel() dismisses the window before OnCancelListener is delivered.
+                this@BiometricPromptCompatDialog.onCancel(this)
+            }
+        }.apply {
             val currentMode = DarkLightThemes.getNightModeCompatWithInscreen(context)
             val NIGHT_MODE = if (currentMode == UiModeManager.MODE_NIGHT_YES) {
                 AppCompatDelegate.MODE_NIGHT_YES
@@ -309,7 +326,6 @@ class BiometricPromptCompatDialog : DialogFragment() {
                         )
                     )
             }
-            it.setOnCancelListener(cancelDialogInterface)
             it.setOnDismissListener(dismissDialogInterface)
         }
     }

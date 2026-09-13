@@ -21,21 +21,34 @@ internal fun shouldCaptureBlurBitmap(isAtLeastS: Boolean): Boolean = !isAtLeastS
 
 internal fun shouldCaptureBackdropPalette(isAtLeastS: Boolean): Boolean = isAtLeastS
 
-internal class BlurCaptureLatch {
+internal class BlurCaptureLatch(private val minCaptureIntervalMillis: Long = 0L) {
     private var nextToken = 0L
     private var activeToken: Long? = null
+    private var startedAt = 0L
+    private var nextCaptureAt = 0L
 
     @Synchronized
-    fun tryStart(): Long? {
-        if (activeToken != null) return null
+    fun delayUntilReady(now: Long): Long? =
+        if (activeToken != null) null else (nextCaptureAt - now).coerceAtLeast(0L)
+
+    @Synchronized
+    fun tryStart(now: Long = 0L): Long? {
+        if (delayUntilReady(now) != 0L) return null
+        startedAt = now
         nextToken += 1
         return nextToken.also { activeToken = it }
     }
 
     @Synchronized
-    fun finish(token: Long): Boolean {
+    fun finish(token: Long, now: Long = 0L): Boolean {
         if (activeToken != token) return false
         activeToken = null
+        if (minCaptureIntervalMillis > 0L) {
+            // Slow captures get UI headroom; a fast device still captures at most 20 fps at 50 ms.
+            val interval = ((now - startedAt).coerceAtLeast(0L) * 2)
+                .coerceIn(minCaptureIntervalMillis, maxOf(minCaptureIntervalMillis, 200L))
+            nextCaptureAt = maxOf(now, startedAt + interval)
+        }
         return true
     }
 
@@ -43,6 +56,7 @@ internal class BlurCaptureLatch {
     fun reset() {
         nextToken += 1
         activeToken = null
+        nextCaptureAt = 0L
     }
 }
 
