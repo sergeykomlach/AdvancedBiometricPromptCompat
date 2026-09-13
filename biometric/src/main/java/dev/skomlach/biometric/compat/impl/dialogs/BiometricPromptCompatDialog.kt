@@ -53,14 +53,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.BuildCompat
 import androidx.core.view.OneShotPreDrawListener
 import androidx.core.view.ViewCompat
-import androidx.core.view.doOnAttach
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.findViewTreeLifecycleOwner
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
@@ -112,6 +109,8 @@ class BiometricPromptCompatDialog : DialogFragment() {
     internal val isActive: Boolean
         get() = isShowing && !dismissStarted
     internal var bindInitialContent: (() -> Unit)? = null
+    internal var onViewDestroyed: (() -> Unit)? = null
+    private var wallpaperReceiverContext: Context? = null
     private var dismissDialogInterface: DialogInterface.OnDismissListener? = null
     private var cancelDialogInterface: DialogInterface.OnCancelListener? = null
     private var onShowDialogInterface: DialogInterface.OnShowListener? = null
@@ -231,38 +230,6 @@ class BiometricPromptCompatDialog : DialogFragment() {
             false
         )
         rootView = containerView?.findViewById(R.id.dialogContent)
-        rootView?.doOnAttach {
-            rootView?.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(object :
-                LifecycleEventObserver {
-                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-                    if (event == Lifecycle.Event.ON_PAUSE) {
-                        e("${this.javaClass.name}.onStateChanged - ON_PAUSE")
-                        try {
-                            BroadcastTools.unregisterGlobalBroadcastIntent(
-                                requireActivity(),
-                                wallpaperChangedReceiver
-                            )
-                        } catch (e: Throwable) {
-                            e(e, "setupMonet")
-                        }
-                    } else
-                        if (event == Lifecycle.Event.ON_RESUME) {
-                            e("${this.javaClass.name}.onStateChanged - ON_RESUME")
-                            try {
-                                @Suppress("DEPRECATION")
-                                BroadcastTools.registerGlobalBroadcastIntent(
-                                    requireActivity(),
-                                    wallpaperChangedReceiver,
-                                    IntentFilter(Intent.ACTION_WALLPAPER_CHANGED)
-                                )
-                                updateMonetColorsInternal(requireActivity())
-                            } catch (e: Throwable) {
-                                e(e, "setupMonet")
-                            }
-                        }
-                }
-            })
-        }
         title = rootView?.findViewById(R.id.title)
         subtitle = rootView?.findViewById(R.id.subtitle)
         description = rootView?.findViewById(R.id.description)
@@ -284,13 +251,34 @@ class BiometricPromptCompatDialog : DialogFragment() {
         return containerView
     }
 
+    private fun unregisterWallpaperReceiver() {
+        val context = wallpaperReceiverContext ?: return
+        wallpaperReceiverContext = null
+        try { BroadcastTools.unregisterGlobalBroadcastIntent(context, wallpaperChangedReceiver) }
+        catch (error: Throwable) { e(error, "setupMonet") }
+    }
+
     override fun onDestroyView() {
+        onViewDestroyed?.invoke()
+        unregisterWallpaperReceiver()
         pendingEnterAnimation?.removeListener()
         pendingEnterAnimation = null
         clearFirstDrawListener()
         hostLayoutObserver?.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(hostLayoutListener)
         hostLayoutObserver = null
         authPreview?.holder?.surface?.release()
+        containerView?.clearAnimation()
+        negativeButton?.setOnClickListener(null)
+        title = null
+        subtitle = null
+        description = null
+        status = null
+        negativeButton = null
+        fingerprintIcon = null
+        authPreview = null
+        rootView = null
+        containerView = null
+        focusListener = null
         super.onDestroyView()
     }
 
@@ -330,6 +318,25 @@ class BiometricPromptCompatDialog : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    val context = context ?: return@LifecycleEventObserver
+                    try {
+                        if (wallpaperReceiverContext == null) {
+                            BroadcastTools.registerGlobalBroadcastIntent(
+                                context, wallpaperChangedReceiver,
+                                IntentFilter(Intent.ACTION_WALLPAPER_CHANGED)
+                            )
+                            wallpaperReceiverContext = context
+                        }
+                        updateMonetColorsInternal(context)
+                    } catch (error: Throwable) { e(error, "setupMonet") }
+                }
+                Lifecycle.Event.ON_PAUSE, Lifecycle.Event.ON_DESTROY -> unregisterWallpaperReceiver()
+                else -> Unit
+            }
+        })
         hostLayoutObserver = requireActivity().window.decorView.viewTreeObserver.also {
             it.addOnGlobalLayoutListener(hostLayoutListener)
         }

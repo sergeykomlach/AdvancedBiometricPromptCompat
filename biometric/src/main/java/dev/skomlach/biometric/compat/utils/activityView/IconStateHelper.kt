@@ -20,49 +20,33 @@ package dev.skomlach.biometric.compat.utils.activityView
 
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.common.misc.ExecutorHelper
-import java.util.Collections
 
 object IconStateHelper {
-    private val iconsTasks = Collections.synchronizedMap(HashMap<BiometricType?, Runnable>())
-    private val listeners = Collections.synchronizedSet(HashSet<IconStateListener>())
+    private val dispatcher = IconStateDispatcher(
+        ExecutorHelper::post, ExecutorHelper::postDelayed, ExecutorHelper::removeCallbacks
+    )
     fun registerListener(stateListener: IconStateListener) {
-        listeners.add(stateListener)
+        dispatcher.register(stateListener)
     }
 
     fun unregisterListener(stateListener: IconStateListener) {
-        listeners.remove(stateListener)
+        dispatcher.unregister(stateListener)
     }
 
     fun errorType(type: BiometricType?) {
-        ExecutorHelper.post {
-            for (stateListener in listeners) {
-                stateListener.onError(type)
-            }
-            var task = iconsTasks[type]
-            task?.let { ExecutorHelper.removeCallbacks(it) }
-            task = object : Runnable {
-                override fun run() {
-                    ExecutorHelper.removeCallbacks(this)
-                    for (stateListener in listeners) {
-                        stateListener.reset(type)
-                    }
-                }
-            }
-            ExecutorHelper.postDelayed(task, 2000)
-        }
+        dispatcher.error(type)
     }
 
     fun successType(type: BiometricType?) {
-        ExecutorHelper.post {
-            for (stateListener in listeners) {
-                stateListener.onSuccess(type)
-            }
-        }
+        dispatcher.success(type)
     }
+
+    internal fun refreshAvailability() = dispatcher.refreshAvailability()
 
     interface IconStateListener {
         fun onError(type: BiometricType?)
         fun onSuccess(type: BiometricType?)
         fun reset(type: BiometricType?)
+        fun onAvailabilityChanged() {}
     }
 }

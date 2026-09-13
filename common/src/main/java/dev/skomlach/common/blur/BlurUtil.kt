@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.cancellation.CancellationException
 
 @SuppressLint("RestrictedApi")
@@ -57,6 +58,98 @@ object BlurUtil {
 
     fun interface OnScreenshotListener {
         fun invoke(originalBitmap: Bitmap)
+    }
+
+    /** Owns scratch allocations and pending captures for one showing of an overlay. */
+    class BlurSession : AutoCloseable {
+        private var workspace: FastBlur.Workspace? = null
+        private val requests = mutableSetOf<Capture>()
+        private var closed = false
+
+        @Synchronized private fun getWorkspace(): FastBlur.Workspace? {
+            if (closed) return null
+            return workspace ?: FastBlur.Workspace().also { workspace = it }
+        }
+
+        fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) = capture(view, true, listener)
+
+        fun takeScreenshot(view: View, listener: OnScreenshotListener) =
+            capture(view, false) { original, _ -> listener.invoke(original) }
+
+        @Synchronized private fun capture(view: View, blur: Boolean, listener: OnPublishListener) {
+            if (closed) return
+            val request = Capture(view, blur, listener)
+            requests.add(request)
+            // Capture must remain after traversal; no background trampoline before UI work.
+            ExecutorHelper.post(request.captureOnMain)
+        }
+
+        private inner class Capture(view: View, val blur: Boolean, listener: OnPublishListener) {
+            val target = AtomicReference<View?>(view)
+            val callback = AtomicReference<OnPublishListener?>(listener)
+            val captureOnMain = Runnable {
+                val source = target.getAndSet(null)
+                if (source == null || callback.get() == null) {
+                    finish()
+                } else {
+                    val original = fallbackViewCapture(source)
+                    if (original == null) finish()
+                    else if (!blur || Utils.isAtLeastS) publish(original, null)
+                    else {
+                        val appContext = source.context.applicationContext
+                        ExecutorHelper.startOnBackground {
+                            if (callback.get() == null) {
+                                original.recycle()
+                                finish()
+                            } else {
+                                val blurred = try {
+                                    getWorkspace()?.blur(appContext, original, FastBlurConfig(
+                                        width = original.width, height = original.height,
+                                        radius = 4, sampling = 4
+                                    ))
+                                } catch (error: Throwable) {
+                                    LogCat.logException(error)
+                                    null
+                                }
+                                ExecutorHelper.post { publish(original, blurred) }
+                            }
+                        }
+                    }
+                }
+            }
+
+            private fun publish(original: Bitmap, blurred: Bitmap?) {
+                val listener = callback.getAndSet(null)
+                finish()
+                if (listener == null) {
+                    original.recycle()
+                    if (blurred !== original) blurred?.recycle()
+                } else listener.onBlurredScreenshot(original, blurred)
+            }
+
+            fun cancel() {
+                callback.set(null)
+                target.set(null)
+                ExecutorHelper.removeCallbacks(captureOnMain)
+            }
+
+            private fun finish() {
+                callback.set(null)
+                synchronized(this@BlurSession) { requests.remove(this) }
+            }
+        }
+
+        override fun close() {
+            val releasedWorkspace = synchronized(this) {
+                if (closed) return
+                closed = true
+                requests.forEach { it.cancel() }
+                requests.clear()
+                workspace.also { workspace = null }
+            }
+            // Native cleanup can wait for an in-flight blur, never on the UI thread.
+            if (releasedWorkspace != null) ExecutorHelper.startOnBackground { releasedWorkspace.close() }
+        }
     }
 
     fun takeScreenshot(window: Window, listener: OnScreenshotListener) {
@@ -91,41 +184,33 @@ object BlurUtil {
             withContext(Dispatchers.Main) {
                 val bm = window.captureRegionToBitmap()
                 bm.addListener({
-                    blur(window.context, bm.get(), listener)
+                    val bitmap = try { bm.get() } catch (error: Throwable) {
+                        LogCat.logException(error)
+                        return@addListener
+                    }
+                    val context = window.context.applicationContext
+                    ExecutorHelper.startOnBackground { blur(context, bitmap, listener) }
                 }, ExecutorHelper.executor)
             }
         }
     }
 
     fun takeScreenshot(view: View, listener: OnScreenshotListener) {
-        ExecutorHelper.startOnBackground {
-            ExecutorHelper.post { listener.invoke(fallbackViewCapture(view) ?: return@post) }
-        }
-
+        ExecutorHelper.post { listener.invoke(fallbackViewCapture(view) ?: return@post) }
     }
 
     suspend fun takeScreenshotSync(view: View): Bitmap? =
-        withContext(Dispatchers.IO) {
-            val bitmapDeferred = CompletableDeferred<Bitmap?>()
-            bitmapDeferred.complete(fallbackViewCapture(view))
-            bitmapDeferred.await()
-        }
+        withContext(Dispatchers.Main) { fallbackViewCapture(view) }
 
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
-        ExecutorHelper.startOnBackground {
-            ExecutorHelper.post {
-                fallbackViewCapture(view)?.let {
-                    ExecutorHelper.startOnBackground {
-                        blur(
-                            view.context,
-                            it,
-                            listener
-                        )
-                    }
+        ExecutorHelper.post {
+            fallbackViewCapture(view)?.let {
+                val context = view.context.applicationContext
+                ExecutorHelper.startOnBackground {
+                    blur(context, it, listener)
                 }
             }
         }
-
     }
 
     private fun fallbackViewCapture(view: View): Bitmap? {

@@ -31,11 +31,6 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
-import androidx.core.view.doOnAttach
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.findViewTreeLifecycleOwner
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -59,14 +54,15 @@ class WindowBackgroundBlurring(
         updateBackground()
     }
     private var biometricsLayout: View? = null
-    private val lifecycleEventObserver = object :
-        LifecycleEventObserver {
-        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-            if (event == Lifecycle.Event.ON_DESTROY) {
-                e("${this.javaClass.name}.onStateChanged - ON_DESTROY")
-                resetListeners()
-            }
+    private var blurSession: BlurUtil.BlurSession? = null
+    private var captureTimeout: Runnable? = null
+    private val hostListeners by lazy {
+        BlurHostListeners(parentView, if (shouldCaptureBlurBitmap(Utils.isAtLeastS)) onDrawListener else null) {
+            resetListeners()
         }
+    }
+    private val captureFrameCallback = Runnable {
+        if (isBlurViewAttachedToHost && captureScheduled) parentView.post(captureRunnable)
     }
     private val onDrawListener = ViewTreeObserver.OnPreDrawListener {
         requestBackgroundUpdate()
@@ -91,7 +87,7 @@ class WindowBackgroundBlurring(
         if (!isBlurViewAttachedToHost || !captureRequested || captureScheduled) return
         val delay = captureLatch.delayUntilReady(SystemClock.uptimeMillis()) ?: return
         captureScheduled = true
-        parentView.postDelayed(captureRunnable, delay)
+        parentView.postOnAnimationDelayed(captureFrameCallback, delay)
     }
 
     private fun updateBackground() {
@@ -108,30 +104,42 @@ class WindowBackgroundBlurring(
         val timeout = Runnable {
             if (captureLatch.finish(captureToken, SystemClock.uptimeMillis())) scheduleBackgroundUpdate()
         }
+        captureTimeout = timeout
         ExecutorHelper.postDelayed(timeout, BLUR_CAPTURE_TIMEOUT_MS)
         BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
         try {
-            BlurUtil.takeScreenshotAndBlur(captureTarget) { originalBitmap, blurredBitmap ->
-                ExecutorHelper.removeCallbacks(timeout)
-                if (captureLatch.finish(captureToken, SystemClock.uptimeMillis()) && isBlurViewAttachedToHost) {
-                    val currentBitmap = (v?.background as? BitmapDrawable)?.bitmap
-                    if (blurredBitmap != null && currentBitmap != null &&
-                        !currentBitmap.isRecycled && blurredBitmap.sameAs(currentBitmap)) {
-                        // Reinstalling an identical background would trigger another capture forever.
-                        if (blurredBitmap !== currentBitmap) blurredBitmap.recycle()
-                    } else if (blurredBitmap != null) {
-                        setDrawable(blurredBitmap)
-                    }
-                    if (originalBitmap !== blurredBitmap && !originalBitmap.isRecycled) {
-                        originalBitmap.recycle()
-                    }
-                } else {
-                    if (!originalBitmap.isRecycled) originalBitmap.recycle()
-                    if (blurredBitmap !== originalBitmap && blurredBitmap?.isRecycled == false) {
-                        blurredBitmap.recycle()
+            blurSession?.takeScreenshotAndBlur(captureTarget) { originalBitmap, blurredBitmap ->
+                if (!captureLatch.owns(captureToken) || !isBlurViewAttachedToHost) {
+                    ExecutorHelper.removeCallbacks(timeout)
+                    recycleUnusedCapture(originalBitmap, blurredBitmap)
+                    return@takeScreenshotAndBlur
+                }
+                val currentBitmap = (v?.background as? BitmapDrawable)?.bitmap
+                fun publish(matchesPrevious: Boolean) {
+                    ExecutorHelper.removeCallbacks(timeout)
+                    try {
+                        if (captureLatch.finish(captureToken, SystemClock.uptimeMillis()) && isBlurViewAttachedToHost) {
+                            val unchanged = matchesPrevious &&
+                                    (v?.background as? BitmapDrawable)?.bitmap === currentBitmap
+                            if (unchanged) {
+                                if (blurredBitmap !== currentBitmap) blurredBitmap?.recycle()
+                            } else if (blurredBitmap != null) setDrawable(blurredBitmap)
+                            if (originalBitmap !== blurredBitmap) originalBitmap.recycle()
+                        } else recycleUnusedCapture(originalBitmap, blurredBitmap)
+                    } finally {
+                        scheduleBackgroundUpdate()
                     }
                 }
-                scheduleBackgroundUpdate()
+                if (currentBitmap == null || blurredBitmap == null) publish(false)
+                else ExecutorHelper.startOnBackground {
+                    val unchanged = try {
+                        !currentBitmap.isRecycled && blurredBitmap.sameAs(currentBitmap)
+                    } catch (error: Throwable) {
+                        BiometricLoggerImpl.e(error)
+                        false
+                    }
+                    ExecutorHelper.post { publish(unchanged) }
+                }
             }
         } catch (e: Throwable) {
             ExecutorHelper.removeCallbacks(timeout)
@@ -194,6 +202,7 @@ class WindowBackgroundBlurring(
     fun setupListeners() {
         if (isBlurViewAttachedToHost) return
         isBlurViewAttachedToHost = true
+        blurSession = BlurUtil.BlurSession()
         try {
             if (shouldCaptureBlurBitmap(Utils.isAtLeastS)) {
                 // Reattach before comparing against the bitmap retained from the previous showing.
@@ -202,14 +211,7 @@ class WindowBackgroundBlurring(
             } else {
                 setDrawable(null)
             }
-            parentView.doOnAttach {
-                parentView.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(
-                    lifecycleEventObserver
-                )
-            }
-            if (shouldCaptureBlurBitmap(Utils.isAtLeastS)) {
-                parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
-            }
+            hostListeners.start()
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
@@ -218,22 +220,17 @@ class WindowBackgroundBlurring(
     }
 
     fun resetListeners() {
-        val wasAttached = isBlurViewAttachedToHost
         isBlurViewAttachedToHost = false
         captureLatch.reset()
         captureRequested = false
         captureScheduled = false
         parentView.removeCallbacks(captureRunnable)
-        if (wasAttached) {
-            try {
-                parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
-                parentView.findViewTreeLifecycleOwner()?.lifecycle?.removeObserver(
-                    lifecycleEventObserver
-                )
-            } catch (e: Throwable) {
-                BiometricLoggerImpl.e(e)
-            }
-        }
+        parentView.removeCallbacks(captureFrameCallback)
+        captureTimeout?.let(ExecutorHelper::removeCallbacks)
+        captureTimeout = null
+        hostListeners.stop()
+        blurSession?.close()
+        blurSession = null
         runBlurCleanup(
             clearRenderEffect = {
                 if (Utils.isAtLeastS) {
@@ -243,6 +240,7 @@ class WindowBackgroundBlurring(
             removeOverlay = {
                 v?.let {
                     parentView.removeView(it)
+                    it.background = null
                 }
                 parentView.findViewWithTag<View?>(this@WindowBackgroundBlurring.javaClass.name)
                     ?.let {
@@ -256,6 +254,11 @@ class WindowBackgroundBlurring(
             onFailure = { BiometricLoggerImpl.e(it) }
         )
         BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
+    }
+
+    private fun recycleUnusedCapture(original: Bitmap, blurred: Bitmap?) {
+        if (!original.isRecycled) original.recycle()
+        if (blurred !== original && blurred?.isRecycled == false) blurred.recycle()
     }
 
     private companion object {

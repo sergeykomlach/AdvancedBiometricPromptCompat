@@ -32,76 +32,101 @@ import android.renderscript.RSRuntimeException
 import android.renderscript.RenderScript
 import android.renderscript.RenderScript.RSMessageHandler
 import android.renderscript.ScriptIntrinsicBlur
-import androidx.annotation.RequiresApi
+import dev.skomlach.common.logging.LogCat
 
 internal object FastBlur {
-    fun of(context: Context, source: Bitmap, factor: FastBlurConfig): Bitmap? {
-        val width = factor.width / factor.sampling
-        val height = factor.height / factor.sampling
-        if (hasZero(width, height)) {
-            return null
-        }
-        var bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444)
-        val canvas = Canvas(bitmap)
-        canvas.scale(1 / factor.sampling.toFloat(), 1 / factor.sampling.toFloat())
-        val paint = Paint()
-        paint.flags = Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG
-        val filter = PorterDuffColorFilter(factor.color, PorterDuff.Mode.SRC_ATOP)
-        paint.colorFilter = filter
-        canvas.drawBitmap(source, 0f, 0f, paint)
-        bitmap = try {
-            //crash on JB/Kitkat
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                rs(context, bitmap, factor.radius)
-            } else stack(bitmap, factor.radius, true)
-        } catch (e: RSRuntimeException) {
-            stack(bitmap, factor.radius, true)
-        }
-        return if (factor.sampling == DEFAULT_SAMPLING) {
-            bitmap
-        } else {
-            val scaled = Bitmap.createScaledBitmap(bitmap, factor.width, factor.height, true)
-            bitmap.recycle()
-            scaled
-        }
-    }
+    /** Scratch pixels are private; every returned bitmap has independent ownership. */
+    class Workspace : AutoCloseable {
+        private var scratch: Bitmap? = null
+        private var canvas: Canvas? = null
+        private var rs: RenderScript? = null
+        private var input: Allocation? = null
+        private var output: Allocation? = null
+        private var intrinsic: ScriptIntrinsicBlur? = null
+        private var closed = false
+        private var useStackBlur = false
+        private val paint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
+        private var tint: Int? = null
 
-    private fun hasZero(vararg args: Int): Boolean {
-        for (num in args) {
-            if (num == 0) {
-                return true
+        @Synchronized fun blur(context: Context, source: Bitmap, factor: FastBlurConfig): Bitmap? {
+            if (closed) return null
+            val width = factor.width / factor.sampling
+            val height = factor.height / factor.sampling
+            if (width <= 0 || height <= 0) return null
+            if (scratch?.width != width || scratch?.height != height) {
+                releaseAllocations()
+                scratch?.recycle()
+                scratch = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444)
+                canvas = Canvas(scratch!!)
             }
+            val bitmap = scratch ?: return null
+            bitmap.eraseColor(android.graphics.Color.TRANSPARENT)
+            if (tint != factor.color) {
+                paint.colorFilter = PorterDuffColorFilter(factor.color, PorterDuff.Mode.SRC_ATOP)
+                tint = factor.color
+            }
+            canvas!!.apply {
+                save()
+                try {
+                    scale(1 / factor.sampling.toFloat(), 1 / factor.sampling.toFloat())
+                    drawBitmap(source, 0f, 0f, paint)
+                } finally { restore() }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !useStackBlur) {
+                try {
+                    val runtime = rs ?: RenderScript.create(context.applicationContext).also {
+                        rs = it
+                        it.messageHandler = RSMessageHandler()
+                    }
+                    if (input == null) {
+                        input = Allocation.createFromBitmap(runtime, bitmap,
+                            Allocation.MipmapControl.MIPMAP_NONE, Allocation.USAGE_SCRIPT)
+                        output = Allocation.createTyped(runtime, input!!.type)
+                        intrinsic = ScriptIntrinsicBlur.create(runtime, Element.U8_4(runtime))
+                        if (LogCat.DEBUG) LogCat.log("FastBlur.Workspace: allocations ${width}x$height")
+                    } else input!!.copyFrom(bitmap)
+                    intrinsic!!.apply {
+                        setInput(input)
+                        setRadius(factor.radius.toFloat())
+                        forEach(output)
+                    }
+                    output!!.copyTo(bitmap)
+                } catch (_: RSRuntimeException) {
+                    releaseAllocations()
+                    useStackBlur = true
+                    stack(bitmap, factor.radius, true)
+                }
+            } else stack(bitmap, factor.radius, true)
+            // createScaledBitmap can return its input if dimensions match. Never publish scratch.
+            return if (bitmap.width == factor.width && bitmap.height == factor.height) {
+                bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, false)
+            } else Bitmap.createScaledBitmap(bitmap, factor.width, factor.height, true)
         }
-        return false
+
+        private fun releaseAllocations() {
+            val resources = listOf(intrinsic, output, input)
+            intrinsic = null
+            output = null
+            input = null
+            resources.forEach { runCatching { it?.destroy() } }
+        }
+
+        @Synchronized override fun close() {
+            val hadResources = scratch != null || rs != null
+            closed = true
+            releaseAllocations()
+            runCatching { rs?.destroy() }
+            rs = null
+            scratch?.recycle()
+            scratch = null
+            canvas = null
+            if (hadResources && LogCat.DEBUG) LogCat.log("FastBlur.Workspace: closed")
+        }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
-    @Throws(RSRuntimeException::class)
-    private fun rs(context: Context, bitmap: Bitmap, radius: Int): Bitmap {
-        var rs: RenderScript? = null
-        var input: Allocation? = null
-        var output: Allocation? = null
-        var blur: ScriptIntrinsicBlur? = null
-        try {
-            rs = RenderScript.create(context)
-            rs.messageHandler = RSMessageHandler()
-            input = Allocation.createFromBitmap(
-                rs, bitmap, Allocation.MipmapControl.MIPMAP_NONE,
-                Allocation.USAGE_SCRIPT
-            )
-            output = Allocation.createTyped(rs, input.type)
-            blur = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs))
-            blur.setInput(input)
-            blur.setRadius(radius.toFloat())
-            blur.forEach(output)
-            output.copyTo(bitmap)
-        } finally {
-            rs?.destroy()
-            input?.destroy()
-            output?.destroy()
-            blur?.destroy()
-        }
-        return bitmap
+    fun of(context: Context, source: Bitmap, factor: FastBlurConfig): Bitmap? {
+        val workspace = Workspace()
+        return try { workspace.blur(context, source, factor) } finally { workspace.close() }
     }
 
     private fun stack(sentBitmap: Bitmap, r: Int, canReuseInBitmap: Boolean): Bitmap {

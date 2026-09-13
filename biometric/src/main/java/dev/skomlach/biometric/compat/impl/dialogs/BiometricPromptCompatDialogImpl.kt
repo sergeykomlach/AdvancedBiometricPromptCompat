@@ -43,7 +43,6 @@ import dev.skomlach.biometric.compat.impl.AuthResult
 import dev.skomlach.biometric.compat.utils.BiometricTitle
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicBoolean
@@ -65,6 +64,7 @@ class BiometricPromptCompatDialogImpl(
 
     var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
     private var softwarePromptDelegate: SoftwareBiometricPromptDelegate? = null
+    @Volatile private var feedbackClosed = false
 
 
     init {
@@ -92,7 +92,15 @@ class BiometricPromptCompatDialogImpl(
         }
         animateHandler = AnimateHandler(Looper.getMainLooper())
         dialog = BiometricPromptCompatDialog.getFragment(isInScreen)
+        dialog.onViewDestroyed = {
+            clearFeedback()
+            detachWindowListeners()
+            val delegate = softwarePromptDelegate
+            softwarePromptDelegate = null
+            runCatching { delegate?.dispose() }.onFailure { e(it) }
+        }
         dialog.setOnDismissListener {
+            clearFeedback()
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. dismissed.")
             softwarePromptDelegate?.dispose()
             softwarePromptDelegate = null
@@ -110,6 +118,7 @@ class BiometricPromptCompatDialogImpl(
             }
         }
         dialog.setOnCancelListener {
+            clearFeedback()
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. canceled.")
 
             softwarePromptDelegate?.cancel()
@@ -162,6 +171,8 @@ class BiometricPromptCompatDialogImpl(
         dialog.setOnShowListener {
             // A first-frame button/outside tap can cancel before the queued OnShow arrives.
             if (!dialog.isActive) return@setOnShowListener
+            // A recreated view has its own feedback lifetime after onDestroyView cleanup.
+            feedbackClosed = false
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. started.")
 
             softwarePromptDelegate = SoftwareBiometricPromptRegistry.resolve(primaryBiometricType)
@@ -325,13 +336,20 @@ class BiometricPromptCompatDialogImpl(
         )
             return
         val manager = compatBuilder.getActivity()?.supportFragmentManager ?: return
+        feedbackClosed = false
         dialog.show(manager, BiometricPromptCompatDialog.TAG)
     }
 
     val authPreview: SurfaceView?
         get() = dialog.authPreview
 
+    private fun clearFeedback() {
+        feedbackClosed = true
+        animateHandler.removeCallbacksAndMessages(null)
+    }
+
     fun dismissDialog() {
+        clearFeedback()
         detachWindowListeners()
         cancelAuth()
         if (dialog.isShowing) {
@@ -352,7 +370,9 @@ class BiometricPromptCompatDialogImpl(
 
     fun onSoftwareStatus(status: SoftwarePromptStatus) {
         e("BiometricPromptGenericImpl.onHelp - ${status.asLegacyHelpMessage()}")
-        ExecutorHelper.post {
+        if (feedbackClosed) return
+        animateHandler.post {
+            if (feedbackClosed || !dialog.isActive) return@post
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
             dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON, primaryBiometricType)
@@ -381,7 +401,9 @@ class BiometricPromptCompatDialogImpl(
 
     fun onFailure(isLockout: Boolean) {
         e("BiometricPromptGenericImpl.onFailure - $isLockout")
-        ExecutorHelper.post {
+        if (feedbackClosed) return
+        animateHandler.post {
+            if (feedbackClosed || !dialog.isActive) return@post
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
             dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR, primaryBiometricType)
@@ -401,6 +423,7 @@ class BiometricPromptCompatDialogImpl(
 
     private inner class AnimateHandler(looper: Looper) : Handler(looper) {
         override fun handleMessage(msg: Message) {
+            if (feedbackClosed || !dialog.isActive || dialog.status == null) return
             when (msg.what) {
                 WHAT_RESTORE_NORMAL_STATE -> {
                     e("BiometricPromptGenericImpl.AnimateHandler")

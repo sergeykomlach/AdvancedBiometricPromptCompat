@@ -168,10 +168,19 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         authSessionToken = -1L
         fmAuthCallback = null
         d("BiometricPromptGenericImpl.cancelAuthentication():")
-        onUiClosed()
-        stopAuth()
-        dialog?.dismissDialog()
-        dialog = null
+        try {
+            onUiClosed()
+        } finally {
+            // Engine callbacks can outlive cancellation. Do not retain the completed UI session.
+            callback = null
+            try {
+                stopAuth()
+            } finally {
+                val closingDialog = dialog
+                dialog = null
+                closingDialog?.dismissDialog()
+            }
+        }
     }
 
     override fun startAuth() {
@@ -299,6 +308,10 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             failureCounter.incrementAndGet()
             dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
             IconStateHelper.errorType(normalizedModule?.type)
+            if (failureReason != AuthenticationFailureReason.SENSOR_FAILED &&
+                failureReason != AuthenticationFailureReason.AUTHENTICATION_FAILED) {
+                IconStateHelper.refreshAvailability()
+            }
         }
 
         //non fatal

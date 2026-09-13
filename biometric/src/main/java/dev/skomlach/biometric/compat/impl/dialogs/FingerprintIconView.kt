@@ -56,6 +56,21 @@ class FingerprintIconView @JvmOverloads constructor(
     private var type = BiometricType.BIOMETRIC_FINGERPRINT
     private var color: Int? = R.color.material_blue_500
 
+    override fun setImageDrawable(drawable: Drawable?) {
+        if (this.drawable !== drawable) stopIconAnimation()
+        super.setImageDrawable(drawable)
+    }
+
+    override fun onDetachedFromWindow() {
+        stopIconAnimation()
+        super.onDetachedFromWindow()
+    }
+
+    private fun stopIconAnimation() {
+        (drawable as? Animatable)?.stop()
+        (drawable as? TransitionDrawable)?.resetTransition()
+    }
+
     init {
         setLayerType(LAYER_TYPE_SOFTWARE, null)
         setState(state, false, type)
@@ -108,7 +123,12 @@ class FingerprintIconView @JvmOverloads constructor(
                 }
             }
         } else {
-            val prevDrawable = drawable ?: Color.TRANSPARENT.toDrawable()
+            // Keep only the previous destination, not the whole history of nested transitions.
+            var previous = drawable
+            while (previous is TransitionDrawable && previous.numberOfLayers > 0) {
+                previous = previous.getDrawable(previous.numberOfLayers - 1)
+            }
+            val prevDrawable = previous ?: Color.TRANSPARENT.toDrawable()
             val resId = getDrawable(this.state, state, false)
             if (resId == 0) {
                 BiometricLoggerImpl.e("FingerprintIconView.setImageDrawable for $type NULL")

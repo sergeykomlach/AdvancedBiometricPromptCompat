@@ -35,16 +35,7 @@ import android.widget.ImageView
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
-import androidx.core.view.doOnAttach
-import androidx.core.view.doOnLayout
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.findViewTreeLifecycleOwner
-import androidx.palette.graphics.Palette
-import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.DialogMainColor
@@ -86,13 +77,18 @@ class WindowForegroundBlurring(
     private var isBlurViewAttachedToHost = false
     private var biometricsLayout: View? = null
     private var defaultColor = Color.TRANSPARENT
-    private val lifecycleEventObserver = object :
-        LifecycleEventObserver {
-        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-            if (event == Lifecycle.Event.ON_DESTROY) {
-                e("${this.javaClass.name}.onStateChanged - ON_DESTROY")
-                forceToCloseCallback.onCloseBiometric()
-            }
+    private var blurSession: BlurUtil.BlurSession? = null
+    private var captureTimeout: Runnable? = null
+    private var paletteLayoutListener: View.OnLayoutChangeListener? = null
+    private var paletteTask: BackdropPaletteTask? = null
+    private val iconViews = linkedMapOf<BiometricType, ImageView>()
+    private val iconColors = mutableMapOf<BiometricType, Int>()
+    private var dividerColor: Int? = null
+    private val updateIconsRunnable = Runnable { if (isBlurViewAttachedToHost) updateBiometricIconsLayout() }
+    private val paletteRunnable = Runnable { captureBackdropPalette() }
+    private val hostListeners by lazy {
+        BlurHostListeners(parentView, if (shouldCaptureBlurBitmap(Utils.isAtLeastS)) onDrawListener else null) {
+            forceToCloseCallback.onCloseBiometric()
         }
     }
 
@@ -150,7 +146,18 @@ class WindowForegroundBlurring(
                 tag = this@WindowForegroundBlurring.javaClass.name
                 alpha = 1f
                 biometricsLayout = findViewById(R.id.biometrics_layout)
-                updateBiometricIconsLayout()
+                mapOf(
+                    BiometricType.BIOMETRIC_FACE to R.id.face,
+                    BiometricType.BIOMETRIC_IRIS to R.id.iris,
+                    BiometricType.BIOMETRIC_FINGERPRINT to R.id.fingerprint,
+                    BiometricType.BIOMETRIC_HEARTRATE to R.id.heartrate,
+                    BiometricType.BIOMETRIC_VOICE to R.id.voice,
+                    BiometricType.BIOMETRIC_PALMPRINT to R.id.palm,
+                    BiometricType.BIOMETRIC_BEHAVIOR to R.id.typing
+                ).forEach { (type, id) ->
+                    findViewById<ImageView>(id)?.let { iconViews[type] = it }
+                }
+                biometricsLayout?.visibility = View.GONE
                 isFocusable = true
                 isClickable = true
                 isLongClickable = true
@@ -189,10 +196,11 @@ class WindowForegroundBlurring(
         val timeout = Runnable {
             if (blurCaptureLatch.finish(captureToken, SystemClock.uptimeMillis())) scheduleBackgroundUpdate()
         }
+        captureTimeout = timeout
         ExecutorHelper.postDelayed(timeout, BLUR_CAPTURE_TIMEOUT_MS)
         BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
         try {
-            BlurUtil.takeScreenshotAndBlur(captureTarget) { originalBitmap, blurredBitmap ->
+            blurSession?.takeScreenshotAndBlur(captureTarget) { originalBitmap, blurredBitmap ->
                 if (!blurCaptureLatch.owns(captureToken) || !isBlurViewAttachedToHost) {
                     ExecutorHelper.removeCallbacks(timeout)
                     recycleUnusedCapture(originalBitmap, blurredBitmap)
@@ -282,12 +290,18 @@ class WindowForegroundBlurring(
         }
         val captureTarget = contentView ?: return
         if (captureTarget.width <= 0 || captureTarget.height <= 0) {
-            captureTarget.doOnLayout { captureBackdropPalette() }
+            if (paletteLayoutListener == null) {
+                paletteLayoutListener = View.OnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+                    paletteLayoutListener?.let(view::removeOnLayoutChangeListener)
+                    paletteLayoutListener = null
+                    captureBackdropPalette()
+                }.also(captureTarget::addOnLayoutChangeListener)
+            }
             return
         }
         val captureToken = paletteCaptureLatch.tryStart() ?: return
         try {
-            BlurUtil.takeScreenshot(captureTarget) { originalBitmap ->
+            blurSession?.takeScreenshot(captureTarget) { originalBitmap ->
                 if (paletteCaptureLatch.finish(captureToken) && isBlurViewAttachedToHost) {
                     updateDefaultColor(originalBitmap)
                 } else if (!originalBitmap.isRecycled) {
@@ -303,10 +317,12 @@ class WindowForegroundBlurring(
     fun setupListeners() {
         if (isBlurViewAttachedToHost) return
         isBlurViewAttachedToHost = true
+        blurSession = BlurUtil.BlurSession()
+        iconViews.values.forEach { it.tag = IconStates.WAITING }
         try {
             v?.apply {
                 parentView.addView(this)
-                post { updateBiometricIconsLayout() }
+                post(updateIconsRunnable)
             }
 
 
@@ -314,17 +330,10 @@ class WindowForegroundBlurring(
                 requestBackgroundUpdate()
             } else {
                 applyRenderEffect()
-                v?.post { captureBackdropPalette() }
+                v?.post(paletteRunnable)
             }
             IconStateHelper.registerListener(this)
-            parentView.doOnAttach {
-                parentView.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(
-                    lifecycleEventObserver
-                )
-            }
-            if (shouldCaptureBlurBitmap(Utils.isAtLeastS)) {
-                parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
-            }
+            hostListeners.start()
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
@@ -333,7 +342,6 @@ class WindowForegroundBlurring(
     }
 
     fun resetListeners() {
-        val wasAttached = isBlurViewAttachedToHost
         isBlurViewAttachedToHost = false
         blurCaptureLatch.reset()
         captureRequested = false
@@ -342,17 +350,19 @@ class WindowForegroundBlurring(
         parentView.removeCallbacks(captureFrameCallback)
         paletteCaptureLatch.reset()
         paletteResults.reset()
+        paletteTask?.cancel()
+        paletteTask = null
         hasBackdropColor = false
-        if (wasAttached) {
-            try {
-                parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
-                parentView.findViewTreeLifecycleOwner()?.lifecycle?.removeObserver(
-                    lifecycleEventObserver
-                )
-            } catch (e: Throwable) {
-                BiometricLoggerImpl.e(e)
-            }
-        }
+        captureTimeout?.let(ExecutorHelper::removeCallbacks)
+        captureTimeout = null
+        v?.removeCallbacks(updateIconsRunnable)
+        v?.removeCallbacks(paletteRunnable)
+        paletteLayoutListener?.let { contentView?.removeOnLayoutChangeListener(it) }
+        paletteLayoutListener = null
+        IconStateHelper.unregisterListener(this)
+        hostListeners.stop()
+        blurSession?.close()
+        blurSession = null
         runBlurCleanup(
             clearRenderEffect = {
                 if (Utils.isAtLeastS) {
@@ -362,6 +372,7 @@ class WindowForegroundBlurring(
             removeOverlay = {
                 v?.let {
                     parentView.removeView(it)
+                    it.background = null
                 }
                 parentView.findViewWithTag<View?>(this@WindowForegroundBlurring.javaClass.name)
                     ?.let {
@@ -374,76 +385,24 @@ class WindowForegroundBlurring(
             },
             onFailure = { BiometricLoggerImpl.e(it) }
         )
-        IconStateHelper.unregisterListener(this)
         BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
 
     }
 
     private fun updateBiometricIconsLayout() {
-        BiometricLoggerImpl.d("${this.javaClass.name}.updateBiometricIconsLayout")
-        try {
-            biometricsLayout?.let { bmLayout ->
-                val list = this.biometricTypesList
-
-                if (list.isEmpty()) {
-                    bmLayout.visibility = View.GONE
-                } else {
-                    bmLayout.visibility = View.VISIBLE
-                }
-                bmLayout.findViewById<View>(R.id.face)?.apply {
-                    visibility =
-                        if (list.contains(BiometricType.BIOMETRIC_FACE)) View.VISIBLE else View.GONE
-                    if (tag == null)
-                        tag = IconStates.WAITING
-                }
-                bmLayout.findViewById<View>(R.id.iris)?.apply {
-                    visibility =
-                        if (list.contains(BiometricType.BIOMETRIC_IRIS)) View.VISIBLE else View.GONE
-                    if (tag == null)
-                        tag = IconStates.WAITING
-                }
-                bmLayout.findViewById<View>(R.id.fingerprint)?.apply {
-                    visibility =
-                        if (list.contains(BiometricType.BIOMETRIC_FINGERPRINT)) View.VISIBLE else View.GONE
-                    if (tag == null)
-                        tag = IconStates.WAITING
-                }
-                bmLayout.findViewById<View>(R.id.heartrate)?.apply {
-                    visibility =
-                        if (list.contains(BiometricType.BIOMETRIC_HEARTRATE)) View.VISIBLE else View.GONE
-                    if (tag == null)
-                        tag = IconStates.WAITING
-                }
-                bmLayout.findViewById<View>(R.id.voice)?.apply {
-                    visibility =
-                        if (list.contains(BiometricType.BIOMETRIC_VOICE)) View.VISIBLE else View.GONE
-                    if (tag == null)
-                        tag = IconStates.WAITING
-                }
-                bmLayout.findViewById<View>(R.id.palm)?.apply {
-                    visibility =
-                        if (list.contains(BiometricType.BIOMETRIC_PALMPRINT)) View.VISIBLE else View.GONE
-                    if (tag == null)
-                        tag = IconStates.WAITING
-                }
-                bmLayout.findViewById<View>(R.id.typing)?.apply {
-                    visibility =
-                        if (list.contains(BiometricType.BIOMETRIC_BEHAVIOR)) View.VISIBLE else View.GONE
-                    if (tag == null)
-                        tag = IconStates.WAITING
-                }
-
-                updateIcons()
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
+        if (!isBlurViewAttachedToHost) return
+        val visibleTypes = biometricTypesList.toSet()
+        biometricsLayout?.visibility = if (visibleTypes.isEmpty()) View.GONE else View.VISIBLE
+        iconViews.forEach { (type, icon) ->
+            icon.visibility = if (type in visibleTypes) View.VISIBLE else View.GONE
+            if (icon.tag == null) icon.tag = IconStates.WAITING
         }
+        updateIcons()
     }
 
     private fun updateDefaultColor(bm: Bitmap) {
         BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor")
         val request = paletteResults.nextRequest()
-        var paletteBitmap: Bitmap? = null
         try {
             val biometricsRect = Rect()
             biometricsLayout?.findViewById<View>(R.id.biometrics)?.getGlobalVisibleRect(biometricsRect)
@@ -467,37 +426,11 @@ class WindowForegroundBlurring(
                 if (!bm.isRecycled) bm.recycle()
                 return
             }
-            val newBm = Bitmap.createBitmap(
-                bm,
-                crop.left,
-                crop.top,
-                crop.width,
-                crop.height
-            )
-            paletteBitmap = newBm
-            BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor $crop")
-            if (newBm !== bm && !bm.isRecycled) {
-                bm.recycle()
-            }
-            // Keep near-white/black backgrounds instead of Palette's default artwork filtering.
-            Palette.from(newBm).clearFilters().clearTargets().generate { palette ->
+            paletteTask?.cancel()
+            paletteTask = BackdropPaletteTask(bm, crop) { paletteDefColor ->
+                if (!isBlurViewAttachedToHost || !paletteResults.accept(request)) return@BackdropPaletteTask
+                paletteTask = null
                 try {
-                    if (!isBlurViewAttachedToHost || !paletteResults.accept(request)) return@generate
-                    val paletteDefColor =
-                        palette?.getDominantColor(Color.TRANSPARENT)?.also { color ->
-                            e(
-                                "${this.javaClass.name}.updateDefaultColor#0 isDark - ${
-                                    ColorUtil.isDark(
-                                        color
-                                    )
-                                }; color - ${
-                                    Integer.toHexString(
-                                        color
-                                    )
-                                }"
-                            )
-                        } ?: Color.TRANSPARENT
-
                     val previousColor = defaultColor
                     hasBackdropColor = paletteDefColor != Color.TRANSPARENT
                     defaultColor = if (hasBackdropColor) {
@@ -527,13 +460,9 @@ class WindowForegroundBlurring(
                     if (defaultColor != previousColor) updateIcons()
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)
-                } finally {
-                    if (!newBm.isRecycled) newBm.recycle()
                 }
-            }
-
+            }.also { it.start() }
         } catch (e: Throwable) {
-            paletteBitmap?.takeUnless { it.isRecycled }?.recycle()
             if (!bm.isRecycled) bm.recycle()
             BiometricLoggerImpl.e(e)
         }
@@ -547,136 +476,32 @@ class WindowForegroundBlurring(
     }
 
     private fun updateIcons() {
-        BiometricLoggerImpl.d("${this.javaClass.name}.updateIcons")
-        try {
-            biometricsLayout?.let { bmLayout ->
-
-                for (type in BiometricType.entries) {
-                    when (type) {
-                        BiometricType.BIOMETRIC_FACE -> setIconState(
-                            type,
-                            bmLayout.findViewById<View>(R.id.face)?.tag as IconStates?
-                        )
-
-                        BiometricType.BIOMETRIC_IRIS -> setIconState(
-                            type,
-                            bmLayout.findViewById<View>(R.id.iris)?.tag as IconStates?
-                        )
-
-                        BiometricType.BIOMETRIC_HEARTRATE -> setIconState(
-                            type,
-                            bmLayout.findViewById<View>(R.id.heartrate)?.tag as IconStates?
-                        )
-
-                        BiometricType.BIOMETRIC_VOICE -> setIconState(
-                            type,
-                            bmLayout.findViewById<View>(R.id.voice)?.tag as IconStates?
-                        )
-
-                        BiometricType.BIOMETRIC_PALMPRINT -> setIconState(
-                            type,
-                            bmLayout.findViewById<View>(R.id.palm)?.tag as IconStates?
-                        )
-
-                        BiometricType.BIOMETRIC_BEHAVIOR -> setIconState(
-                            type,
-                            bmLayout.findViewById<View>(R.id.typing)?.tag as IconStates?
-                        )
-
-                        BiometricType.BIOMETRIC_FINGERPRINT -> setIconState(
-                            type,
-                            bmLayout.findViewById<View>(R.id.fingerprint)?.tag as IconStates?
-                        )
-
-                        else -> {
-                            //no-op
-                        }
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
+        if (!isBlurViewAttachedToHost) return
+        if (dividerColor != defaultColor) {
+            biometricsLayout?.findViewById<View>(R.id.biometric_divider)?.setBackgroundColor(defaultColor)
+            dividerColor = defaultColor
         }
+        iconViews.forEach { (type, icon) -> setIconState(type, icon.tag as? IconStates) }
     }
 
-    override fun onError(type: BiometricType?) {
-        biometricsLayout?.post {
-            updateBiometricIconsLayout()
-            setIconState(type, IconStates.ERROR)
-        }
-    }
-
-    override fun onSuccess(type: BiometricType?) {
-        biometricsLayout?.post {
-            updateBiometricIconsLayout()
-            setIconState(type, IconStates.SUCCESS)
-        }
-    }
-
-    override fun reset(type: BiometricType?) {
-        biometricsLayout?.post {
-            updateBiometricIconsLayout()
-            setIconState(type, IconStates.WAITING)
-        }
-    }
+    // IconStateHelper dispatches to main. Ordinary state changes do not probe hardware again.
+    override fun onError(type: BiometricType?) = setIconState(type, IconStates.ERROR)
+    override fun onSuccess(type: BiometricType?) = setIconState(type, IconStates.SUCCESS)
+    override fun reset(type: BiometricType?) = setIconState(type, IconStates.WAITING)
+    override fun onAvailabilityChanged() = updateBiometricIconsLayout()
 
     private fun setIconState(type: BiometricType?, iconStates: IconStates?) {
-        BiometricLoggerImpl.d("${this.javaClass.name}.setIconState $type=$iconStates")
-        try {
-            biometricsLayout?.let { bmLayout ->
-                val color = if (iconStates == null) defaultColor else when (iconStates) {
-                    IconStates.WAITING -> defaultColor
-                    IconStates.ERROR -> Color.RED
-                    IconStates.SUCCESS -> Color.GREEN
-                }
-                bmLayout.findViewById<View>(R.id.biometric_divider)
-                    .setBackgroundColor(defaultColor)
-
-                when (type) {
-                    BiometricType.BIOMETRIC_FACE -> {
-                        bmLayout.findViewById<View>(R.id.face)?.tag = iconStates
-                        bmLayout.findViewById<ImageView>(R.id.face).setColorFilter(color)
-                    }
-
-                    BiometricType.BIOMETRIC_IRIS -> {
-                        bmLayout.findViewById<View>(R.id.iris)?.tag = iconStates
-                        bmLayout.findViewById<ImageView>(R.id.iris).setColorFilter(color)
-                    }
-
-                    BiometricType.BIOMETRIC_HEARTRATE -> {
-                        bmLayout.findViewById<View>(R.id.heartrate)?.tag = iconStates
-                        bmLayout.findViewById<ImageView>(R.id.heartrate)
-                            .setColorFilter(color)
-                    }
-
-                    BiometricType.BIOMETRIC_VOICE -> {
-                        bmLayout.findViewById<View>(R.id.voice)?.tag = iconStates
-                        bmLayout.findViewById<ImageView>(R.id.voice).setColorFilter(color)
-                    }
-
-                    BiometricType.BIOMETRIC_PALMPRINT -> {
-                        bmLayout.findViewById<View>(R.id.palm)?.tag = iconStates
-                        bmLayout.findViewById<ImageView>(R.id.palm).setColorFilter(color)
-                    }
-
-                    BiometricType.BIOMETRIC_BEHAVIOR -> {
-                        bmLayout.findViewById<View>(R.id.typing)?.tag = iconStates
-                        bmLayout.findViewById<ImageView>(R.id.typing).setColorFilter(color)
-                    }
-
-                    BiometricType.BIOMETRIC_FINGERPRINT -> {
-                        bmLayout.findViewById<View>(R.id.fingerprint)?.tag = iconStates
-                        bmLayout.findViewById<ImageView>(R.id.fingerprint)
-                            .setColorFilter(color)
-                    }
-
-                    else -> {
-                        //no-op
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
+        if (!isBlurViewAttachedToHost) return
+        val icon = iconViews[type] ?: return
+        icon.tag = iconStates
+        val color = when (iconStates) {
+            IconStates.ERROR -> Color.RED
+            IconStates.SUCCESS -> Color.GREEN
+            else -> defaultColor
+        }
+        if (iconColors[type] != color) {
+            icon.setColorFilter(color)
+            iconColors[type!!] = color
         }
     }
 

@@ -63,6 +63,7 @@ import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.TruncatedTextFix
 import dev.skomlach.biometric.compat.utils.WideGamutBug
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
+import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.appstate.AppBackgroundDetector
 import dev.skomlach.biometric.compat.utils.hardware.BiometricPromptHardware
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -2268,7 +2269,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun isTruncateChecked(): Boolean {
             if (isTruncateChecked == null) {
                 isTruncateChecked = false
-                ExecutorHelper.post {
+                val check = Runnable {
                     TruncatedTextFix.recalculateTexts(
                         this,
                         object : TruncatedTextFix.OnTruncateChecked {
@@ -2277,6 +2278,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             }
                         })
                 }
+                // Avoid an extra 50 ms readiness poll when preparation completes on this thread.
+                if (Looper.myLooper() == Looper.getMainLooper()) check.run()
+                else ExecutorHelper.post(check)
             }
             return isTruncateChecked == true
         }
@@ -2491,6 +2495,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         internal fun invalidateSelectedRoutes() {
             selectedRouteCache.invalidate()
+            IconStateHelper.refreshAvailability()
         }
 
         internal fun disableBiometricModule(module: BiometricModule) {

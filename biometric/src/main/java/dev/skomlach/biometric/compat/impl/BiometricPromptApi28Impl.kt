@@ -533,10 +533,18 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         authSessionToken = -1L
         callbackDispatchSessionToken.set(-1L)
         sessionLegacyAuthCallback = null
-        onUiClosed()
-        e("BiometricPromptApi28Impl.cancelAuthentication():")
-        if (dialog != null) dialog?.dismissDialog() else {
-            stopAuth()
+        try {
+            onUiClosed()
+        } finally {
+            callback = null
+            val closingDialog = dialog
+            dialog = null
+            e("BiometricPromptApi28Impl.cancelAuthentication():")
+            try {
+                stopAuth()
+            } finally {
+                closingDialog?.dismissDialog()
+            }
         }
     }
 
