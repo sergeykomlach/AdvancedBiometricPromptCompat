@@ -501,15 +501,14 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 guardedSystemAuthCallback(authSessionToken)
             )
         }
-        val explicitSystemUiBug = DevicesWithKnownBugs.hasExplicitMissingBiometricUiBug
-        val heuristicReportsMissingUi = !explicitSystemUiBug &&
-                DevicesWithKnownBugs.isMissedBiometricUI
+        // Only a known OEM bug or a disabled provider proves missing UI. Unreadable XML does not.
+        val confirmedMissingSystemUi = DevicesWithKnownBugs.isMissedBiometricUI
         val hasSelectedSystemPromptRoute = builder.getPrimaryAvailableTypes().any { type ->
             builder.selectedRoute(type)?.usesBiometricPromptHardware == true
         }
         if (shouldShowInitialCompatDialog(
-                explicitSystemUiBug = explicitSystemUiBug,
-                heuristicReportsMissingUi = heuristicReportsMissingUi,
+                explicitSystemUiBug = confirmedMissingSystemUi,
+                heuristicReportsMissingUi = false,
                 hasSelectedSystemPromptRoute = hasSelectedSystemPromptRoute
             )
         ) {

@@ -22,17 +22,26 @@ package dev.skomlach.biometric.compat.utils
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.biometric.R
-import androidx.core.content.edit
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.device.DeviceModelManager
-import dev.skomlach.common.device.hasBiometricSensors
-import dev.skomlach.common.device.hasUnderDisplayFingerprint
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.lang.reflect.Modifier
 
 object DevicesWithKnownBugs {
+
+    private val preferences by lazy {
+        SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+    }
+    private val capabilityCache by lazy {
+        BiometricCapabilityCache(
+            read = { preferences.getString(it, null) },
+            write = { key, value -> preferences.edit().putString(key, value).apply() }
+        )
+    }
+
+    private fun configurationInputs() = listOf(Build.FINGERPRINT, appContext.resources.configuration.toString())
 
     private val buildStringFields by lazy {
         Build::class.java.fields.filter {
@@ -92,81 +101,53 @@ object DevicesWithKnownBugs {
 
     val isMissedBiometricUI: Boolean
         get() {
-            val ts = "isMissedBiometricUI-${Build.FINGERPRINT}"
-            val prefs = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
-            var cached = prefs.getString(ts, null)
-            if (cached == null) {
-                val edit = prefs.edit()
-                prefs.all.map {
-                    it.key
-                }.forEach {
-                    if (it.startsWith("isMissedBiometricUI-"))
-                        edit.remove(it)
-                }
-                val value = hasExplicitMissingBiometricUiBug || !CheckBiometricUI.hasExists(appContext)
-                cached = "$value"
-                edit
-                    .putString(ts, cached).apply()
+            // Recheck provider revision/enabled state even on a cache hit (package updates/settings).
+            val provider = CheckBiometricUI.provider(appContext)
+            val explicitBug = hasExplicitMissingBiometricUiBug
+            val inputs = configurationInputs() + listOf(provider.name, provider.revision.orEmpty(),
+                provider.enabled.toString(), explicitBug.toString())
+            val cacheableProvider = provider.revision != null && provider.enabled != null
+            if (cacheableProvider) capabilityCache.get("isMissedBiometricUI", inputs)?.toBooleanStrictOrNull()?.let { return it }
+            val availability = CheckBiometricUI.availability(appContext, provider)
+            val missing = explicitBug || availability == BiometricUiAvailability.UNAVAILABLE
+            // Do not turn a cold resource reader or missing package visibility into a permanent false.
+            if (cacheableProvider && (explicitBug || availability != BiometricUiAvailability.UNKNOWN)) {
+                capabilityCache.put("isMissedBiometricUI", inputs, missing.toString())
             }
-
-            return cached == "true"
+            return missing
         }
 
-
-    private val guessingHasUnderDisplayFingerprint: Boolean
+    internal val fingerprintSensor: FingerprintSensorEvidence
         get() {
-            //Foldable mostly do not have under display sensors
-            return if (isFoldable) false
-            else if (CheckBiometricUI.hasSomethingFrontSensor(appContext)) true
-            else Utils.isAtLeastT
+            val deviceInfo = BiometricPromptCompat.deviceInfo
+            val sensors = deviceInfo?.sensors.orEmpty().toSet()
+            val isEmulator = deviceInfo?.emulatorKind != null
+            val inputs = configurationInputs() + listOf("emulator=$isEmulator") + sensors.sorted()
+            capabilityCache.get("hasUnderDisplayFingerprint", inputs)?.let { stored ->
+                val fields = stored.split('|')
+                val placement = FingerprintSensorPlacement.entries.firstOrNull { it.name == fields.firstOrNull() }
+                val source = fields.getOrNull(1)
+                if (fields.size == 2 && placement != null && placement != FingerprintSensorPlacement.UNKNOWN &&
+                    source in setOf("framework-udfps-config", "framework-side-config", "device-database-placement")) {
+                    return FingerprintSensorEvidence(placement, source!!)
+                }
+            }
+            return FingerprintSensorDetector.detect(appContext, sensors, isEmulator).also { evidence ->
+                if (evidence.placement != FingerprintSensorPlacement.UNKNOWN && !evidence.conflicting) {
+                    capabilityCache.put("hasUnderDisplayFingerprint", inputs, "${evidence.placement}|${evidence.source}")
+                }
+            }
         }
+
+    // Versioned evidence replaces old persisted guesses; missing metadata is never persisted.
     val hasUnderDisplayFingerprint: Boolean
-        get() {
-            val prefs = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
-            val ts = "hasUnderDisplayFingerprint-${Build.FINGERPRINT}"
-            var cached = prefs.getString(ts, null)
-            if (cached == null) {
-                prefs.edit {
-                    prefs.all.map {
-                        it.key
-                    }.forEach {
-                        if (it.startsWith("hasUnderDisplayFingerprint-"))
-                            remove(it)
-                    }
-                    val value =
-                        if (BiometricPromptCompat.deviceInfo?.hasBiometricSensors() == true)
-                            BiometricPromptCompat.deviceInfo?.hasUnderDisplayFingerprint() == true
-                        else
-                            guessingHasUnderDisplayFingerprint
-                    cached = "$value"
-                    putString(ts, cached)
-                }
-            }
-
-            return cached == "true"
-        }
+        get() = fingerprintSensor.placement == FingerprintSensorPlacement.UNDER_DISPLAY
 
     private fun checkForVendor(vendor: String, ignoreCase: Boolean): Boolean {
-        val prefs = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
-        val ts = "checkForVendor-$vendor-${Build.FINGERPRINT}"
-        var cached = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
-            .getString(ts, null)
-        if (cached == null) {
-            val edit = prefs.edit()
-            prefs.all.map {
-                it.key
-            }.forEach {
-                if (it.startsWith("checkForVendor-"))
-                    edit.remove(it)
-            }
-            val value =
-                checkVendor(vendor, ignoreCase)
-            cached = "$value"
-            edit.putString(ts, cached).apply()
-        }
-
-        return cached == "true"
-
+        val capability = "checkForVendor-$vendor-$ignoreCase"
+        val inputs = listOf(Build.FINGERPRINT)
+        return capabilityCache.get(capability, inputs)?.toBooleanStrictOrNull()
+            ?: checkVendor(vendor, ignoreCase).also { capabilityCache.put(capability, inputs, it.toString()) }
     }
 
     private fun checkVendor(vendor: String, ignoreCase: Boolean): Boolean {

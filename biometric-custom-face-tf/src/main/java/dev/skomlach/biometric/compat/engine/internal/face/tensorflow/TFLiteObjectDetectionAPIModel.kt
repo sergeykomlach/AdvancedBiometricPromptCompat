@@ -24,7 +24,8 @@ import android.graphics.BitmapFactory
 import android.graphics.RectF
 import android.util.Base64
 import android.util.Pair
-import androidx.core.content.edit
+import dev.skomlach.common.storage.editProtected
+import dev.skomlach.common.storage.ProtectedStorageUnavailableException
 import dev.skomlach.biometric.custom.face.tf.BuildConfig
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
@@ -114,6 +115,8 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
                     LogCat.logException(e)
                 }
             }
+        } catch (error: ProtectedStorageUnavailableException) {
+            throw error
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
@@ -251,56 +254,33 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
     override fun getEnrolls(): Set<String> = registered.keys.filterNotNull().toSet()
 
     override fun delete(name: String?) {
+        val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
         if (name == null) {
-            if (BuildConfig.DEBUG) {
-                registered.values.toMutableList().forEach { rec ->
-                    if (rec != null) {
-                        ImageUtils.deleteBitmap(
-                            AndroidContext.appContext,
-                            "${rec.title}-${rec.id}.png"
-                        )
-                    }
-                }
-            }
+            sharedPreferences.editProtected { clear() }
             registered.clear()
-            try {
-                getProtectedPreferences(STORAGE_NAME).edit { clear() }
-            } catch (e: Throwable) {
-                LogCat.logException(e)
-            }
             return
         }
-
-        if (BuildConfig.DEBUG) {
-            registered[name]?.let { rec ->
-                ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
-            }
+        val jsonString = sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
+        val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
+        jsonObjectRoot.remove(name)
+        sharedPreferences.editProtected {
+            putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
         }
         registered.remove(name)
-        try {
-            val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
-            val jsonString =
-                sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
-            val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
-            jsonObjectRoot.remove(name)
-            sharedPreferences.edit {
-                putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
-            }
-        } catch (e: Throwable) {
-            LogCat.logException(e)
-        }
     }
 
     override fun register(name: String, rec: SimilarityClassifier.Recognition) {
         val safeName = sanitizeName(name)
-        registered[safeName] = rec
+        // Resolve existing enrollment before changing either the disk or in-memory map.
+        val templates = registered
         val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
         val jsonString = sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
         val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
         jsonObjectRoot.put(safeName, recognition2json(rec))
-        sharedPreferences.edit {
+        sharedPreferences.editProtected {
             putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
         }
+        templates[safeName] = rec
     }
 
     private fun sanitizeName(name: String): String {

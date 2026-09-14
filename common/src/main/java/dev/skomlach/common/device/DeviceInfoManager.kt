@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.device
 
+import android.os.Build
 import androidx.core.content.edit
 import dev.skomlach.common.device.DeviceSpecManager.getSensors
 import dev.skomlach.common.logging.LogCat
@@ -135,7 +136,8 @@ object DeviceInfoManager {
                     val emulatorKind =
                         emu?.let { runCatching { EmulatorKind.valueOf(it) }.getOrNull() }
                     field =
-                        DeviceInfo(model, fixModelAsAnsi(model), sensors, checked, emulatorKind)
+                        DeviceSensorMetadata.complete(Build.MANUFACTURER, Build.MODEL,
+                            DeviceInfo(model, fixModelAsAnsi(model), sensors, checked, emulatorKind))
                 }
             } else {
                 if (Date().time - (field?.timeStamp ?: 0) >= TimeUnit.DAYS.toMillis(
@@ -167,7 +169,7 @@ object DeviceInfoManager {
             deviceSpec.getSensors(),
             Date().time,
             emulatorKind
-        ).also {
+        ).let { DeviceSensorMetadata.complete(Build.MANUFACTURER, Build.MODEL, it) }.also {
             LogCat.log("DeviceInfoManager: ts=${System.currentTimeMillis() - ts}; DeviceInfo=$it")
             cachedDeviceInfo = it
         }

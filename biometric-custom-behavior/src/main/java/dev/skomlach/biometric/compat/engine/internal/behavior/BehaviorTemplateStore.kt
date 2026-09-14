@@ -1,5 +1,6 @@
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
+import dev.skomlach.common.storage.editProtected
 import android.content.SharedPreferences
 import android.util.Base64
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
@@ -37,20 +38,18 @@ class BehaviorTemplateStore {
             .orEmpty()
             .filter { it.mode == sample.mode && it.phrase == sample.phrase }
             .takeLast(MAX_TEMPLATES_PER_TAG - 1) + sample
-        prefs.edit()
-            .putString(storageKey, serializeTemplates(samples))
-            .apply()
+        prefs.editProtected { putString(storageKey, serializeTemplates(samples)) }
         return normalizedTag
     }
 
     fun remove(tag: String?) {
-        val editor = prefs.edit()
-        if (tag.isNullOrBlank()) {
-            templateNames().forEach { editor.remove(TEMPLATE_PREFIX + it) }
-        } else {
-            sanitizeTag(tag)?.let { editor.remove(TEMPLATE_PREFIX + it) }
+        prefs.editProtected {
+            if (tag.isNullOrBlank()) {
+                templateNames().forEach { remove(TEMPLATE_PREFIX + it) }
+            } else {
+                sanitizeTag(tag)?.let { remove(TEMPLATE_PREFIX + it) }
+            }
         }
-        editor.apply()
     }
 
     fun sanitizeTag(tag: String?): String? {

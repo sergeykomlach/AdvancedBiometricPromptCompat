@@ -120,19 +120,21 @@ object LegacyBiometric {
     }
 
     fun resetSoftwarePermanentLockOut() {
-        synchronized(customModuleHashMap) {
-            customModuleHashMap.values.forEach { module ->
-                module.resetPermanentLockOut()
-
-            }
-        }
+        maintainSoftwareModules { it.resetPermanentLockOut() }
     }
 
     fun resetSoftwareLockOut() {
-        synchronized(customModuleHashMap) {
-            customModuleHashMap.values.forEach { module ->
-                module.resetLockOut()
+        maintainSoftwareModules { it.resetLockOut() }
+    }
 
+    private fun maintainSoftwareModules(action: (AbstractSoftwareBiometricManager) -> Unit) {
+        val modules = synchronized(customModuleHashMap) { customModuleHashMap.values.toList() }
+        modules.forEach { module ->
+            // A provider's optional cleanup cannot abort another provider's success callback.
+            try {
+                action(module)
+            } catch (error: Exception) {
+                e(error, "Software biometric maintenance failed: ${module.javaClass.simpleName}")
             }
         }
     }
@@ -175,13 +177,10 @@ object LegacyBiometric {
     }
 
     fun unregisterAllNonHardwareBiometrics() {
-        synchronized(customModuleHashMap) {
-            customModuleHashMap.values.forEach {
-                it.remove(null)
-            }
-        }
+        maintainSoftwareModules { it.remove(null) }
     }
 
+    @Synchronized
     fun unloadSoftwareModules() {
         if (customLoading) return
         d("BiometricAuthentication", "resetSoftwareModules called")
@@ -204,6 +203,7 @@ object LegacyBiometric {
         }
     }
 
+    @Synchronized
     fun loadSoftwareModules() {
         if (customLoading || customModuleHashMap.isNotEmpty()) return
         d("BiometricAuthentication", "loadSoftwareModules called")
@@ -319,7 +319,8 @@ object LegacyBiometric {
         listener: LegacyBiometricInitListener?
     ) {
         synchronized(moduleHashMap) {
-            moduleHashMap.clear()
+            // A caller may have registered software while the hardware probes were running.
+            moduleHashMap.entries.removeAll { it.value !is SoftwareBiometricModule }
             moduleHashMap.putAll(modules)
         }
         initInProgress.set(false)

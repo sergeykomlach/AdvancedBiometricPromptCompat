@@ -1,5 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
+import dev.skomlach.common.storage.ProtectedStorageUnavailableException
+
 import android.content.Context
 import android.os.Bundle
 import android.os.CancellationSignal
@@ -78,6 +80,23 @@ class BehaviorBiometricManager(
     @Suppress("CyclomaticComplexMethod", "LongMethod", "ReturnCount")
     @Synchronized
     override fun authenticate(
+        crypto: CryptoObject?,
+        flags: Int,
+        cancel: CancellationSignal?,
+        callback: AuthenticationCallback?,
+        handler: Handler?,
+        extra: Bundle?
+    ) {
+        try {
+            authenticateWithStorage(crypto, flags, cancel, callback, handler, extra)
+        } catch (error: ProtectedStorageUnavailableException) {
+            e(error, "Behavior protected storage unavailable")
+            finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                localized(R.string.biometriccompat_behavior_help_unavailable))
+        }
+    }
+
+    private fun authenticateWithStorage(
         crypto: CryptoObject?,
         flags: Int,
         cancel: CancellationSignal?,
@@ -340,6 +359,7 @@ class BehaviorBiometricManager(
 
     private fun lockoutMessage(error: Int): CharSequence {
         return when (error) {
+            CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE -> localized(R.string.biometriccompat_behavior_help_unavailable)
             CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT ->
                 localized(R.string.biometriccompat_behavior_help_lockout_permanent)
             CUSTOM_BIOMETRIC_ERROR_LOCKOUT ->

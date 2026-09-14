@@ -113,8 +113,17 @@ class EncryptedSharedPreferences(
         deriveConfig(SharedPreferenceProvider.EncryptionConfig.secondaryInstance)
     }
 
-    private val configs: List<DerivedConfig>
-        get() = listOfNotNull(primaryConfig, legacyDeviceIdConfig, secondaryConfig)
+    private val configs: Sequence<DerivedConfig>
+        get() = sequence {
+            // Always require the Keystore config before attempting a legacy migration.
+            primaryConfig?.let { yield(it) }
+            legacyDeviceIdConfig?.let { yield(it) }
+            secondaryConfig?.let { yield(it) }
+        }
+
+    private fun requireStorage() {
+        primaryConfig ?: secondaryConfig
+    }
 
     private fun deriveConfig(config: SharedPreferenceProvider.EncryptionConfig?): DerivedConfig? {
         if (config == null) return null
@@ -155,7 +164,7 @@ class EncryptedSharedPreferences(
             } catch (_: Throwable) {
                 null
             }
-        }
+        } ?: throw ProtectedStorageUnavailableException("Cannot decrypt protected preference name")
     }
 
     private fun encryptString(cleartext: String?): String? {
@@ -347,6 +356,7 @@ class EncryptedSharedPreferences(
     }
 
     override fun getAll(): MutableMap<String?, in Any?> {
+        requireStorage()
         val allEntries: MutableMap<String?, in Any?> = HashMap()
         for ((key) in mSharedPreferences.all.entries) {
             val decryptedKey = decryptKey(key)
@@ -398,6 +408,8 @@ class EncryptedSharedPreferences(
     }
 
     override fun edit(): SharedPreferences.Editor {
+        // Includes clear(): no mutation is allowed while protected storage is unavailable.
+        requireStorage()
         return Editor(this, mSharedPreferences.edit())
     }
 
@@ -447,6 +459,7 @@ class EncryptedSharedPreferences(
     }
 
     private fun findEncryptedKey(key: String?): String? {
+        requireStorage()
         val normalizedKey = key ?: NULL_VALUE
         return keyResolver.resolve(
             plainKey = normalizedKey,
@@ -471,7 +484,8 @@ class EncryptedSharedPreferences(
             val encryptedValue: String =
                 mSharedPreferences.getString(encryptedKey, null) ?: return null
 
-            val value: ByteArray = decrypt(encryptedValue) ?: return null
+            val value: ByteArray = decrypt(encryptedValue)
+                ?: throw ProtectedStorageUnavailableException("Cannot decrypt protected preference value")
 
             val buffer = ByteBuffer.wrap(value)
             buffer.position(0)
@@ -510,10 +524,10 @@ class EncryptedSharedPreferences(
                     }
                 }
             }
-        } catch (ex: GeneralSecurityException) {
-            throw SecurityException("Could not decrypt value. ${ex.message}", ex)
-        } catch (_: RuntimeException) {
-            return null
+        } catch (ex: ProtectedStorageUnavailableException) {
+            throw ex
+        } catch (ex: Exception) {
+            throw ProtectedStorageUnavailableException("Cannot read protected preference", ex)
         }
     }
 

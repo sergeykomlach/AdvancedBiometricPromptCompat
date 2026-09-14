@@ -11,6 +11,10 @@ internal data class VoiceLockoutOutcome(
 
 internal fun voiceLockoutOutcomeForError(error: Int): VoiceLockoutOutcome {
     return when (error) {
+        AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE -> VoiceLockoutOutcome(
+            AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+            R.string.biometriccompat_voice_help_unavailable
+        )
         AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
             VoiceLockoutOutcome(
                 reason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE,

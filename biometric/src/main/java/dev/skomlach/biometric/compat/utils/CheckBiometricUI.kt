@@ -20,112 +20,45 @@
 package dev.skomlach.biometric.compat.utils
 
 import android.content.Context
-import android.os.Build
+import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.impl.dialogs.SystemBiometricDialogResources
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.SystemStringsHelper
-import java.util.zip.ZipFile
-
-internal fun firstMatchingEntryName(
-    entryNames: Sequence<String>,
-    matches: (String) -> Boolean
-): String? = entryNames.firstOrNull(matches)
 
 object CheckBiometricUI {
-    private fun getAPKs(context: Context, pkg: String): List<String> {
-        val apks: MutableSet<String> = HashSet()
-        try {
-            val applicationInfo = context.packageManager.getApplicationInfo(pkg, 0)
-            apks.add(applicationInfo.sourceDir)
-            apks.add(applicationInfo.publicSourceDir)
-            if (Build.VERSION.SDK_INT >= 21) {
-                if (applicationInfo.splitSourceDirs != null) {
-                    apks.addAll(listOf(*applicationInfo.splitSourceDirs ?: emptyArray()))
-                }
-                if (applicationInfo.splitPublicSourceDirs != null) {
-                    apks.addAll(listOf(*applicationInfo.splitPublicSourceDirs ?: emptyArray()))
-                }
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-        }
-        return ArrayList(apks)
-    }
+    internal data class Provider(val name: String, val enabled: Boolean?, val revision: String?)
 
-    @Throws(Exception::class)
-    private fun checkApk(
-        fileZip: String
-    ): Boolean {
-
-        ZipFile(fileZip).use { zipFile ->
-            val match = firstMatchingEntryName(
-                zipFile.entries().asSequence().map { it.name }
-            ) { name ->
-                name.contains("layout", true) &&
-                        (name.contains("biometric", true) || name.contains("fingerprint") ||
-                                name.contains("face", true) || name.contains("iris"))
-            }
-            if (match != null) {
-                BiometricLoggerImpl.d("Resource in APK $match")
-                return true
-            }
-        }
-        return false
-    }
-
-    @Throws(Exception::class)
-    private fun checkForFront(
-        fileZip: String
-    ): Boolean {
-
-        ZipFile(fileZip).use { zipFile ->
-            val match = firstMatchingEntryName(
-                zipFile.entries().asSequence().map { it.name }
-            ) { name ->
-                name.contains("front", true) &&
-                        (name.contains("biometric", true) || name.contains("fingerprint"))
-            }
-            if (match != null) {
-                BiometricLoggerImpl.d("Resource in APK $match")
-                return true
-            }
-        }
-        return false
-    }
-
+    /** Retained for callers of the old API; front-facing assets do not identify a sensor. */
+    @Deprecated("Use DevicesWithKnownBugs.hasUnderDisplayFingerprint")
     fun hasSomethingFrontSensor(context: Context): Boolean {
-        try {
-            val apks = getAPKs(context, getBiometricUiPackage(context))
-            if (apks.isEmpty())
-                return true
-
-            for (f in apks) {
-                if (checkForFront(f))
-                    return true
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-        }
-        return false
+        val deviceInfo = BiometricPromptCompat.deviceInfo
+        return FingerprintSensorDetector.detect(context, deviceInfo?.sensors.orEmpty(),
+            deviceInfo?.emulatorKind != null).placement == FingerprintSensorPlacement.UNDER_DISPLAY
     }
 
-    fun hasExists(context: Context): Boolean {
-        try {
-            val apks = getAPKs(context, getBiometricUiPackage(context))
-            if (apks.isEmpty())
-                return true
-
-            for (f in apks) {
-                if (checkApk(f))
-                    return true
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-        }
-        return false
+    internal fun provider(context: Context): Provider {
+        val name = getBiometricUiPackage(context)
+        return try {
+            val info = context.packageManager.getPackageInfo(name, 0)
+            Provider(name, info.applicationInfo?.enabled, "${info.lastUpdateTime}:${info.applicationInfo?.sourceDir}")
+        } catch (_: Exception) {
+            // Missing package visibility and an unavailable provider are indistinguishable here.
+            Provider(name, null, null)
+        } catch (_: LinkageError) { Provider(name, null, null) }
     }
+
+    internal fun availability(context: Context, provider: Provider = provider(context)): BiometricUiAvailability {
+        if (provider.enabled == false) return BiometricUiAvailability.UNAVAILABLE
+        val readable = SystemBiometricDialogResources.cached(context)?.source?.startsWith("${provider.name}/") == true
+        if (!readable) SystemBiometricDialogResources.warmUp(context)
+        return resolveBiometricUiAvailability(provider.enabled, readable)
+    }
+
+    /** An unreadable or unrecognized layout is not evidence that the system has no prompt UI. */
+    fun hasExists(context: Context): Boolean = availability(context) != BiometricUiAvailability.UNAVAILABLE
 
     fun getBiometricUiPackage(context: Context): String {
-        return (SystemStringsHelper.getFromSystem(context, "config_biometric_prompt_ui_package")
+        return (SystemStringsHelper.getFromSystem(context, "config_biometric_prompt_ui_package")?.takeIf { it.isNotBlank() }
             ?: "com.android.systemui").also {
             BiometricLoggerImpl.d("CheckBiometricUI", it)
         }

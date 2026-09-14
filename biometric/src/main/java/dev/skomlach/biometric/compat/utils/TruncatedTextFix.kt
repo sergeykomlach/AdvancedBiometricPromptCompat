@@ -32,6 +32,8 @@ import androidx.collection.LruCache
 import com.google.gson.Gson
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.impl.dialogs.NativeDialogStyleApplier
+import dev.skomlach.biometric.compat.impl.dialogs.SystemBiometricDialogResources
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.ExecutorHelper
@@ -84,10 +86,13 @@ object TruncatedTextFix {
             val activity = builder.getActivity() ?: return
             val host = activity.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT) ?: return
             val windowSize = builder.getMultiWindowSupport().currentWindowSize()
-            val width = host.width.takeIf { it > 0 } ?: windowSize.x
+            val nativeStyle = SystemBiometricDialogResources.cached(host.context)
+            val availableWidth = host.width.takeIf { it > 0 } ?: windowSize.x
+            val width = nativeStyle?.windowWidth(availableWidth, host.resources.getDimensionPixelSize(R.dimen.dialog_width))
+                ?: availableWidth
             if (width <= 0) return
             val cacheKey = buildTruncatedTextCacheKey(
-                configurationKey = host.resources.configuration.toString(),
+                configurationKey = "${host.resources.configuration}|nativeStyle=${nativeStyle?.hashCode() ?: 0}",
                 windowWidthPx = width,
                 windowHeightPx = windowSize.y
             )
@@ -127,6 +132,7 @@ object TruncatedTextFix {
             // (including its SurfaceView) to the Activity or wait for a Choreographer traversal.
             val layout = LayoutInflater.from(host.context)
                 .inflate(R.layout.biometric_prompt_dialog_content, null, false)
+            nativeStyle?.takeIf { it.fitsWindow(width) }?.let { NativeDialogStyleApplier.apply(layout, it, false) }
             // Measure against the available width. A shrinking wrap_content search candidate must
             // not change the width available to another field.
             layout.findViewById<View>(R.id.dialogLayout).layoutParams.width =

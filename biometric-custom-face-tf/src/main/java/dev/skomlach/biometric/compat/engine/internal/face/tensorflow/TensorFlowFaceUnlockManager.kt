@@ -1,5 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 
+import dev.skomlach.common.storage.ProtectedStorageUnavailableException
+
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
@@ -525,6 +527,21 @@ class TensorFlowFaceUnlockManager(
         handler: Handler?,
         extra: Bundle?
     ) {
+        try {
+            authenticateWithStorage(crypto, flags, cancel, callback, handler, extra)
+        } catch (error: ProtectedStorageUnavailableException) {
+            onProtectedStorageUnavailable(error)
+        }
+    }
+
+    private fun authenticateWithStorage(
+        crypto: CryptoObject?,
+        flags: Int,
+        cancel: CancellationSignal?,
+        callback: AuthenticationCallback?,
+        handler: Handler?,
+        extra: Bundle?
+    ) {
         requestActiveSession(this)
         isSessionActive.set(true)
         spoofScoresWindow.clear()
@@ -713,6 +730,8 @@ class TensorFlowFaceUnlockManager(
                 ) { bitmap ->
                     if (isSessionActive.get()) processFaces(bitmap, faces)
                 }
+            } catch (error: ProtectedStorageUnavailableException) {
+                onProtectedStorageUnavailable(error)
             } catch (e: Throwable) {
                 LogCat.logException(e)
             } finally {
@@ -812,9 +831,23 @@ class TensorFlowFaceUnlockManager(
     }
 
     private fun onAuthenticationError(code: Int, msg: String) {
-        if (isErrorActive()) return
-        setErrorActive()
-        authCallback?.onAuthenticationError(code, msg)
+        try {
+            if (isErrorActive()) return
+            setErrorActive()
+            authCallback?.onAuthenticationError(code, msg)
+        } catch (error: ProtectedStorageUnavailableException) {
+            onProtectedStorageUnavailable(error)
+        }
+    }
+
+    private fun onProtectedStorageUnavailable(error: ProtectedStorageUnavailableException) {
+        LogCat.logException(error, TAG)
+        val callback = authCallback
+        // Error delivery must not read/write the cooldown in the unavailable store again.
+        stopAuthentication()
+        callback?.onAuthenticationError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+            LocalizationHelper.getLocalizedString(context,
+                R.string.biometriccompat_tf_face_help_model_not_available))
     }
 
     private fun canStartAuthenticationSession(): Boolean {

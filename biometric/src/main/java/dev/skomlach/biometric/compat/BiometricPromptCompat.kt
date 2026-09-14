@@ -61,6 +61,7 @@ import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.TruncatedTextFix
+import dev.skomlach.biometric.compat.impl.dialogs.SystemBiometricDialogResources
 import dev.skomlach.biometric.compat.utils.WideGamutBug
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
@@ -117,39 +118,48 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             API_ENABLED = enabled
         }
 
-        private val availableAuthRequests = HashSet<BiometricAuthRequest>()
-            get() {
-                if (API_ENABLED && field.isEmpty()) {
-                    //Add default first
-                    var biometricAuthRequest = BiometricAuthRequest.default()
+        private val availableAuthRequestsLock = Any()
+        private var availableAuthRequests: List<BiometricAuthRequest>? = null
+
+        internal fun invalidateAvailableAuthRequests() {
+            synchronized(availableAuthRequestsLock) {
+                availableAuthRequests = null
+            }
+        }
+
+        private fun discoverAvailableAuthRequests(): List<BiometricAuthRequest> {
+            val requests = HashSet<BiometricAuthRequest>()
+            var biometricAuthRequest = BiometricAuthRequest.default()
+            if (BiometricManagerCompat.isHardwareDetected(biometricAuthRequest)) {
+                requests.add(biometricAuthRequest)
+            }
+            for (api in BiometricApi.entries) {
+                if (api == BiometricApi.AUTO) continue
+                for (type in BiometricType.entries) {
+                    if (type == BiometricType.BIOMETRIC_ANY) continue
+                    biometricAuthRequest = BiometricAuthRequest.default().withApi(api).withType(type)
                     if (BiometricManagerCompat.isHardwareDetected(biometricAuthRequest)) {
-                        field.add(biometricAuthRequest)
-                    }
-                    for (api in BiometricApi.entries) {
-                        if (api == BiometricApi.AUTO)
-                            continue
-                        for (type in BiometricType.entries) {
-                            if (type == BiometricType.BIOMETRIC_ANY)
-                                continue
-                            biometricAuthRequest =
-                                BiometricAuthRequest.default().withApi(api).withType(type)
-                            if (BiometricManagerCompat.isHardwareDetected(biometricAuthRequest)) {
-                                field.add(
-                                    BiometricAuthRequest.default().withApi(BiometricApi.AUTO)
-                                        .withType(type)
-                                )
-                                field.add(biometricAuthRequest)
-                            }
-                        }
+                        requests.add(
+                            BiometricAuthRequest.default().withApi(BiometricApi.AUTO).withType(type)
+                        )
+                        requests.add(biometricAuthRequest)
                     }
                 }
-                return field
             }
+            return requests.toList()
+        }
 
         @JvmStatic
         fun getAvailableAuthRequests(): List<BiometricAuthRequest> {
             if (!API_ENABLED) return emptyList()
-            return availableAuthRequests.toList().filter { request ->
+            val candidates = synchronized(availableAuthRequestsLock) {
+                availableAuthRequests ?: discoverAvailableAuthRequests().also {
+                    // An early caller can see cached hardware state before software is registered.
+                    // Keep that provisional result out of the process-wide candidate cache.
+                    if (isInitialized && it.isNotEmpty()) availableAuthRequests = it
+                }
+            }
+            return candidates.filter { request ->
                 if (request.type == BiometricType.BIOMETRIC_ANY) return@filter true
                 val hardware = LegacyBiometric.getSelectedBiometricModule(
                     request.type, BiometricProviderType.HARDWARE, enroll = true
@@ -211,6 +221,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             if (Looper.getMainLooper().thread !== Thread.currentThread())
                 throw IllegalThreadStateException("Main Thread required")
 
+            SystemBiometricDialogResources.warmUp(AndroidContext.appContext)
 
             if (isInitialized) {
                 BiometricLoggerImpl.d("BiometricPromptCompat.init() - ready")
@@ -267,6 +278,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 if (configurationObserverRegistered.compareAndSet(false, true)) {
                     ExecutorHelper.post {
                         AndroidContext.configurationLiveData.observeForever {
+                            SystemBiometricDialogResources.warmUp(AndroidContext.appContext)
                             LogCat.log(
                                 "BiometricPromptCompat",
                                 "observeForever -> LocalizationHelper.prefetch"
@@ -307,14 +319,21 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
 
                 override fun onBiometricReady() {
-                    BiometricLoggerImpl.e("BiometricPromptCompat initialized in ${System.currentTimeMillis() - initStart} ms")
-                    isBiometricInit.set(true)
-                    initInProgress.set(false)
+                    ExecutorHelper.post {
+                        // Hardware probing can finish with no usable modules. Register software
+                        // on the main thread as before, but publish readiness only afterwards.
+                        BiometricManagerCompat.loadNonHardwareBiometrics()
+                        BiometricLoggerImpl.e("BiometricPromptCompat initialized in ${System.currentTimeMillis() - initStart} ms")
+                        isBiometricInit.set(true)
+                        initInProgress.set(false)
 
-                    for (task in pendingTasks) {
-                        task?.let { ExecutorHelper.post(it) }
+                        val tasks = synchronized(pendingTasks) {
+                            pendingTasks.toList().also { pendingTasks.clear() }
+                        }
+                        for (task in tasks) {
+                            task?.let { ExecutorHelper.post(it) }
+                        }
                     }
-                    pendingTasks.clear()
                 }
             })
         }
@@ -874,7 +893,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             } else {
                 BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
                 builder.systemPromptOwnsUi = when (val implementation = impl) {
-                    is BiometricPromptApi28Impl -> !DevicesWithKnownBugs.hasExplicitMissingBiometricUiBug
+                    is BiometricPromptApi28Impl -> !DevicesWithKnownBugs.isMissedBiometricUI
                     is BiometricPromptGenericImpl -> {
                         implementation.prepareUiSession()
                         implementation.systemPromptOwnsUi

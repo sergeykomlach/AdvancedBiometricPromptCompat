@@ -1,5 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
+import dev.skomlach.common.storage.ProtectedStorageUnavailableException
+
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -60,9 +62,13 @@ class VoiceBiometricManager(
     override fun getLockoutError(): Int? = getStoredLockoutError(prefs, LOCKOUT_POLICY)
 
     internal fun triggerAutoCaptureLockout(): VoiceLockoutOutcome {
-        forceLockout(prefs, LOCKOUT_POLICY)
-        val error = getLockoutError() ?: CUSTOM_BIOMETRIC_ERROR_LOCKOUT
-        return voiceLockoutOutcomeForError(error)
+        return try {
+            forceLockout(prefs, LOCKOUT_POLICY)
+            voiceLockoutOutcomeForError(getLockoutError() ?: CUSTOM_BIOMETRIC_ERROR_LOCKOUT)
+        } catch (error: ProtectedStorageUnavailableException) {
+            e(error, "Voice lockout storage unavailable")
+            voiceLockoutOutcomeForError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE)
+        }
     }
 
     override fun isHardwareDetected(): Boolean {
@@ -89,6 +95,23 @@ class VoiceBiometricManager(
 
     @Synchronized
     override fun authenticate(
+        crypto: CryptoObject?,
+        flags: Int,
+        cancel: CancellationSignal?,
+        callback: AuthenticationCallback?,
+        handler: Handler?,
+        extra: Bundle?
+    ) {
+        try {
+            authenticateWithStorage(crypto, flags, cancel, callback, handler, extra)
+        } catch (error: ProtectedStorageUnavailableException) {
+            e(error, "Voice protected storage unavailable")
+            finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                localized(R.string.biometriccompat_voice_help_unavailable))
+        }
+    }
+
+    private fun authenticateWithStorage(
         crypto: CryptoObject?,
         flags: Int,
         cancel: CancellationSignal?,
@@ -381,6 +404,7 @@ class VoiceBiometricManager(
 
     private fun lockoutMessage(error: Int): CharSequence {
         return when (error) {
+            CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE -> localized(R.string.biometriccompat_voice_help_unavailable)
             CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT ->
                 localized(R.string.biometriccompat_voice_help_lockout_permanent)
             CUSTOM_BIOMETRIC_ERROR_LOCKOUT ->

@@ -1,5 +1,6 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
+import dev.skomlach.common.storage.editProtected
 import android.content.SharedPreferences
 import android.util.Base64
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
@@ -77,20 +78,18 @@ class VoiceTemplateStore {
             incoming = incomingTemplates,
             maxTemplates = MAX_TEMPLATES_PER_TAG
         )
-        prefs.edit()
-            .putString(storageKey, serializeTemplates(templates))
-            .apply()
+        prefs.editProtected { putString(storageKey, serializeTemplates(templates)) }
         return normalizedTag
     }
 
     fun remove(tag: String?) {
-        val editor = prefs.edit()
-        if (tag.isNullOrBlank()) {
-            templateNames().forEach { editor.remove(TEMPLATE_PREFIX + it) }
-        } else {
-            sanitizeTag(tag)?.let { editor.remove(TEMPLATE_PREFIX + it) }
+        prefs.editProtected {
+            if (tag.isNullOrBlank()) {
+                templateNames().forEach { remove(TEMPLATE_PREFIX + it) }
+            } else {
+                sanitizeTag(tag)?.let { remove(TEMPLATE_PREFIX + it) }
+            }
         }
-        editor.apply()
     }
 
     fun sanitizeTag(tag: String?): String? {

@@ -87,6 +87,9 @@ class BiometricPromptCompatDialog : DialogFragment() {
     }
 
     private var containerView: View? = null
+    private var nativeStyle: NativeDialogStyle? = null
+    private var nativeStyleSession: NativeDialogStyleApplier.Session? = null
+    private var requestedStyleKey: String? = null
     var title: TextView? = null
         private set
     var subtitle: TextView? = null
@@ -237,9 +240,18 @@ class BiometricPromptCompatDialog : DialogFragment() {
         negativeButton = rootView?.findViewById(android.R.id.button1)
         fingerprintIcon = rootView?.findViewById(R.id.fingerprint_icon)
         authPreview = rootView?.findViewById(R.id.auth_preview)
+        // Never wait for resource I/O or change the profile during the initial enter animation.
+        SystemBiometricDialogResources.warmUp(requireActivity())
+        // Zero means MATCH_PARENT to this helper, not a resolved pixel width.
+        val availableWidth = MultiWindowSupport.get(requireActivity()).resolveDialogWidth(Int.MAX_VALUE)
+        nativeStyle = SystemBiometricDialogResources.cached(requireActivity())?.takeIf { it.fitsWindow(availableWidth) }
+        nativeStyleSession = NativeDialogStyleApplier.Session(containerView!!)
+        nativeStyle?.let {
+            nativeStyleSession?.apply(it, arguments?.getBoolean("isInscreenLayout") == true)
+        }
         // wrap_content must see the initial text and visibility before its first measurement.
         bindInitialContent?.invoke()
-        authPreview?.layoutParams?.let {
+        authPreview?.layoutParams?.takeIf { nativeStyle?.modern == null }?.let {
             val params = it as FrameLayout.LayoutParams
             val view = rootView?.findViewById<FrameLayout>(R.id.auth_content_container)
             view?.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
@@ -277,6 +289,9 @@ class BiometricPromptCompatDialog : DialogFragment() {
         fingerprintIcon = null
         authPreview = null
         rootView = null
+        nativeStyle = null
+        nativeStyleSession = null
+        requestedStyleKey = null
         containerView = null
         focusListener = null
         super.onDestroyView()
@@ -318,6 +333,17 @@ class BiometricPromptCompatDialog : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        SystemBiometricDialogResources.updates.observe(viewLifecycleOwner) {
+            val host = activity ?: return@observe
+            // LiveData may coalesce completions of several concurrent configuration prefetches.
+            // Always inspect the current key, not only the last completion's key.
+            if (!dismissStarted && requestedStyleKey != null &&
+                requestedStyleKey == SystemBiometricDialogResources.configurationKey(host) &&
+                SystemBiometricDialogResources.hasCachedResult(host)) {
+                requestedStyleKey = null
+                refreshNativeStyle()
+            }
+        }
         viewLifecycleOwner.lifecycle.addObserver(LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_RESUME -> {
@@ -399,26 +425,47 @@ class BiometricPromptCompatDialog : DialogFragment() {
         BiometricLoggerImpl.d {
             val content = rootView?.findViewById<View>(R.id.dialogLayout)
             "BiometricDialogTiming: $event uptimeMs=${SystemClock.uptimeMillis()} " +
-                    "dialog=${System.identityHashCode(this)} width=${content?.width} height=${content?.height}"
+                    "dialog=${System.identityHashCode(this)} width=${content?.width} height=${content?.height} " +
+                    "style=${nativeStyle?.source ?: "fallback"}"
         }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        val host = activity ?: return
+        requestedStyleKey = SystemBiometricDialogResources.configurationKey(host)
+        refreshNativeStyle()
+        SystemBiometricDialogResources.warmUp(host)
+    }
+
+    private fun refreshNativeStyle() {
+        val host = activity ?: return
+        val width = MultiWindowSupport.get(host).resolveDialogWidth(Int.MAX_VALUE)
+        val style = SystemBiometricDialogResources.cached(host)?.takeIf { it.fitsWindow(width) }
+        if (style != nativeStyle) {
+            nativeStyle = style
+            nativeStyleSession?.apply(style, arguments?.getBoolean("isInscreenLayout") == true)
+            updateMonetColorsInternal(host)
+        }
         updateDialogWindowSize()
     }
 
     private fun updateDialogWindowSize() {
         val host = activity ?: return
         val window = dialog?.window ?: return
-        val width = MultiWindowSupport.get(host)
-            .resolveDialogWidth(resources.getDimensionPixelSize(R.dimen.dialog_width))
+        val support = MultiWindowSupport.get(host)
+        nativeStyleSession?.limitHeight(support.currentWindowSize().y)
+        val defaultWidth = resources.getDimensionPixelSize(R.dimen.dialog_width)
+        val width = nativeStyle?.windowWidth(support.resolveDialogWidth(Int.MAX_VALUE), defaultWidth)
+            ?: support.resolveDialogWidth(defaultWidth)
+        val gravity = if (arguments?.getBoolean("isInscreenLayout") == true) Gravity.BOTTOM
+            else nativeStyle?.gravity ?: Gravity.BOTTOM
         val attributes = window.attributes
         if (attributes.width == width && attributes.height == WindowManager.LayoutParams.WRAP_CONTENT &&
-            attributes.gravity == Gravity.BOTTOM) return
+            attributes.gravity == gravity) return
         attributes.width = width
         attributes.height = WindowManager.LayoutParams.WRAP_CONTENT
-        attributes.gravity = Gravity.BOTTOM
+        attributes.gravity = gravity
         window.attributes = attributes
     }
 

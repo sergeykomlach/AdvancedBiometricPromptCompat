@@ -20,6 +20,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
 
+    <queries>
+        <package android:name="com.android.systemui" />
+    </queries>
     <uses-feature
             android:name="android.hardware.fingerprint"
             android:required="false" />

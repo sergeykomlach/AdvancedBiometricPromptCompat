@@ -1,23 +1,23 @@
 package dev.skomlach.biometric.compat.utils
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CheckBiometricUIPolicyTest {
-    @Test
-    fun apkEntrySearchStopsAtFirstMatch() {
-        var visited = 0
-        val names = sequenceOf(
-            "res/drawable/icon.xml",
-            "res/layout/biometric_prompt.xml",
-            "res/layout/unused_after_match.xml"
-        ).onEach { visited++ }
+    @Test fun validatedPromptLayoutConfirmsUiResources() {
+        assertEquals(BiometricUiAvailability.AVAILABLE, resolveBiometricUiAvailability(true, true))
+    }
 
-        val match = firstMatchingEntryName(names) { it.contains("biometric") }
+    @Test fun disabledProviderWinsOverCachedResources() {
+        assertEquals(BiometricUiAvailability.UNAVAILABLE, resolveBiometricUiAvailability(false, true))
+    }
 
-        assertEquals("res/layout/biometric_prompt.xml", match)
-        assertEquals(2, visited)
-        assertTrue(match != null)
+    @Test fun unreadableOrUnrecognizedXmlDoesNotMeanMissingUi() {
+        assertEquals(BiometricUiAvailability.UNKNOWN, resolveBiometricUiAvailability(true, false))
+    }
+
+    @Test fun packageVisibilityFailureDoesNotMeanMissingUi() {
+        assertEquals(BiometricUiAvailability.UNKNOWN, resolveBiometricUiAvailability(null, false))
+        assertEquals(BiometricUiAvailability.AVAILABLE, resolveBiometricUiAvailability(null, true))
     }
 }

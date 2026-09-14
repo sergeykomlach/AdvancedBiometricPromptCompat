@@ -29,6 +29,7 @@ import dev.skomlach.biometric.compat.EnrollTerminalStatus
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.custom.SoftwarePromptStatus
+import dev.skomlach.biometric.compat.utils.FingerprintSensorPlacement
 import dev.skomlach.biometric.compat.biometricRequiredCryptoMissingDescription
 import dev.skomlach.biometric.compat.resolveEnrollSessionOutcome
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
@@ -102,13 +103,10 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         )
         val hardwareFingerprint = selected?.first == BiometricType.BIOMETRIC_FINGERPRINT &&
                 selected.second !is SoftwareBiometricModule
-        val placement = when {
-            !hardwareFingerprint -> FingerprintPlacement.UNKNOWN
-            DevicesWithKnownBugs.hasUnderDisplayFingerprint -> FingerprintPlacement.UNDER_DISPLAY
-            BiometricPromptCompat.deviceInfo?.sensors?.any {
-                val name = it.lowercase(java.util.Locale.ROOT)
-                name.contains("fingerprint") && name.contains("side")
-            } == true -> FingerprintPlacement.SIDE
+        val sensor = if (hardwareFingerprint) DevicesWithKnownBugs.fingerprintSensor else null
+        val placement = when (sensor?.placement) {
+            FingerprintSensorPlacement.UNDER_DISPLAY -> FingerprintPlacement.UNDER_DISPLAY
+            FingerprintSensorPlacement.SIDE -> FingerprintPlacement.SIDE
             else -> FingerprintPlacement.UNKNOWN
         }
         useUnderDisplayFingerprintLayout.set(placement == FingerprintPlacement.UNDER_DISPLAY)
@@ -124,7 +122,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             else AuthenticationUiOwner.UNKNOWN
         )
         systemUiModuleTag = selected?.second?.tag().takeIf { systemPromptOwnsUi }
-        d("Biometric UI: backend=${selected?.second?.tag()}, placement=$placement, owner=${uiDecision.owner}, evidence=${uiDecision.evidence}")
+        d("Biometric UI: backend=${selected?.second?.tag()}, placement=$placement, sensorPlacement=${sensor?.placement}, sensorEvidence=${sensor?.source}, owner=${uiDecision.owner}, evidence=${uiDecision.evidence}")
     }
 
     override fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?) {

@@ -120,14 +120,17 @@ object SharedPreferenceProvider {
             }
 
             val primaryInstance: EncryptionConfig? by lazy {
-                getKeyStoreBackedEncryptionConfig()
-                    ?: if (failClosedWhenKeyStoreUnavailable) {
-                        throw IllegalStateException(
-                            "Android Keystore is unavailable; protected preferences fallback is disabled"
+                try {
+                    getKeyStoreBackedEncryptionConfig()
+                } catch (error: Exception) {
+                    if (failClosedWhenKeyStoreUnavailable) {
+                        throw ProtectedStorageUnavailableException(
+                            "Android Keystore is unavailable; protected preferences fallback is disabled",
+                            error
                         )
-                    } else {
-                        legacyDeviceIdInstance
                     }
+                    legacyDeviceIdInstance
+                }
             }
 
             private fun getDataDir(): File {
@@ -159,32 +162,9 @@ object SharedPreferenceProvider {
             }
 
             private fun readOrCreateBytes(fileName: String, size: Int): ByteArray {
-                val file = File(getDataDir(), fileName)
-
-                if (file.exists()) {
-                    try {
-                        val bytes = try{
-                            file.setReadable(true, true)
-                            file.readBytes()
-                        } finally {
-                            file.setReadable(false, false)
-                        }
-                        if (bytes.size == size) {
-                            return bytes
-                        }
-                    } catch (_: Throwable) {
-
-                    }
-                    runCatching { file.delete() }
-                }
-
-                val replacement = secureRandomBytes(size)
-                file.writeBytes(replacement)
-                file.setReadable(false, false)
-                file.setWritable(true, true)
-                file.setExecutable(false, false)
-                file.setReadOnly()
-                return replacement
+                return KeyMaterialFile.readOrCreate(
+                    File(getDataDir(), fileName), size, { secureRandomBytes(size) }
+                )
             }
 
             private fun getFileBasedEncryptionConfig(): EncryptionConfig {
@@ -193,11 +173,14 @@ object SharedPreferenceProvider {
                 return EncryptionConfig(password, salt)
             }
 
-            private fun getKeyStoreBackedEncryptionConfig(): EncryptionConfig? {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return null
-                return try {
+            private fun getKeyStoreBackedEncryptionConfig(): EncryptionConfig {
+                check(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { "Keystore AES requires API 23" }
+                val passwordExists = File(getDataDir(), KEYSTORE_WRAPPED_KEY).exists()
+                val saltExists = File(getDataDir(), KEYSTORE_SALT).exists()
+                check(passwordExists == saltExists) { "Incomplete protected key material" }
                     val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
                     if (!keyStore.containsAlias(KEYSTORE_ALIAS)) {
+                        check(!passwordExists && !saltExists) { "Keystore key for existing data is missing" }
                         val keyGenerator = KeyGenerator.getInstance(
                             KeyProperties.KEY_ALGORITHM_AES,
                             ANDROID_KEYSTORE
@@ -215,13 +198,10 @@ object SharedPreferenceProvider {
                         keyGenerator.generateKey()
                     }
                     val secretKey = keyStore.getKey(KEYSTORE_ALIAS, null) as? SecretKey
-                        ?: return null
+                        ?: throw ProtectedStorageUnavailableException("Cannot read protected preferences key")
                     val password = readOrCreateWrappedBytes(KEYSTORE_WRAPPED_KEY, 32, secretKey)
                     val salt = readOrCreateWrappedBytes(KEYSTORE_SALT, 128, secretKey)
-                    EncryptionConfig(password, salt)
-                } catch (_: Throwable) {
-                    null
-                }
+                    return EncryptionConfig(password, salt)
             }
 
             private fun readOrCreateWrappedBytes(
@@ -229,31 +209,11 @@ object SharedPreferenceProvider {
                 size: Int,
                 secretKey: SecretKey
             ): ByteArray {
-                val file = File(getDataDir(), fileName)
-                if (file.exists()) {
-                    try {
-                        val encrypted = try {
-                            file.setReadable(true, true)
-                            file.readBytes()
-                        } finally {
-                            file.setReadable(false, false)
-                        }
-                        val decrypted = decryptWithKeyStore(secretKey, encrypted)
-                        if (decrypted.size == size) {
-                            return decrypted
-                        }
-                    } catch (_: Throwable) {
-                    }
-                    runCatching { file.delete() }
-                }
-
-                val replacement = secureRandomBytes(size)
-                file.writeBytes(encryptWithKeyStore(secretKey, replacement))
-                file.setReadable(false, false)
-                file.setWritable(true, true)
-                file.setExecutable(false, false)
-                file.setReadOnly()
-                return replacement
+                return KeyMaterialFile.readOrCreate(
+                    File(getDataDir(), fileName), size, { secureRandomBytes(size) },
+                    decode = { decryptWithKeyStore(secretKey, it) },
+                    encode = { encryptWithKeyStore(secretKey, it) }
+                )
             }
 
             private fun encryptWithKeyStore(secretKey: SecretKey, cleartext: ByteArray): ByteArray {

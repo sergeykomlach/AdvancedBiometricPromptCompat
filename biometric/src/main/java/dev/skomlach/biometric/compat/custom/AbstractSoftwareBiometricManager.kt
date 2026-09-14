@@ -24,6 +24,10 @@ import android.os.CancellationSignal
 import android.os.Handler
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import dev.skomlach.common.storage.ProtectedStorageUnavailableException
+import dev.skomlach.common.storage.editProtected
+import dev.skomlach.common.storage.runProtectedStorageMaintenance
+import dev.skomlach.common.logging.LogCat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import java.security.Signature
@@ -103,17 +107,21 @@ abstract class AbstractSoftwareBiometricManager {
     open fun isLockedOut(): Boolean = getLockoutError() != null
 
     protected fun resetTemporaryLockoutState(prefs: SharedPreferences) {
-        prefs.edit {
-            remove(KEY_LOCKOUT_END_TIMESTAMP)
-            remove(KEY_FAILED_ATTEMPTS)
+        runProtectedStorageMaintenance({ LogCat.logException(it) }) {
+            prefs.editProtected {
+                remove(KEY_LOCKOUT_END_TIMESTAMP)
+                remove(KEY_FAILED_ATTEMPTS)
+            }
         }
     }
 
     protected fun resetPermanentLockoutState(prefs: SharedPreferences) {
-        prefs.edit {
-            remove(KEY_FAILED_ATTEMPTS)
-            remove(KEY_LOCKOUT_END_TIMESTAMP)
-            remove(KEY_PERMANENT_LOCKOUT_COUNT)
+        runProtectedStorageMaintenance({ LogCat.logException(it) }) {
+            prefs.editProtected {
+                remove(KEY_FAILED_ATTEMPTS)
+                remove(KEY_LOCKOUT_END_TIMESTAMP)
+                remove(KEY_PERMANENT_LOCKOUT_COUNT)
+            }
         }
     }
 
@@ -121,6 +129,15 @@ abstract class AbstractSoftwareBiometricManager {
         prefs: SharedPreferences,
         policy: LockoutPolicy
     ): Int? {
+        return try {
+            readStoredLockoutError(prefs, policy)
+        } catch (error: ProtectedStorageUnavailableException) {
+            LogCat.logException(error)
+            CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE
+        }
+    }
+
+    private fun readStoredLockoutError(prefs: SharedPreferences, policy: LockoutPolicy): Int? {
         val permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
         if (permanentLockoutCount >= policy.maxTemporaryLockoutsBeforePermanent) {
             return CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
@@ -143,7 +160,7 @@ abstract class AbstractSoftwareBiometricManager {
         var failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
         var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
 
-        prefs.edit {
+        prefs.editProtected {
             if (failedAttempts >= policy.maxFailedAttemptsBeforeLockout) {
                 permanentLockoutCount++
                 failedAttempts = 0
@@ -164,7 +181,7 @@ abstract class AbstractSoftwareBiometricManager {
         policy: LockoutPolicy
     ) {
         var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0) + 1
-        prefs.edit {
+        prefs.editProtected {
             putInt(KEY_FAILED_ATTEMPTS, 0)
             if (permanentLockoutCount < policy.maxTemporaryLockoutsBeforePermanent) {
                 putLong(

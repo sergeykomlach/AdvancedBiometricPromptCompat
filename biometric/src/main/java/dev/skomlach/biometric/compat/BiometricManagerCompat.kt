@@ -48,6 +48,7 @@ object BiometricManagerCompat {
 
     fun loadNonHardwareBiometrics() {
         LegacyBiometric.loadSoftwareModules()
+        BiometricPromptCompat.invalidateAvailableAuthRequests()
     }
 
     fun unregisterAllNonHardwareBiometrics() {
@@ -56,6 +57,7 @@ object BiometricManagerCompat {
 
     fun unloadNonHardwareBiometrics() {
         LegacyBiometric.unloadSoftwareModules()
+        BiometricPromptCompat.invalidateAvailableAuthRequests()
     }
 
     @JvmStatic

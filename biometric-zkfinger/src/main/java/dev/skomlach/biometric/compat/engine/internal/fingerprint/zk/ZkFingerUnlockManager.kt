@@ -16,7 +16,8 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.util.Base64
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
+import dev.skomlach.common.storage.editProtected
+import dev.skomlach.common.storage.ProtectedStorageUnavailableException
 import com.zkteco.android.biometric.FingerprintExceptionListener
 import com.zkteco.android.biometric.core.device.ParameterHelper
 import com.zkteco.android.biometric.core.device.TransportType
@@ -265,7 +266,20 @@ class ZkFingerUnlockManager(
         extra: Bundle?
     ) {
         val extras = extra?.let(::Bundle)
-        nativeHandler.post { authenticateOnWorker(cancel, callback, handler, extras) }
+        nativeHandler.post {
+            try {
+                authenticateOnWorker(cancel, callback, handler, extras)
+            } catch (error: ProtectedStorageUnavailableException) {
+                LogCat.logException(error)
+                onAuthenticationError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable))
+                stopAuthentication()
+                authCallback = null
+                cancellationSignal = null
+                sessionConfig = null
+                releaseSession(this)
+            }
+        }
     }
 
     private fun authenticateOnWorker(
@@ -737,7 +751,7 @@ class ZkFingerUnlockManager(
     }
 
     private fun saveTemplate(id: String, template: ByteArray) {
-        prefs.edit {
+        prefs.editProtected {
             putString(
                 TEMPLATE_PREFIX + id,
                 Base64.encodeToString(template, Base64.NO_WRAP)
@@ -746,7 +760,7 @@ class ZkFingerUnlockManager(
     }
 
     private fun removeTemplate(id: String) {
-        prefs.edit {
+        prefs.editProtected {
             remove(TEMPLATE_PREFIX + id)
         }
     }
@@ -766,6 +780,9 @@ class ZkFingerUnlockManager(
     }
 
     private fun lockoutMessage(error: Int): String {
+        if (error == CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE) {
+            return localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable)
+        }
         return localized(zkFingerLockoutOutcomeForError(error).messageResId)
     }
 

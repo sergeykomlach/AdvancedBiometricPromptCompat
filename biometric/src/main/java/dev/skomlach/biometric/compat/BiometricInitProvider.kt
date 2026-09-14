@@ -36,9 +36,7 @@ class BiometricInitProvider : ContentProvider() {
                 try {
                     LogCat.logError("BiometricInitProvider: DeviceInfo=$deviceInfo")
                     BiometricPromptCompat.deviceInfo = deviceInfo
-                    BiometricPromptCompat.init {
-                        BiometricManagerCompat.loadNonHardwareBiometrics()
-                    }
+                    BiometricPromptCompat.init()
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)
                 }

@@ -111,7 +111,11 @@ class SoftwareBiometricModule(
 
     fun rollbackLastEnroll() {
         d("$name: rollbackLastEnroll $enrollBundle")
-        manager?.remove(enrollBundle ?: return)
+        try {
+            manager?.remove(enrollBundle ?: return)
+        } catch (error: Exception) {
+            e(error, "$name: enrollment rollback unavailable")
+        }
     }
 
     override fun getManagers(): Set<Any> {
@@ -120,7 +124,7 @@ class SoftwareBiometricModule(
     }
 
     override val isManagerAccessible: Boolean
-        get() = manager != null
+        get() = getModuleState().managerAccessible
     override val isHardwarePresent: Boolean
         get() {
 
@@ -138,7 +142,7 @@ class SoftwareBiometricModule(
             val result = try {
                 super.isLockOut || manager?.isLockedOut() == true
             } catch (e: Throwable) {
-                super.isLockOut
+                true
             }
             d("$name: isLockOut=$result")
             return result
@@ -167,49 +171,14 @@ class SoftwareBiometricModule(
             return result
         }
 
-    override fun getModuleState(): BiometricModuleState {
-        val hardwareDetected = try {
-            manager?.isHardwareDetected() == true
-        } catch (_: Throwable) {
-            false
-        }
-        val enrolled = if (hardwareDetected) {
-            try {
-                manager?.hasEnrolledBiometric() == true
-            } catch (_: Throwable) {
-                false
-            }
-        } else {
-            false
-        }
-        val managerLockedOut = if (hardwareDetected && enrolled) {
-            try {
-                manager?.isLockedOut() == true
-            } catch (_: Throwable) {
-                false
-            }
-        } else {
-            false
-        }
-        val permanentlyLocked = if (hardwareDetected && enrolled) {
-            try {
-                manager?.getLockoutError() == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
-            } catch (_: Throwable) {
-                false
-            }
-        } else {
-            false
-        }
-        return BiometricModuleState(
-            managerAccessible = manager != null,
-            hardwarePresent = hardwareDetected,
-            enrolled = enrolled,
-            lockedOut = super.isLockOut || managerLockedOut,
-            permanentlyLocked = permanentlyLocked
-        ).also {
-            e("$name: getModuleState=$it")
-        }
-    }
+    override fun getModuleState(): BiometricModuleState = readSoftwareModuleState(
+        managerPresent = manager != null,
+        moduleLockedOut = super.isLockOut,
+        hardwareDetected = { manager?.isHardwareDetected() == true },
+        hasEnrollment = { manager?.hasEnrolledBiometric() == true },
+        lockoutError = { manager?.getLockoutError() },
+        onError = { e(it, "$name: software state unavailable") }
+    )
 
     @Throws(SecurityException::class)
     override fun authenticate(
@@ -253,8 +222,16 @@ class SoftwareBiometricModule(
                     sessionToken
                 )
                 return
-            } catch (e: Throwable) {
-                e(e, "$name: authenticate failed unexpectedly")
+            } catch (error: Throwable) {
+                e(error, "$name: authenticate failed unexpectedly")
+                timeoutHandler.removeCallbacks(timeoutRunnable)
+                activeSessionToken?.let { sessionGuard.tryTerminate(it, SoftwareBiometricTerminalState.CANCELLED) }
+                originalCancellationSignal?.cancel()
+                if (error is dev.skomlach.common.storage.ProtectedStorageUnavailableException) {
+                    listener?.onFailure(tag(), AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+                        startAuthenticationFailureDescription())
+                    return
+                }
             }
         }
         listener?.onFailure(
@@ -342,8 +319,16 @@ class SoftwareBiometricModule(
                         ?: throw IllegalArgumentException("Bundle should be not NULL")
                 )
                 return
-            } catch (e: Throwable) {
-                e(e, "$name: authenticate failed unexpectedly")
+            } catch (error: Throwable) {
+                e(error, "$name: authenticate failed unexpectedly")
+                timeoutHandler.removeCallbacks(timeoutRunnable)
+                activeSessionToken?.let { sessionGuard.tryTerminate(it, SoftwareBiometricTerminalState.CANCELLED) }
+                originalCancellationSignal?.cancel()
+                if (error is dev.skomlach.common.storage.ProtectedStorageUnavailableException) {
+                    listener?.onFailure(tag(), AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+                        startAuthenticationFailureDescription())
+                    return
+                }
             }
         }
         listener?.onFailure(

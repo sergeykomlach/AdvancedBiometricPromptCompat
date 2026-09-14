@@ -78,7 +78,7 @@ enum class BiometricMethod(id: Int, biometricType: BiometricType) {
         private set
 
     companion object {
-        @Suppress("UNUSED_PARAMETER")
+        @Synchronized
         fun createCustomModule(id: Int, biometricType: BiometricType): BiometricMethod =
             when (biometricType) {
                 BiometricType.BIOMETRIC_FINGERPRINT -> CUSTOM_FINGERPRINT
@@ -91,7 +91,7 @@ enum class BiometricMethod(id: Int, biometricType: BiometricType) {
                 BiometricType.BIOMETRIC_ANY -> CUSTOM_UNDEFINED
             }.apply {
                 if (entries.any {
-                        it.id == id
+                        it !== this && it.id == id
                     }) throw IllegalArgumentException("This ID already used")
                 this.id = id
                 this.biometricType = biometricType

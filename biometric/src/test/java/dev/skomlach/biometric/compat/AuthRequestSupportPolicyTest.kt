@@ -21,6 +21,14 @@ class AuthRequestSupportPolicyTest {
         assertTrue(isAuthRequestRouteSupported(request(BiometricApi.AUTO, BiometricType.BIOMETRIC_FACE), true, true, true, true, false))
         assertTrue(isAuthRequestRouteSupported(request(BiometricApi.LEGACY_API, BiometricType.BIOMETRIC_VOICE), false, false, true, false, false))
     }
+    @Test fun softwareOnlyDeviceOffersFaceAndVoiceWithoutSystemOrLegacyHardware() {
+        for (api in listOf(BiometricApi.AUTO, BiometricApi.LEGACY_API)) {
+            for (type in listOf(BiometricType.BIOMETRIC_FACE, BiometricType.BIOMETRIC_VOICE)) {
+                assertTrue(isAuthRequestRouteSupported(request(api, type), false, false, true, false, false))
+                assertFalse(isAuthRequestRouteSupported(request(api, type), false, false, false, false, false))
+            }
+        }
+    }
     @Test fun priorityDoesNotOverridePreferredNativeFace() {
         assertFalse(isAuthRequestRouteSupported(request(BiometricApi.AUTO, BiometricType.BIOMETRIC_FACE), true, false, true, true, true))
         assertTrue(isAuthRequestRouteSupported(request(BiometricApi.AUTO, BiometricType.BIOMETRIC_VOICE), true, false, true, false, true))
