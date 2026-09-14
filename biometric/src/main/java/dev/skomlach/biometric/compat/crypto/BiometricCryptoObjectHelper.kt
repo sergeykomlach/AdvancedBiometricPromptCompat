@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.crypto
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.CryptoSecurityLevel
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import java.util.concurrent.locks.ReentrantLock
 
 object BiometricCryptoObjectHelper {
@@ -87,20 +86,12 @@ object BiometricCryptoObjectHelper {
             name,
             isUserAuthRequired
         )
-    } catch (e: Throwable) {
-        if (!isUserAuthRequired) throw e
-        if (isUserAuthRequired && isNoKeystoreBiometricEnrollment(e)) {
-            BiometricLoggerImpl.d(
-                "BiometricCryptoObjectHelper: AndroidKeyStore has no biometric enrollment usable for auth-per-use key $name"
-            )
-            throw e
-        } else {
-            managerInterface.deleteKey(name)
-            managerInterface.getInitializedCipherForEncryption(
-                name,
-                isUserAuthRequired
-            )
-        }
+    } catch (error: Throwable) {
+        // Only a permanently invalidated auth key may be replaced for new encryption.
+        // Provider outages, locked devices and storage failures must preserve existing keys.
+        if (!isUserAuthRequired || !isPermanentlyInvalidatedKey(error)) throw error
+        managerInterface.deleteKey(name)
+        managerInterface.getInitializedCipherForEncryption(name, isUserAuthRequired)
     }
 
     private fun prepareCryptoAccess(name: String, isUserAuthRequired: Boolean, purpose: BiometricCryptographyPurpose) {
@@ -123,20 +114,6 @@ object BiometricCryptoObjectHelper {
         } finally {
             secret.fill('\u0000')
         }
-    }
-
-    private fun isNoKeystoreBiometricEnrollment(t: Throwable): Boolean {
-        var current: Throwable? = t
-        while (current != null) {
-            val msg = current.message.orEmpty()
-            if (msg.contains("At least one biometric", ignoreCase = true) &&
-                msg.contains("must be enrolled to create keys", ignoreCase = true)
-            ) {
-                return true
-            }
-            current = current.cause
-        }
-        return false
     }
 
 }

@@ -4,6 +4,24 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class AppFlowSecretStoreTest {
+    @Test fun unavailableStoreNeverCreatesReplacementOrUsesLegacySecret() {
+        var unavailable = true
+        var writes = 0
+        val store = AppFlowSecretStore({
+            if (unavailable) throw dev.skomlach.common.storage.ProtectedStorageUnavailableException()
+            "existing-secret"
+        }, { _, _ -> writes++; true })
+        for (create in listOf(true, false)) {
+            assertThrows(dev.skomlach.common.storage.ProtectedStorageUnavailableException::class.java) {
+                store.getSecret("key", create, allowLegacy = true)
+            }
+        }
+        assertEquals(0, writes)
+        unavailable = false
+        assertEquals("existing-secret", String(store.getSecret("key", true)))
+        assertEquals(0, writes)
+    }
+
     @Test fun randomSecretsPersistPerKeyAndAreNotDerivedFromPublicNames() {
         val storage = mutableMapOf<String, String>()
         val store = AppFlowSecretStore(storage::get) { name, value -> storage[name] = value; true }

@@ -162,28 +162,14 @@ object Core {
                         return@let
                     }
                     val requireUserAuth = m.isUserAuthCanByUsedWithCrypto
-                    try {
-                        biometricCryptoObject =
-                            BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                                keyName,
-                                purpose,
-                                requireUserAuth
-                            )
-                        isAppFlowCrypto =
-                            AppFlowCryptoRegistry.getAccessType(keyName) == CryptoAccessType.APP_FLOW
-                    } catch (e: BiometricCryptoException) {
-                        if (requireUserAuth && purpose.purpose == BiometricCryptographyPurpose.ENCRYPT) {
-                            BiometricCryptoObjectHelper.deleteCrypto(keyName)
-                            biometricCryptoObject =
-                                BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                                    keyName,
-                                    purpose,
-                                    requireUserAuth
-                                )
-                            isAppFlowCrypto =
-                                AppFlowCryptoRegistry.getAccessType(keyName) == CryptoAccessType.APP_FLOW
-                        } else throw e
-                    }
+                    biometricCryptoObject =
+                        BiometricCryptoObjectHelper.getBiometricCryptoObject(
+                            keyName,
+                            purpose,
+                            requireUserAuth
+                        )
+                    isAppFlowCrypto =
+                        AppFlowCryptoRegistry.getAccessType(keyName) == CryptoAccessType.APP_FLOW
                 }
                 if (cryptoPreparationFailed) continue
 

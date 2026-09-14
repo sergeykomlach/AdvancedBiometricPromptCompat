@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.media.MediaDrm
 import android.os.Build
+import android.os.UserManager
 import android.provider.Settings.Secure
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -175,33 +176,49 @@ object SharedPreferenceProvider {
 
             private fun getKeyStoreBackedEncryptionConfig(): EncryptionConfig {
                 check(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { "Keystore AES requires API 23" }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    val userManager = appContext.getSystemService(Context.USER_SERVICE) as? UserManager
+                    check(userManager?.isUserUnlocked == true) { "Protected key material requires an unlocked user" }
+                }
                 val passwordExists = File(getDataDir(), KEYSTORE_WRAPPED_KEY).exists()
                 val saltExists = File(getDataDir(), KEYSTORE_SALT).exists()
                 check(passwordExists == saltExists) { "Incomplete protected key material" }
-                    val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-                    if (!keyStore.containsAlias(KEYSTORE_ALIAS)) {
-                        check(!passwordExists && !saltExists) { "Keystore key for existing data is missing" }
-                        val keyGenerator = KeyGenerator.getInstance(
-                            KeyProperties.KEY_ALGORITHM_AES,
-                            ANDROID_KEYSTORE
+                val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+                if (!keyStore.containsAlias(KEYSTORE_ALIAS)) {
+                    check(!passwordExists && !saltExists) { "Keystore key for existing data is missing" }
+                    val keyGenerator = KeyGenerator.getInstance(
+                        KeyProperties.KEY_ALGORITHM_AES,
+                        ANDROID_KEYSTORE
+                    )
+                    keyGenerator.init(
+                        KeyGenParameterSpec.Builder(
+                            KEYSTORE_ALIAS,
+                            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
                         )
-                        keyGenerator.init(
-                            KeyGenParameterSpec.Builder(
-                                KEYSTORE_ALIAS,
-                                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-                            )
-                                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                                .setRandomizedEncryptionRequired(true)
-                                .build()
-                        )
-                        keyGenerator.generateKey()
-                    }
-                    val secretKey = keyStore.getKey(KEYSTORE_ALIAS, null) as? SecretKey
-                        ?: throw ProtectedStorageUnavailableException("Cannot read protected preferences key")
-                    val password = readOrCreateWrappedBytes(KEYSTORE_WRAPPED_KEY, 32, secretKey)
-                    val salt = readOrCreateWrappedBytes(KEYSTORE_SALT, 128, secretKey)
+                            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                            .setRandomizedEncryptionRequired(true)
+                            .build()
+                    )
+                    keyGenerator.generateKey()
+                }
+                val secretKey = keyStore.getKey(KEYSTORE_ALIAS, null) as? SecretKey
+                    ?: throw ProtectedStorageUnavailableException("Cannot read protected preferences key")
+                if (!passwordExists) {
+                    val password = secureRandomBytes(32)
+                    val salt = secureRandomBytes(128)
+                    // Complete both Keystore operations before persisting either half.
+                    val wrappedPassword = encryptWithKeyStore(secretKey, password)
+                    val wrappedSalt = encryptWithKeyStore(secretKey, salt)
+                    KeyMaterialFile.readOrCreate(File(getDataDir(), KEYSTORE_WRAPPED_KEY), 32,
+                        { password }, encode = { wrappedPassword })
+                    KeyMaterialFile.readOrCreate(File(getDataDir(), KEYSTORE_SALT), 128,
+                        { salt }, encode = { wrappedSalt })
                     return EncryptionConfig(password, salt)
+                }
+                val password = readOrCreateWrappedBytes(KEYSTORE_WRAPPED_KEY, 32, secretKey)
+                val salt = readOrCreateWrappedBytes(KEYSTORE_SALT, 128, secretKey)
+                return EncryptionConfig(password, salt)
             }
 
             private fun readOrCreateWrappedBytes(

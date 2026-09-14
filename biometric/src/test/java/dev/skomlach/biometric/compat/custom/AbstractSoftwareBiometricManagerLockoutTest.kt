@@ -4,8 +4,47 @@ import android.content.SharedPreferences
 import dev.skomlach.biometric.compat.BiometricType
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.storage.ProtectedStorageUnavailableException
+import java.lang.reflect.Proxy
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertThrows
 
 class AbstractSoftwareBiometricManagerLockoutTest {
+    private fun withUnavailablePrefs(action: (SharedPreferences) -> Unit) {
+        val logging = LogCat.DEBUG
+        LogCat.DEBUG = false
+        try {
+            val prefs = Proxy.newProxyInstance(javaClass.classLoader,
+                arrayOf(SharedPreferences::class.java)) { _, _, _ ->
+                throw ProtectedStorageUnavailableException()
+            } as SharedPreferences
+            action(prefs)
+        } finally {
+            LogCat.DEBUG = logging
+        }
+    }
+
+    @Test
+    fun protectedResetFailureDoesNotInterruptIndependentSuccess() = withUnavailablePrefs { prefs ->
+        var success = false
+        TestManager().resetPermanentState(prefs)
+        success = true
+        assertTrue(success)
+    }
+
+    @Test
+    fun unavailableLockoutReturnsUnavailableInsteadOfUnlocked() = withUnavailablePrefs { prefs ->
+        assertEquals(AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+            TestManager().currentLockoutError(prefs, 5, 3, 30_000))
+    }
+
+    @Test
+    fun unavailableFailureCounterCannotBeSkipped() = withUnavailablePrefs { prefs ->
+        assertThrows(ProtectedStorageUnavailableException::class.java) {
+            TestManager().forceImmediateLockout(prefs, 5, 3, 30_000)
+        }
+    }
     @Test
     fun forceLockoutImmediatelyActivatesTemporaryLockout() {
         val prefs = FakeSharedPreferences()
@@ -55,6 +94,7 @@ class AbstractSoftwareBiometricManagerLockoutTest {
     }
 
     private class TestManager : AbstractSoftwareBiometricManager() {
+        fun resetPermanentState(prefs: SharedPreferences) = resetPermanentLockoutState(prefs)
         override fun getTimeoutMessage(): CharSequence? = null
 
         override fun resetLockOut() = Unit

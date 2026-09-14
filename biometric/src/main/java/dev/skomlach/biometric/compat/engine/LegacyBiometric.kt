@@ -787,7 +787,7 @@ object LegacyBiometric {
         val modules = getAvailableBiometricModules(biometricType, provider)
             .filterNot { excludedModuleTags.contains(it.tag()) }
             .map { it to it.getModuleState() }
-            .filter { (_, state) -> state.hardwarePresent && !state.permanentlyLocked }
+            .filter { (_, state) -> state.managerAccessible && state.hardwarePresent && !state.permanentlyLocked }
         return selectPreferredBiometricModule(modules, enroll)
     }
 

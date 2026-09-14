@@ -256,8 +256,12 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
     override fun delete(name: String?) {
         val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
         if (name == null) {
+            val templates = registered
             sharedPreferences.editProtected { clear() }
-            registered.clear()
+            if (BuildConfig.DEBUG) templates.values.toList().filterNotNull().forEach { rec ->
+                ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
+            }
+            templates.clear()
             return
         }
         val jsonString = sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
@@ -266,7 +270,9 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         sharedPreferences.editProtected {
             putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
         }
-        registered.remove(name)
+        registered.remove(name)?.let { rec ->
+            if (BuildConfig.DEBUG) ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
+        }
     }
 
     override fun register(name: String, rec: SimilarityClassifier.Recognition) {

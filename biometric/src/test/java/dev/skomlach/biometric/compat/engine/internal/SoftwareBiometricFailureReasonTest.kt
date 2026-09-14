@@ -7,6 +7,12 @@ import org.junit.Test
 
 class SoftwareBiometricFailureReasonTest {
     @Test
+    fun `unreadable lockout is unavailable rather than a retriable mismatch`() {
+        assertEquals(AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+            resolveSoftwareFailureReason(AuthenticationFailureReason.AUTHENTICATION_FAILED,
+                AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE))
+    }
+    @Test
     fun `maps temporary lockout error to locked out failure reason`() {
         assertEquals(
             AuthenticationFailureReason.LOCKED_OUT,

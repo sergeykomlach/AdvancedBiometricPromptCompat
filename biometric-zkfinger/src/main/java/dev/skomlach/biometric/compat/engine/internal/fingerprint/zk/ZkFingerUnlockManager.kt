@@ -619,6 +619,11 @@ class ZkFingerUnlockManager(
             } else {
                 processAuthenticationTemplate(template)
             }
+        } catch (error: ProtectedStorageUnavailableException) {
+            LogCat.logException(error)
+            onAuthenticationError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable))
+            stopAuthentication()
         } catch (e: Throwable) {
             LogCat.logException(e)
             onAuthenticationError(

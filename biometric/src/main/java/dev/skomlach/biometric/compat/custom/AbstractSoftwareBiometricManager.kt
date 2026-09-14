@@ -23,7 +23,6 @@ import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
 import android.content.SharedPreferences
-import androidx.core.content.edit
 import dev.skomlach.common.storage.ProtectedStorageUnavailableException
 import dev.skomlach.common.storage.editProtected
 import dev.skomlach.common.storage.runProtectedStorageMaintenance
@@ -148,7 +147,11 @@ abstract class AbstractSoftwareBiometricManager {
         if (lockoutEndTime > currentTime) {
             return CUSTOM_BIOMETRIC_ERROR_LOCKOUT
         } else if (lockoutEndTime > 0) {
-            resetTemporaryLockoutState(prefs)
+            // This reset is part of an access decision, so failure must remain unavailable.
+            prefs.editProtected {
+                remove(KEY_LOCKOUT_END_TIMESTAMP)
+                remove(KEY_FAILED_ATTEMPTS)
+            }
         }
         return null
     }

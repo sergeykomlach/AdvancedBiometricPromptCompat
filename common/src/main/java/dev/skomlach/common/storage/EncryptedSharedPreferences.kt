@@ -90,10 +90,15 @@ private class KeyNameCipher(
     }
 }
 
-class EncryptedSharedPreferences(
-    private val context: Context,
-    private val sharedPrefFilename: String? = null
+class EncryptedSharedPreferences internal constructor(
+    private val mSharedPreferences: SharedPreferences,
+    private val encryptionConfig: () -> SharedPreferenceProvider.EncryptionConfig?
 ) : SharedPreferences {
+    constructor(context: Context, sharedPrefFilename: String? = null) : this(
+        if (sharedPrefFilename.isNullOrEmpty()) PreferenceManager.getDefaultSharedPreferences(context)
+        else context.getSharedPreferences(sharedPrefFilename, Context.MODE_PRIVATE),
+        { SharedPreferenceProvider.EncryptionConfig.primaryInstance }
+    )
     companion object {
         private const val NULL_VALUE = "__NULL__"
     }
@@ -104,7 +109,13 @@ class EncryptedSharedPreferences(
     )
 
     private val primaryConfig by lazy {
-        deriveConfig(SharedPreferenceProvider.EncryptionConfig.primaryInstance)
+        try {
+            deriveConfig(encryptionConfig())
+        } catch (error: ProtectedStorageUnavailableException) {
+            throw error
+        } catch (error: Exception) {
+            throw ProtectedStorageUnavailableException("Cannot initialize protected preferences", error)
+        }
     }
     private val legacyDeviceIdConfig by lazy {
         deriveConfig(SharedPreferenceProvider.EncryptionConfig.legacyDeviceIdInstance)
@@ -121,7 +132,11 @@ class EncryptedSharedPreferences(
             secondaryConfig?.let { yield(it) }
         }
 
+    @Volatile
+    private var persistenceFailure: ProtectedStorageUnavailableException? = null
+
     private fun requireStorage() {
+        persistenceFailure?.let { throw it }
         primaryConfig ?: secondaryConfig
     }
 
@@ -143,16 +158,9 @@ class EncryptedSharedPreferences(
     private val keyResolver = PreferenceKeyResolver()
 
 
-    //the backing pref file
-    private var mSharedPreferences: SharedPreferences = if (sharedPrefFilename.isNullOrEmpty()) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-    } else {
-        context.getSharedPreferences(sharedPrefFilename, Context.MODE_PRIVATE)
-    }
-
     /**
      * @param ciphertext
-     * @return decrypted plain text, unless decryption fails, in which case null
+     * @return decrypted plain text; unreadable stored entries fail closed.
      */
     private fun decryptString(ciphertext: String?): String? {
         if (ciphertext.isNullOrEmpty()) {
@@ -312,13 +320,22 @@ class EncryptedSharedPreferences(
         }
 
         override fun commit(): Boolean {
+            mEncryptedSharedPreferences.requireStorage()
             clearKeysIfNeeded()
             val result = mEditor.commit()
-            notifyListeners()
+            if (result) {
+                notifyListeners()
+            } else {
+                // SharedPreferences may already have changed its in-memory map on failure.
+                // Do not subsequently authenticate against unpersisted templates or lockouts.
+                mEncryptedSharedPreferences.persistenceFailure =
+                    ProtectedStorageUnavailableException("Protected preference commit failed; reopen the process to reload disk state")
+            }
             return result
         }
 
         override fun apply() {
+            mEncryptedSharedPreferences.requireStorage()
             clearKeysIfNeeded()
             mEditor.apply()
             notifyListeners()

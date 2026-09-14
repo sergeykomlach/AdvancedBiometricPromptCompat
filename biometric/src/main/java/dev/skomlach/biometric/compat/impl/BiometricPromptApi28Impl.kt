@@ -728,29 +728,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             var biometricCryptoObject: BiometricCryptoObject? = null
             var isAppFlowCrypto = false
             builder.getCryptographyPurpose()?.let {
-                try {
-                    biometricCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                        PROMPT_CRYPTO_KEY,
-                        builder.getCryptographyPurpose(),
-                        true
-                    )
-                    isAppFlowCrypto =
-                        AppFlowCryptoRegistry.getAccessType(PROMPT_CRYPTO_KEY) == CryptoAccessType.APP_FLOW
-                } catch (e: BiometricCryptoException) {
-                    if (builder.getCryptographyPurpose()?.purpose == BiometricCryptographyPurpose.ENCRYPT &&
-                        !e.isNoKeystoreBiometricEnrollment()
-                    ) {
-                        BiometricCryptoObjectHelper.deleteCrypto(PROMPT_CRYPTO_KEY)
-                        biometricCryptoObject =
-                            BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                                PROMPT_CRYPTO_KEY,
-                                builder.getCryptographyPurpose(),
-                                true
-                            )
-                        isAppFlowCrypto =
-                            AppFlowCryptoRegistry.getAccessType(PROMPT_CRYPTO_KEY) == CryptoAccessType.APP_FLOW
-                    } else throw e
-                }
+                biometricCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
+                    PROMPT_CRYPTO_KEY,
+                    builder.getCryptographyPurpose(),
+                    true
+                )
+                isAppFlowCrypto =
+                    AppFlowCryptoRegistry.getAccessType(PROMPT_CRYPTO_KEY) == CryptoAccessType.APP_FLOW
             }
 
             val crpObject =
@@ -842,8 +826,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             callback?.onFailed(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
-                    reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                    description = biometricInternalErrorDescription()
+                    reason = AuthenticationFailureReason.CRYPTO_ERROR,
+                    description = biometricRequiredCryptoRejectedDescription()
                 )
             }.toSet())
         }

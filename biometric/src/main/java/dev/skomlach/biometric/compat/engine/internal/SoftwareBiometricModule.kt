@@ -65,6 +65,7 @@ internal fun resolveSoftwareFailureReason(
     }
 
     return when (managerLockoutError) {
+        CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE -> AuthenticationFailureReason.HARDWARE_UNAVAILABLE
         CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT,
         CUSTOM_BIOMETRIC_ERROR_LOCKOUT -> resolveSoftwareLockoutFailureReason(managerLockoutError)
         else -> baseReason
@@ -177,7 +178,8 @@ class SoftwareBiometricModule(
         hardwareDetected = { manager?.isHardwareDetected() == true },
         hasEnrollment = { manager?.hasEnrolledBiometric() == true },
         lockoutError = { manager?.getLockoutError() },
-        onError = { e(it, "$name: software state unavailable") }
+        onError = { e(it, "$name: software state unavailable") },
+        managerLockedOut = { manager?.isLockedOut() == true }
     )
 
     @Throws(SecurityException::class)
