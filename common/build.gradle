@@ -53,31 +53,20 @@ dependencies {
 ext.gsmarenaScrapeAndCopy = { ->
     File projectRoot = project.projectDir
 
-    File reviewScript = new File(projectRoot, "phone_review_url_scraper.py")
-    File specsScript = new File(projectRoot, "phone_specs_scraper.py")
-
-    if (!reviewScript.exists())
-        throw new GradleException("Missing script: ${reviewScript}")
-
-    if (!specsScript.exists())
-        throw new GradleException("Missing script: ${specsScript}")
+    File scraper = new File(projectRoot, "gsmarena_scrape.py")
+    if (!scraper.exists())
+        throw new GradleException("Missing script: ${scraper}")
 
     println("Running GSMArena scraper...")
 
     String python = System.getProperty("os.name").toLowerCase().contains("win") ? "python" : "python3"
 
-    // ---- run review scraper ----
+    // Both stages share cookies, connection pooling, one UA and per-request pacing.
+    // A nonzero exit stops before copying; partial JSON is only a resumable checkpoint.
     exec {
         workingDir projectRoot
         environment "PYTHONIOENCODING", "utf-8"
-        commandLine python, "-X", "utf8", reviewScript.absolutePath
-    }
-
-    // ---- run specs scraper ----
-    exec {
-        workingDir projectRoot
-        environment "PYTHONIOENCODING", "utf-8"
-        commandLine python, "-X", "utf8", specsScript.absolutePath
+        commandLine python, "-X", "utf8", scraper.absolutePath
     }
 
     // ---- copy result ----
@@ -96,11 +85,24 @@ ext.gsmarenaScrapeAndCopy = { ->
     println("Copying ${result.absolutePath}")
     println("To ${outFile.absolutePath}")
 
-    Files.copy(
-            result.toPath(),
-            outFile.toPath(),
-            StandardCopyOption.REPLACE_EXISTING
-    )
+    def data = new groovy.json.JsonSlurper().parse(result)
+    if (!(data instanceof List) || data.isEmpty() || data.any {
+        !(it instanceof Map) || !(it._metadata instanceof Map) || !(it.phone_name ?: it._metadata.phone_name) ||
+                !it._metadata.review_url || !it._metadata.spec_url ||
+                !it.any { key, value -> key != '_metadata' && value instanceof Map && !value.isEmpty() }
+    }) throw new GradleException("Invalid specifications; keeping current device assets")
+
+    def temporary = Files.createTempFile(assetsDir.toPath(), "specifications-", ".tmp")
+    try {
+        Files.copy(result.toPath(), temporary, StandardCopyOption.REPLACE_EXISTING)
+        try {
+            Files.move(temporary, outFile.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+        } catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
+            Files.move(temporary, outFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
+    } finally {
+        Files.deleteIfExists(temporary)
+    }
 
     if (!outFile.exists() || outFile.length() == 0)
         throw new GradleException("Copied file invalid: ${outFile}")

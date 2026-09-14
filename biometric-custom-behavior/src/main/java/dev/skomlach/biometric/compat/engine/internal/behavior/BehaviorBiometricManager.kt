@@ -77,7 +77,6 @@ class BehaviorBiometricManager(
 
     override fun getEnrolls(): Collection<String> = store.templateNames()
 
-    @Suppress("CyclomaticComplexMethod", "LongMethod", "ReturnCount")
     @Synchronized
     override fun authenticate(
         crypto: CryptoObject?,
@@ -88,7 +87,7 @@ class BehaviorBiometricManager(
         extra: Bundle?
     ) {
         try {
-            authenticateWithStorage(crypto, flags, cancel, callback, handler, extra)
+            authenticateWithStorage(crypto, cancel, callback, handler, extra)
         } catch (error: ProtectedStorageUnavailableException) {
             e(error, "Behavior protected storage unavailable")
             finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
@@ -96,9 +95,10 @@ class BehaviorBiometricManager(
         }
     }
 
+    // Keep the authentication checks together under the caller's storage error boundary.
+    @Suppress("CyclomaticComplexMethod", "LongMethod", "ReturnCount")
     private fun authenticateWithStorage(
         crypto: CryptoObject?,
-        flags: Int,
         cancel: CancellationSignal?,
         callback: AuthenticationCallback?,
         handler: Handler?,
