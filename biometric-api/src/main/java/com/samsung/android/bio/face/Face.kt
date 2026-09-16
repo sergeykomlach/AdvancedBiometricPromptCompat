@@ -21,4 +21,9 @@
 
 package com.samsung.android.bio.face
 
-class Face 
+// Compile-only framework signatures; this module must not be packaged in the application.
+class Face {
+    fun getGroupId(): Int = 0
+    fun getDeviceId(): Long = 0
+    fun getFaceId(): Int = 0
+}

@@ -17,7 +17,6 @@ android {
         //targetSdkPreview targetSDK
         targetSdkVersion targetSDK
         multiDexEnabled true
-        consumerProguardFiles "proguard-project-common.pro"
     }
 
     namespace 'dev.skomlach.common'

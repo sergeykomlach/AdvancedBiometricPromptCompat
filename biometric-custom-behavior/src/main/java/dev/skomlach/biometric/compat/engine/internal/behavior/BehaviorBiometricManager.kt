@@ -10,6 +10,7 @@ import android.os.Looper
 import android.os.SystemClock
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -61,6 +62,9 @@ class BehaviorBiometricManager(
     override fun isHardwareDetected(): Boolean = true
 
     override fun hasEnrolledBiometric(): Boolean = store.hasTemplate()
+
+    override fun getEnrollmentSnapshot(): SoftwareBiometricEnrollment =
+        SoftwareBiometricEnrollment.read { getEnrolls() }
 
     override fun getManagers(): Set<Any> = setOf(this)
 

@@ -28,6 +28,7 @@ import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
 import dev.skomlach.biometric.zkfinger.R
@@ -228,6 +229,9 @@ class ZkFingerUnlockManager(
     }
 
     override fun hasEnrolledBiometric(): Boolean = getEnrolls().isNotEmpty()
+
+    override fun getEnrollmentSnapshot(): SoftwareBiometricEnrollment =
+        SoftwareBiometricEnrollment.read { getEnrolls() }
 
     override fun getManagers(): Set<Any> = setOfNotNull(fingerprintSensor)
 

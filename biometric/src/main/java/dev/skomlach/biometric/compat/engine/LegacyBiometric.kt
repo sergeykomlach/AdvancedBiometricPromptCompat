@@ -56,7 +56,6 @@ import dev.skomlach.biometric.compat.engine.internal.face.samsung.SamsungFaceUnl
 import dev.skomlach.biometric.compat.engine.internal.face.soter.SoterFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.API23FingerprintModule
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.SoterFingerprintUnlockModule
-import dev.skomlach.biometric.compat.engine.internal.fingerprint.SupportFingerprintModule
 import dev.skomlach.biometric.compat.engine.internal.iris.android.AndroidIrisUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.iris.samsung.SamsungIrisUnlockModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
@@ -94,7 +93,6 @@ object LegacyBiometric {
 
         add(BiometricMethod.FINGERPRINT_SOTERAPI)
         add(BiometricMethod.FINGERPRINT_API23)
-        add(BiometricMethod.FINGERPRINT_SUPPORT)
 
         if (Build.VERSION.SDK_INT >= 24) {
             add(BiometricMethod.FACE_SOTERAPI)
@@ -240,7 +238,7 @@ object LegacyBiometric {
                         )
                     } else if (!ambiguousTypes.contains(targetType)) {
                         val biometricMethod = BiometricMethod.createCustomModule(
-                            customManager::class.java.name.hashCode(),
+                            provider.resolveModuleId { customManager::class.java.name },
                             targetType
                         )
 
@@ -336,7 +334,6 @@ object LegacyBiometric {
                     BiometricMethod.FACELOCK -> FacelockOldModule(initListener)
                     BiometricMethod.FACEUNLOCK_LAVA -> FaceunlockLavaModule(initListener)
                     BiometricMethod.FINGERPRINT_API23 -> API23FingerprintModule(initListener)
-                    BiometricMethod.FINGERPRINT_SUPPORT -> SupportFingerprintModule(initListener)
                     BiometricMethod.FINGERPRINT_SOTERAPI -> SoterFingerprintUnlockModule(
                         initListener
                     )

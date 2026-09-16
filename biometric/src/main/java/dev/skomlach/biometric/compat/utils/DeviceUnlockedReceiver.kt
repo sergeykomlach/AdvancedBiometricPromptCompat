@@ -34,13 +34,11 @@ import dev.skomlach.common.misc.ExecutorHelper
 class DeviceUnlockedReceiver : BroadcastReceiver() {
     companion object {
         private val BOOT_ACTIONS = setOf(
-            Intent.ACTION_LOCKED_BOOT_COMPLETED,
             Intent.ACTION_BOOT_COMPLETED,
             "android.intent.action.QUICKBOOT_POWERON",
             "com.htc.intent.action.QUICKBOOT_POWERON"
         )
         private val PROTECTED_BOOT_ACTIONS = setOf(
-            Intent.ACTION_LOCKED_BOOT_COMPLETED,
             Intent.ACTION_BOOT_COMPLETED
         )
 

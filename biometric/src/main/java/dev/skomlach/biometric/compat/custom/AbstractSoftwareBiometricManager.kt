@@ -209,6 +209,13 @@ abstract class AbstractSoftwareBiometricManager {
 
     abstract fun getEnrolls(): Collection<String>
 
+    /**
+     * Return all persisted enrollment IDs, or Unavailable if they cannot be read completely.
+     * Permission denial, a disconnected sensor, or an uninitialized engine must not mean empty.
+     * The default keeps the legacy discovery path for providers compiled against the old API.
+     */
+    open fun getEnrollmentSnapshot(): SoftwareBiometricEnrollment = SoftwareBiometricEnrollment.Unsupported
+
     abstract fun authenticate(
         crypto: CryptoObject?,
         flags: Int,

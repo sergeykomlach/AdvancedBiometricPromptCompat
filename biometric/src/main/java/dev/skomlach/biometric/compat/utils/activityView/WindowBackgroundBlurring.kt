@@ -42,7 +42,7 @@ import dev.skomlach.common.misc.Utils
 class WindowBackgroundBlurring(
     private val parentView: ViewGroup
 ) {
-    private var contentView: ViewGroup? = null
+    private var contentView: View? = null
     private var v: View? = null
     private var renderEffect: RenderEffect? = null
     private var isBlurViewAttachedToHost = false
@@ -72,7 +72,8 @@ class WindowBackgroundBlurring(
     init {
         for (i in 0 until parentView.childCount) {
             val v = parentView.getChildAt(i)
-            if (v is ViewGroup) {
+            // A popup can contain a plain View rather than a nested ViewGroup.
+            if (v is ViewGroup || contentView == null) {
                 contentView = v
             }
         }

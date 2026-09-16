@@ -55,7 +55,6 @@
     <ID>CyclomaticComplexMethod:SoftwareBiometricModule.kt$SoftwareBiometricModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
     <ID>CyclomaticComplexMethod:SoterFaceUnlockModule.kt$SoterFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
     <ID>CyclomaticComplexMethod:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
-    <ID>CyclomaticComplexMethod:SupportFingerprintModule.kt$SupportFingerprintModule.AuthCallbackCompat$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence)</ID>
     <ID>CyclomaticComplexMethod:TruncatedTextFix.kt$TruncatedTextFix$@SuppressLint("InflateParams") fun recalculateTexts( builder: BiometricPromptCompat.Builder, onTruncateChecked: OnTruncateChecked )</ID>
     <ID>CyclomaticComplexMethod:WindowForegroundBlurring.kt$WindowForegroundBlurring$private fun setIconState(type: BiometricType?, iconStates: IconStates?)</ID>
     <ID>CyclomaticComplexMethod:WindowForegroundBlurring.kt$WindowForegroundBlurring$private fun updateBiometricIconsLayout()</ID>
@@ -228,7 +227,6 @@
     <ID>LibraryEntitiesShouldNotBePublic:SoftwareBiometricProvider.kt$SoftwareBiometricProvider</ID>
     <ID>LibraryEntitiesShouldNotBePublic:SoterFaceUnlockModule.kt$SoterFaceUnlockModule : AbstractBiometricModule</ID>
     <ID>LibraryEntitiesShouldNotBePublic:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule : AbstractBiometricModule</ID>
-    <ID>LibraryEntitiesShouldNotBePublic:SupportFingerprintModule.kt$SupportFingerprintModule : AbstractBiometricModule</ID>
     <ID>LibraryEntitiesShouldNotBePublic:TruncatedTextFix.kt$TruncatedTextFix$OnTruncateChecked</ID>
     <ID>LibraryEntitiesShouldNotBePublic:TruncatedTextFix.kt$TruncatedTextFix$TruncatedText</ID>
     <ID>LibraryEntitiesShouldNotBePublic:UntrustedAccessibilityFragment.kt$UntrustedAccessibilityFragment : Fragment</ID>
@@ -284,7 +282,6 @@
     <ID>LongMethod:SoftwareBiometricModule.kt$SoftwareBiometricModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
     <ID>LongMethod:SoterFaceUnlockModule.kt$SoterFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
     <ID>LongMethod:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
-    <ID>LongMethod:SupportFingerprintModule.kt$SupportFingerprintModule.AuthCallbackCompat$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence)</ID>
     <ID>LongMethod:TruncatedTextFix.kt$TruncatedTextFix$@SuppressLint("InflateParams") fun recalculateTexts( builder: BiometricPromptCompat.Builder, onTruncateChecked: OnTruncateChecked )</ID>
     <ID>LongParameterList:AbstractSoftwareBiometricManager.kt$AbstractSoftwareBiometricManager$( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
     <ID>LongParameterList:BiometricAuthState.kt$( confirmation: BiometricConfirmation, scopeTypes: Collection&lt;BiometricType&gt;, successResults: Collection&lt;AuthenticationResult&gt;, failureResults: Collection&lt;AuthenticationResult&gt; = emptySet(), canceledResults: Collection&lt;AuthenticationResult&gt; = emptySet(), terminal: Boolean )</ID>
@@ -299,7 +296,6 @@
     <ID>LongParameterList:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$( service: IBinder?, token: IBinder, receiver: IBinder?, cmd: Int, param: Int, packName: String )</ID>
     <ID>LongParameterList:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$( service: IBinder?, token: IBinder, sessionId: Long, userId: Int, receiver: IBinder?, flags: Int, packName: String, timeout: Int )</ID>
     <ID>LongParameterList:RsaPrivateKey.kt$RsaPrivateKey$( private val rsaKeyHeader: RsaKeyHeader, private val publicExponent: BigInteger, private val modulus: BigInteger, private val prime1: BigInteger, private val prime2: BigInteger, private val exponent1: BigInteger, private val exponent2: BigInteger, private val coefficient: BigInteger, private val privateExponent: BigInteger )</ID>
-    <ID>LoopWithTooManyJumpStatements:ActiveWindow.kt$ActiveWindow$for</ID>
     <ID>LoopWithTooManyJumpStatements:BiometricManagerCompat.kt$BiometricManagerCompat$while</ID>
     <ID>LoopWithTooManyJumpStatements:CryptographyManager.kt$CryptographyManager$for</ID>
     <ID>MagicNumber:API23FingerprintModule.kt$API23FingerprintModule.AuthCallback$1000</ID>
@@ -362,7 +358,6 @@
     <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FACE_SOTERAPI$206</ID>
     <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FINGERPRINT_API23$100</ID>
     <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FINGERPRINT_SOTERAPI$102</ID>
-    <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.FINGERPRINT_SUPPORT$101</ID>
     <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.IRIS_ANDROIDAPI$300</ID>
     <ID>MagicNumber:BiometricMethod.kt$BiometricMethod.IRIS_SAMSUNG$301</ID>
     <ID>MagicNumber:BiometricNotificationManager.kt$BiometricNotificationManager$26</ID>
@@ -612,7 +607,6 @@
     <ID>MagicNumber:SoftwareBiometricModule.kt$SoftwareBiometricModule.AuthCallback$1000</ID>
     <ID>MagicNumber:SoterFaceUnlockModule.kt$SoterFaceUnlockModule.AuthCallback$1000</ID>
     <ID>MagicNumber:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule.AuthCallback$1000</ID>
-    <ID>MagicNumber:SupportFingerprintModule.kt$SupportFingerprintModule.AuthCallbackCompat$1000</ID>
     <ID>MagicNumber:TruncatedTextFix.kt$TruncatedTextFix$4</ID>
     <ID>MagicNumber:TruncatedTextFix.kt$TruncatedTextFix$5</ID>
     <ID>MagicNumber:TruncatedTextFix.kt$TruncatedTextFix$7</ID>
@@ -715,8 +709,6 @@
     <ID>MaxLineLength:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
     <ID>MaxLineLength:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule$class</ID>
     <ID>MaxLineLength:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule.AuthCallback$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
-    <ID>MaxLineLength:SupportFingerprintModule.kt$SupportFingerprintModule$(if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)</ID>
-    <ID>MaxLineLength:SupportFingerprintModule.kt$SupportFingerprintModule.AuthCallbackCompat$listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))</ID>
     <ID>MaxLineLength:WideGamutBug.kt$WideGamutBug$"Do not use android:colorMode=\"wideColorGamut\" for Activity - it leads to unexpected bugs on OnePlus devices:\n"</ID>
     <ID>MayBeConst:TruncatedTextFix.kt$TruncatedTextFix$private val FINALIZED_STRING = ".."</ID>
     <ID>MayBeConst:WideGamutBug.kt$WideGamutBug$private val error: String = "WARNING!!!\n" + "Do not use android:colorMode=\"wideColorGamut\" for Activity - it leads to unexpected bugs on OnePlus devices:\n" + "https://www.reddit.com/r/redditsync/comments/9ta7df/updated_my_oneplus_6_recently_opening_images/\n" + "On OnePlus 6T stop working Fingerprint Sensor O_o"</ID>
@@ -767,7 +759,6 @@
     <ID>NestedBlockDepth:SoftwareBiometricModule.kt$SoftwareBiometricModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
     <ID>NestedBlockDepth:SoterFaceUnlockModule.kt$SoterFaceUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
     <ID>NestedBlockDepth:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
-    <ID>NestedBlockDepth:SupportFingerprintModule.kt$SupportFingerprintModule$private fun authenticateInternal( biometricCryptoObject: BiometricCryptoObject?, listener: AuthenticationListener?, restartPredicate: RestartPredicate? )</ID>
     <ID>NestedBlockDepth:WindowBackgroundBlurring.kt$WindowBackgroundBlurring$@SuppressLint("ClickableViewAccessibility") private fun setDrawable(bm: Bitmap?)</ID>
     <ID>NestedBlockDepth:WindowForegroundBlurring.kt$WindowForegroundBlurring$private fun setDrawable(bm: Bitmap?)</ID>
     <ID>NestedBlockDepth:WindowForegroundBlurring.kt$WindowForegroundBlurring$private fun setIconState(type: BiometricType?, iconStates: IconStates?)</ID>
@@ -917,11 +908,9 @@
     <ID>ReturnCount:SoftwareBiometricModule.kt$SoftwareBiometricModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
     <ID>ReturnCount:SoterFaceUnlockModule.kt$SoterFaceUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
     <ID>ReturnCount:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule.AuthCallback$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?)</ID>
-    <ID>ReturnCount:SupportFingerprintModule.kt$SupportFingerprintModule.AuthCallbackCompat$override fun onAuthenticationError(errMsgId: Int, errString: CharSequence)</ID>
     <ID>SafeCast:FaceManager.kt$FaceManager.CryptoObject$if (mCrypto is Cipher) mCrypto else null</ID>
     <ID>SafeCast:FaceManager.kt$FaceManager.CryptoObject$if (mCrypto is Mac) mCrypto else null</ID>
     <ID>SafeCast:FaceManager.kt$FaceManager.CryptoObject$if (mCrypto is Signature) mCrypto else null</ID>
-    <ID>SpreadOperator:ActiveWindow.kt$ActiveWindow$(*parents)</ID>
     <ID>SpreadOperator:BiometricPromptCompat.kt$BiometricPromptCompat.Companion$( AndroidContext.appContext, *stringIds )</ID>
     <ID>SpreadOperator:CheckBiometricUI.kt$CheckBiometricUI$(*applicationInfo.splitPublicSourceDirs ?: emptyArray())</ID>
     <ID>SpreadOperator:CheckBiometricUI.kt$CheckBiometricUI$(*applicationInfo.splitSourceDirs ?: emptyArray())</ID>
@@ -975,7 +964,6 @@
     <ID>TooGenericExceptionCaught:API23FingerprintModule.kt$API23FingerprintModule$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:AbstractBiometricModule.kt$AbstractBiometricModule$e: Exception</ID>
     <ID>TooGenericExceptionCaught:AbstractBiometricModule.kt$AbstractBiometricModule$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:ActiveWindow.kt$ActiveWindow$e: Exception</ID>
     <ID>TooGenericExceptionCaught:ActiveWindow.kt$ActiveWindow$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:AndroidFaceUnlockModule.kt$AndroidFaceUnlockModule$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:AndroidIrisUnlockModule.kt$AndroidIrisUnlockModule$e: Throwable</ID>
@@ -1061,7 +1049,6 @@
     <ID>TooGenericExceptionCaught:SoftwareBiometricPromptRegistry.kt$SoftwareBiometricPromptRegistry$t: Throwable</ID>
     <ID>TooGenericExceptionCaught:SoterFaceUnlockModule.kt$SoterFaceUnlockModule$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:SoterFingerprintUnlockModule.kt$SoterFingerprintUnlockModule$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:SupportFingerprintModule.kt$SupportFingerprintModule$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:TruncatedTextFix.kt$TruncatedTextFix$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:TruncatedTextFix.kt$TruncatedTextFix.&lt;no name provided&gt;$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:UntrustedAccessibilityFragment.kt$UntrustedAccessibilityFragment$e: Throwable</ID>

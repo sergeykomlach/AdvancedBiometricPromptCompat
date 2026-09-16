@@ -31,6 +31,8 @@ import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.internal.EnrollmentSnapshot
+import dev.skomlach.biometric.compat.engine.internal.readIntegerHardwareEnrollments
 import dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl.HihonorFaceManager
 import dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl.HihonorFaceManagerFactory
 import dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl.HihonorFaceRecognizeManager
@@ -59,6 +61,10 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         listener?.initFinished(biometricMethod, this@HihonorFaceUnlockModule)
     }
 
+
+    internal override fun createEnrollmentReader(): () -> EnrollmentSnapshot = {
+        readIntegerHardwareEnrollments { hihonorFaceManagerLegacy?.getEnrolledTemplates() }
+    }
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()

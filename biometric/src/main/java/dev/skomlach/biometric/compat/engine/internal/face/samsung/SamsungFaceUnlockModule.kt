@@ -35,6 +35,8 @@ import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.internal.EnrollmentSnapshot
+import dev.skomlach.biometric.compat.engine.internal.SamsungEnrollmentReader
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -79,7 +81,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     Context::class.java
                 ).apply {
                     isAccessible = true
-                }.invoke(context) as SemBioFaceManager
+                }.invoke(null, context) as SemBioFaceManager
             }
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
@@ -89,6 +91,9 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         listener?.initFinished(biometricMethod, this@SamsungFaceUnlockModule)
     }
+
+    internal override fun createEnrollmentReader(): () -> EnrollmentSnapshot =
+        { SamsungEnrollmentReader.face(manager) }
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()

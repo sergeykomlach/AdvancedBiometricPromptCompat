@@ -29,6 +29,9 @@ import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.internal.EnrollmentSnapshot
+import dev.skomlach.biometric.compat.engine.internal.readHardwareEnrollments
+import dev.skomlach.biometric.compat.engine.internal.hardwareEnrollmentId
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.IMiuiFaceManager
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.MiuiFaceFactory
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.Miuiface
@@ -66,6 +69,12 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         listener?.initFinished(biometricMethod, this@MiuiFaceUnlockModule)
     }
 
+
+    internal override fun createEnrollmentReader(): () -> EnrollmentSnapshot = {
+        readHardwareEnrollments({ manager?.enrolledFaces }) {
+            hardwareEnrollmentId(it.groupId, it.deviceId, it.miuifaceId)
+        }
+    }
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()

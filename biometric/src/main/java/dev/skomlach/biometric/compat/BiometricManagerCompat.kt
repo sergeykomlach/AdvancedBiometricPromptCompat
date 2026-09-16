@@ -478,8 +478,7 @@ object BiometricManagerCompat {
             BiometricMethod.FACE_ANDROIDAPI -> listOf("android.permission.USE_FACE_AUTHENTICATION")
             BiometricMethod.FACE_SAMSUNG -> listOf("com.samsung.android.bio.face.permission.USE_FACE")
             BiometricMethod.FACE_OPPO -> listOf("oppo.permission.USE_FACE")
-            BiometricMethod.FINGERPRINT_API23,
-            BiometricMethod.FINGERPRINT_SUPPORT -> listOf("android.permission.USE_FINGERPRINT")
+            BiometricMethod.FINGERPRINT_API23 -> listOf("android.permission.USE_FINGERPRINT")
             else -> emptyList()
         }
     }

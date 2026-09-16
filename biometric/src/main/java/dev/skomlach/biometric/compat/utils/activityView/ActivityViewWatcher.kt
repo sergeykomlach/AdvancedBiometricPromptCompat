@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.utils.activityView
 
+import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import dev.skomlach.biometric.compat.BiometricPromptCompat
@@ -28,13 +29,17 @@ class ActivityViewWatcher(
     private val compatBuilder: BiometricPromptCompat.Builder,
     private val forceToCloseCallback: ForceToCloseCallback
 ) {
-    private val views = ActiveWindow.getActiveWindows(compatBuilder.getActivity()).toMutableList()
+    private fun contentRoot(view: View): ViewGroup? =
+        view.findViewById<View>(Window.ID_ANDROID_CONTENT) as? ViewGroup ?: view as? ViewGroup
+
+    private val views = ActiveWindow.getActiveWindows(compatBuilder.getActivity())
+        .filter { contentRoot(it) != null }.toMutableList()
     private val activeView = ActiveWindow.getActiveWindow(views)
     private val windowForegroundBlurring: WindowForegroundBlurring? =
         if (activeView == null) null else
             WindowForegroundBlurring(
                 compatBuilder,
-                activeView.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)!!,
+                requireNotNull(contentRoot(activeView)),
                 object : ForceToCloseCallback {
                     override fun onCloseBiometric() {
                         resetListeners()
@@ -46,7 +51,7 @@ class ActivityViewWatcher(
     init {
         views.remove(activeView)
         for (view in views) {
-            backgroundBlurs.add(WindowBackgroundBlurring(view.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)!!))
+            backgroundBlurs.add(WindowBackgroundBlurring(requireNotNull(contentRoot(view))))
         }
 
     }

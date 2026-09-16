@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.utils.activityView
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -26,44 +27,21 @@ import android.content.ContextWrapper
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewParent
 import android.view.WindowManager
-import androidx.core.util.ObjectsCompat
+import android.view.inspector.WindowInspector
+import androidx.annotation.DoNotInline
+import androidx.annotation.RequiresApi
+import dev.skomlach.biometric.compat.utils.readPlatformOrLegacy
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import java.lang.reflect.Field
-import java.lang.reflect.Method
+import java.util.Collections
+import java.util.IdentityHashMap
 
 
 object ActiveWindow {
-    private var clazz: Class<*>? = null
-    private var windowManager: Any? = null
-    private var windowManagerClazz: Class<*>? = null
-    private var getViewMethod: Method? = null
-    private var rootsField: Field? = null
-    private var stoppedField: Field? = null
-
-    init {
-        try {
-            clazz = Class.forName("android.view.ViewRootImpl")
-            getViewMethod = clazz?.getMethod("getView")
-            stoppedField = clazz?.getDeclaredField("mStopped")?.apply {
-                isAccessible = true
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                windowManagerClazz = Class.forName("android.view.WindowManagerGlobal")
-                windowManagerClazz?.getMethod("getInstance")?.invoke(null)
-                    .also { windowManager = it }
-            } else {
-                windowManagerClazz = Class.forName("android.view.WindowManagerImpl")
-                windowManagerClazz?.getMethod("getDefault")?.invoke(null)
-                    .also { windowManager = it }
-            }
-            rootsField = windowManagerClazz?.getDeclaredField("mRoots")?.apply {
-                isAccessible = true
-            }
-        } catch (e: Throwable) {
-            e(e)
-        }
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private object Api29 {
+        @DoNotInline
+        fun getViews(): List<View> = WindowInspector.getGlobalWindowViews()
     }
 
     fun getActiveWindow(list: List<View>): View? {
@@ -90,32 +68,38 @@ object ActiveWindow {
         return topView
     }
 
+    @SuppressLint("NewApi")
     fun getActiveWindows(activity: Activity?): List<View> {
-        val screens = mutableListOf<View>()
-        val list = viewRoots
-        for (i in list.indices) {
-            val viewParent = list[i]
+        if (activity == null) return emptyList()
+        val roots = readPlatformOrLegacy(
+            platformAvailable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q,
+            platformRead = { Api29.getViews() },
+            legacyRead = { LegacyWindowRoots.getViews() },
+            onLinkageError = { e(it, "ActiveWindow") }
+        )
+        val decor = activity.window.peekDecorView()
+        val ownerToken = decor?.applicationWindowToken
+        val seen = Collections.newSetFromMap(IdentityHashMap<View, Boolean>())
+        // Include the directly owned window even if discovery missed it during attachment.
+        return (roots + listOfNotNull(decor)).filter { view ->
             try {
-                val view = getViewMethod?.invoke(viewParent) as View
-                val type = (view.layoutParams as WindowManager.LayoutParams).type
-                if (type >= WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW) {
-                    continue
-                }
-                if (activity == null || !viewBelongActivity(view, activity))
-                    continue
-                screens.add(view)
-            } catch (e: Throwable) {
-                e(e, "ActiveWindow.getActiveView")
+                val type = (view.layoutParams as? WindowManager.LayoutParams)?.type
+                seen.add(view) && view.isAttachedToWindow && view.windowVisibility == View.VISIBLE &&
+                        type != null && type < WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW &&
+                        ((ownerToken != null && ownerToken == view.applicationWindowToken) ||
+                                viewBelongActivity(view, activity))
+            } catch (error: Throwable) {
+                e(error, "ActiveWindow.getActiveWindows")
+                false
             }
         }
-        return screens
     }
 
     private fun viewBelongActivity(view: View?, activity: Activity): Boolean {
         if (view == null) return false
         var context: Context? = extractActivity(view.context)
         if (context == null) context = view.context
-        if (ObjectsCompat.equals(activity, context)) {
+        if (activity === context) {
             return true
         } else if (view is ViewGroup) {
             val vg = view
@@ -128,7 +112,8 @@ object ActiveWindow {
 
     private fun extractActivity(c: Context): Activity? {
         var context = c
-        while (true) {
+        val seen = Collections.newSetFromMap(IdentityHashMap<Context, Boolean>())
+        while (seen.add(context)) {
             context = when (context) {
                 is Application -> {
                     return null
@@ -152,32 +137,7 @@ object ActiveWindow {
                 }
             }
         }
+        return null
     }
-
-    // Filter out inactive view roots
-    private val viewRoots: List<ViewParent>
-        get() {
-            val viewRoots: MutableList<ViewParent> = ArrayList()
-            try {
-                val lst = rootsField?.get(windowManager)
-                val viewParents: MutableList<ViewParent> = ArrayList()
-                try {
-                    viewParents.addAll((lst as List<ViewParent>))
-                } catch (ignore: ClassCastException) {
-                    val parents = lst as Array<ViewParent>
-                    viewParents.addAll(listOf(*parents))
-                }
-                // Filter out inactive view roots
-                for (viewParent in viewParents) {
-                    val stopped = stoppedField?.get(viewParent) as Boolean
-                    if (!stopped) {
-                        viewRoots.add(viewParent)
-                    }
-                }
-            } catch (e: Exception) {
-                e(e, "ActiveWindow")
-            }
-            return viewRoots
-        }
 
 }

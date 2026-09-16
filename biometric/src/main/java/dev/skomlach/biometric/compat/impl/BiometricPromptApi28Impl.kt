@@ -28,13 +28,11 @@ import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import androidx.annotation.ColorInt
-import androidx.biometric.BiometricFragment
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
-import androidx.biometric.CancellationHelper
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricConfirmation
@@ -83,7 +81,6 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.Utils.isAtLeastR
 import dev.skomlach.common.themes.monet.SystemColorScheme
 import dev.skomlach.common.themes.monet.toArgb
-import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
@@ -106,17 +103,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     IBiometricPromptImpl, AuthCallback {
     companion object {
         private const val PROMPT_CRYPTO_KEY = "BiometricPromptCompat"
-        private val biometricFragmentMethod: Method? by lazy {
-            runCatching {
-                BiometricPrompt::class.java.declaredMethods.first {
-                    it.parameterTypes.size == 1 &&
-                            it.parameterTypes[0] == FragmentManager::class.java &&
-                            it.returnType == BiometricFragment::class.java
-                }.apply {
-                    isAccessible = true
-                }
-            }.getOrNull()
-        }
     }
 
     @Volatile private var legacySessionOwner = Any()
@@ -204,6 +190,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             return promptInfoBuilder.build()
         }
     private var biometricPrompt: BiometricPrompt? = null
+    private var biometricPromptHost: FragmentActivity? = null
     private var restartPredicate = defaultPredicate()
     private var dialog: BiometricPromptCompatDialogImpl? = null
     private var callback: BiometricPromptCompat.AuthenticationCallback? = null
@@ -216,9 +203,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private val authFinished: MutableMap<BiometricType?, AuthResult> =
         HashMap<BiometricType?, AuthResult>()
 
-    @SuppressLint("RestrictedApi")
-    private var biometricFragment: AtomicReference<BiometricFragment?> =
-        AtomicReference<BiometricFragment?>(null)
+    private var systemPromptCancellation: AndroidXPromptCancellation? = null
     private val fmAuthCallback: LegacyBiometricAuthenticationListener =
         LegacyBiometricAuthenticationCallbackImpl()
     private var sessionLegacyAuthCallback: LegacyBiometricAuthenticationListener? = null
@@ -460,8 +445,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun authenticate(cbk: BiometricPromptCompat.AuthenticationCallback?) {
         d("BiometricPromptApi28Impl.authenticate():")
+        val previousCancellation = systemPromptCancellation
+        systemPromptCancellation = null
         legacySessionOwner = Any()
         authSessionToken = authSessionState.begin()
+        previousCancellation?.cancel()
         feedbackThrottle.reset()
         callbackDispatchSessionToken.set(-1L)
         authErrorTimestamp.set(0L)
@@ -469,7 +457,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         sessionLegacyAuthCallback = guardedLegacyAuthCallback(authSessionToken)
         this.restartPredicate = defaultPredicate()
         this.authFinished.clear()
-        this.biometricFragment.set(null)
         this.systemPromptStarted.set(false)
         this.hardwareConfirmation = null
         availableTypesAtStart = builder.getAllAvailableTypes().toSet()
@@ -494,7 +481,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }.toSet())
             return
         }
-        biometricPrompt = builder.getActivity()?.let { activity ->
+        val activity = builder.getActivity()
+        biometricPromptHost = activity
+        biometricPrompt = activity?.let {
             BiometricPrompt(
                 activity,
                 ExecutorHelper.executor,
@@ -542,6 +531,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             try {
                 stopAuth()
             } finally {
+                biometricPrompt = null
+                biometricPromptHost = null
                 closingDialog?.dismissDialog()
             }
         }
@@ -725,6 +716,31 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private fun showSystemUi(biometricPrompt: BiometricPrompt) {
         try {
             d("BiometricPromptApi28Impl.showSystemUi() $biometricPrompt")
+            // Use the host that owns this AndroidX prompt, never a newly resumed Activity.
+            val activity = biometricPromptHost
+            if (activity == null || activity.isDestroyed || activity.isFinishing ||
+                activity.supportFragmentManager.isStateSaved
+            ) {
+                callback?.onFailed(builder.getAllAvailableTypes().map {
+                    AuthenticationResult(
+                        it,
+                        reason = AuthenticationFailureReason.INTERNAL_ERROR,
+                        description = if (activity?.supportFragmentManager?.isStateSaved == true) {
+                            biometricStartAuthenticationDescription()
+                        } else {
+                            biometricActivityDestroyedDescription()
+                        }
+                    )
+                }.toSet())
+                return
+            }
+            val sessionToken = authSessionToken
+            if (systemPromptCancellation == null) {
+                systemPromptCancellation = AndroidXPromptCancellation(
+                    activity.supportFragmentManager, biometricPrompt
+                ) { authSessionState.owns(sessionToken) }
+            }
+            systemPromptCancellation?.observe()
             var biometricCryptoObject: BiometricCryptoObject? = null
             var isAppFlowCrypto = false
             builder.getCryptographyPurpose()?.let {
@@ -796,31 +812,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 biometricPrompt.authenticate(biometricPromptInfo)
                 systemPromptStarted.set(true)
             }
-            ExecutorHelper.startOnBackground {
-                //fallback - sometimes we are not able to cancel BiometricPrompt properly
-                try {
-                    try {
-                        biometricFragment.set(
-                            biometricFragmentMethod?.invoke(
-                                null,
-                                builder.getActivity()?.supportFragmentManager
-                            ) as BiometricFragment?
-                        )
-                    } finally {
-                        if (biometricFragment.get() == null) {
-                            callback?.onFailed(builder.getAllAvailableTypes().map {
-                                AuthenticationResult(
-                                    it,
-                                    reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                                    description = biometricActivityDestroyedDescription()
-                                )
-                            }.toSet())
-                        }
-                    }
-                } catch (e: Throwable) {
-                    e(e)
-                }
-            }
         } catch (e: BiometricCryptoException) {
             e(e)
             callback?.onFailed(builder.getAllAvailableTypes().map {
@@ -846,12 +837,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         legacySessionOwner = Any()
         e("BiometricPromptApi28Impl.stopAuth():")
         LegacyBiometric.cancelAuthentication()
-        biometricFragment.get()?.let {
-            CancellationHelper.forceCancel(it)
-        } ?: run {
+        val cancellation = systemPromptCancellation
+        systemPromptCancellation = null
+        if (cancellation != null) {
+            cancellation.cancel()
+        } else {
             biometricPrompt?.cancelAuthentication()
         }
-        biometricFragment.set(null)
     }
 
     override fun cancelAuth() {

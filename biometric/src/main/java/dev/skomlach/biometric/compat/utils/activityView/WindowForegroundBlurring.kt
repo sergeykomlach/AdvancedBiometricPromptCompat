@@ -55,7 +55,7 @@ class WindowForegroundBlurring(
     private val forceToCloseCallback: ActivityViewWatcher.ForceToCloseCallback
 ) : IconStateHelper.IconStateListener {
     private val context = compatBuilder.getContext()
-    private var contentView: ViewGroup? = null
+    private var contentView: View? = null
     private var v: View? = null
     private var renderEffect: RenderEffect? = null
     private val blurCaptureLatch = BlurCaptureLatch(minCaptureIntervalMillis = 50L)
@@ -135,7 +135,8 @@ class WindowForegroundBlurring(
 
         for (i in 0 until parentView.childCount) {
             val v = parentView.getChildAt(i)
-            if (v is ViewGroup) {
+            // A popup can contain a plain View rather than a nested ViewGroup.
+            if (v is ViewGroup || contentView == null) {
                 contentView = v
             }
         }

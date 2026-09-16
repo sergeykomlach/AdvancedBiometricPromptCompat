@@ -45,8 +45,8 @@ object FeatureParser {
 
     fun getBoolean(s: String?, def: Boolean): Boolean {
         return try {
-            clazz?.getMethod("getBoolean", Boolean::class.javaPrimitiveType)
-                ?.invoke(null, s) as Boolean
+            clazz?.getMethod("getBoolean", String::class.java, Boolean::class.javaPrimitiveType)
+                ?.invoke(null, s, def) as? Boolean ?: def
         } catch (e: Throwable) {
             e(e)
             def

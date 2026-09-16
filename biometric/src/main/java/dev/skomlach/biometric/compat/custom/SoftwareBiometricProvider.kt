@@ -22,6 +22,21 @@ package dev.skomlach.biometric.compat.custom
 import android.content.Context
 
 abstract class SoftwareBiometricProvider {
+    /**
+     * Stable module ID, unique across installed software and hardware modules.
+     * It namespaces enrollment snapshots and cryptographic keys, so never derive it from a
+     * runtime class name or change it after release. When upgrading an existing provider,
+     * retain its previously shipped ID to keep access to its stored state.
+     *
+     * Null preserves the legacy manager-class-name hash for providers built against the old API.
+     * New providers should override this with a fixed value; duplicate IDs are rejected.
+     */
+    open val moduleId: Int? = null
+
+    // Resolve the class name lazily: providers with an explicit ID never use this legacy path.
+    internal fun resolveModuleId(legacyManagerClassName: () -> String): Int =
+        moduleId ?: legacyManagerClassName().hashCode()
+
     /** Higher values win when multiple prompt factories target one modality. */
     open val promptFactoryPriority: Int = 0
 

@@ -116,7 +116,6 @@
     <ID>LoopWithTooManyJumpStatements:ConnectionStateListener.kt$ConnectionStateListener$for</ID>
     <ID>LoopWithTooManyJumpStatements:PermissionUtils.kt$PermissionUtils$for</ID>
     <ID>LoopWithTooManyJumpStatements:StatusBarIconsDarkMode.kt$StatusBarIconsDarkMode$for</ID>
-    <ID>MagicNumber:AndroidContext.kt$AndroidContext$448</ID>
     <ID>MagicNumber:AppOpCompatConstants.kt$AppOpCompatConstants$23</ID>
     <ID>MagicNumber:BlurUtil.kt$BlurUtil$26</ID>
     <ID>MagicNumber:BlurUtil.kt$BlurUtil$29</ID>

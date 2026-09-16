@@ -26,23 +26,18 @@ import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Bundle
-import android.os.Looper
+import android.system.ErrnoException
+import android.system.Os
+import android.system.OsConstants
 import androidx.lifecycle.MutableLiveData
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.LocaleHelper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.lang.reflect.Method
-import java.lang.ref.Reference
-import java.lang.ref.SoftReference
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantLock
-
 
 object AndroidContext {
     private val currentApplicationMethod: Method? by lazy {
@@ -57,258 +52,160 @@ object AndroidContext {
                 .getMethod("getInitialApplication")
         }.getOrNull()
     }
-    private val setPermissionsMethod: Method? by lazy {
-        runCatching {
-            Class.forName("android.os.FileUtils")
-                .getMethod(
-                    "setPermissions",
-                    String::class.java,
-                    Int::class.javaPrimitiveType,
-                    Int::class.javaPrimitiveType,
-                    Int::class.javaPrimitiveType
-                )
-        }.getOrNull()
-    }
-    private val _resumedActivityLiveData = MutableLiveData<Reference<Activity?>>()
+
+    private val resumedActivities = ResumedActivityState<Activity>()
     val resumedActivityLiveData = MutableLiveData<Activity?>()
     private val configurationRelay = AtomicReference<Configuration?>(null)
     private val configurationMutableLiveData = MutableLiveData<Unit>(null)
     val configurationLiveData = configurationMutableLiveData
+    private val dirAccessFixStarted = AtomicBoolean(false)
 
-    init {
-        ExecutorHelper.post {
-            try {
-                _resumedActivityLiveData.observeForever {
-                    resumedActivityLiveData.postValue(it.get())
-                }
-            } catch (_: Throwable) {
+    private val componentCallbacks = object : ComponentCallbacks {
+        override fun onConfigurationChanged(newConfig: Configuration) {
+            updateConfiguration(newConfig)
+        }
 
-            }
+        override fun onLowMemory() {}
+    }
+    private val activityCallbacks = object : Application.ActivityLifecycleCallbacks {
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+            updateConfiguration(activity.resources.configuration)
+        }
+
+        override fun onActivityStarted(activity: Activity) {}
+
+        override fun onActivityResumed(activity: Activity) {
+            resumedActivities.resume(activity)
+            publishResumedActivity()
+            updateConfiguration(activity.resources.configuration)
+        }
+
+        override fun onActivityPaused(activity: Activity) {
+            removeResumedActivity(activity)
+        }
+
+        override fun onActivityStopped(activity: Activity) {
+            removeResumedActivity(activity)
+        }
+
+        override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+
+        override fun onActivityDestroyed(activity: Activity) {
+            removeResumedActivity(activity)
         }
     }
+
+    // Accessed only by ApplicationReference's serialized initialization callback.
+    private var componentCallbacksRegistered = false
+    private var activityCallbacksRegistered = false
+    private val applicationReference = ApplicationReference(
+        resolve = ::getApplicationContext,
+        onAvailable = ::registerApplicationCallbacks,
+        onError = { LogCat.logException(it, "AndroidContext") }
+    )
 
     val activity: Activity?
-        get() = try {
-            _resumedActivityLiveData.value?.get()
-        } catch (e: Throwable) {
-            null
-        }
-    private val lock = ReentrantLock()
-    private var appRef = AtomicReference<Reference<Application?>?>(null)
-    private val dirAccessFixStarted = AtomicBoolean(false)
-    private fun getContextRef(): Context? = appRef.get()?.get()
+        get() = resumedActivities.current
 
     var appConfiguration: Configuration? = null
-        get() {
-            return configurationRelay.get() ?: appContext.resources.configuration
-        }
-        private set
-    var systemConfiguration: Configuration? = null
-        get() {
-            return Resources.getSystem().configuration
-        }
+        get() = configurationRelay.get() ?: appContext.resources.configuration
         private set
 
-    val appInstance: Application? = appRef.get()?.get()
+    var systemConfiguration: Configuration? = null
+        get() = Resources.getSystem().configuration
+        private set
+
+    val appInstance: Application?
+        get() = applicationReference.getOrNull()?.also(::scheduleDirAccessFix)
 
     val appContext: Context
-        get() {
-            getContextRef()?.let {
-                scheduleDirAccessFix(it)
-                return it
-            }
-            if (Looper.getMainLooper().thread === Thread.currentThread()) {
-                ensureApplicationReference()
-            } else {
-                runBlocking {
-                    withContext(Dispatchers.Main) {
-                        ensureApplicationReference()
-                    }
-                }
-            }
-            getContextRef()?.let {
-                scheduleDirAccessFix(it)
-                return it
-            }
-            throw RuntimeException("Application is NULL")
-        }
+        get() = appInstance ?: throw RuntimeException("Application is NULL")
 
     val appLocale: Locale
-        get() {
-            return LocaleHelper.getDefault(appContext)
-        }
+        get() = LocaleHelper.getDefault(appContext)
+
     val systemLocale: Locale
-        get() {
-            return LocaleHelper.systemLocale(appContext)
-        }
+        get() = LocaleHelper.systemLocale(appContext)
 
     private fun getApplicationContext(): Application? {
-        return try {
-            currentApplicationMethod?.invoke(null) as Application
-        } catch (ignored: Throwable) {
-            try {
-                initialApplicationMethod?.invoke(null) as Application
-            } catch (e: Throwable) {
-                null
-            }
+        return runCatching {
+            currentApplicationMethod?.invoke(null) as? Application
+        }.getOrNull() ?: runCatching {
+            initialApplicationMethod?.invoke(null) as? Application
+        }.getOrNull()
+    }
+
+    private fun registerApplicationCallbacks(application: Application) {
+        // Application synchronizes both registration APIs. Register on the caller's thread:
+        // waiting for Main here can deadlock the first access during object initialization.
+        // Keep each step idempotent if a later step fails and the next access retries it.
+        if (!componentCallbacksRegistered) {
+            application.registerComponentCallbacks(componentCallbacks)
+            componentCallbacksRegistered = true
+        }
+        if (!activityCallbacksRegistered) {
+            application.registerActivityLifecycleCallbacks(activityCallbacks)
+            activityCallbacksRegistered = true
+        }
+        updateConfiguration(application.resources.configuration)
+    }
+
+    private fun updateConfiguration(configuration: Configuration) {
+        val snapshot = Configuration(configuration)
+        val previous = configurationRelay.getAndSet(snapshot)
+        if (previous == null || previous.diff(snapshot) != 0) {
+            configurationMutableLiveData.postValue(Unit)
         }
     }
 
-    private fun updateApplicationReference() {
-        if (Looper.getMainLooper().thread !== Thread.currentThread())
-            throw IllegalThreadStateException("Main thread required for correct init")
-        appRef.set(
-            SoftReference<Application?>(
-                getApplicationContext()?.also {
-                    it.resources.configuration?.let {
-                        configurationRelay.set(Configuration(it))
-                        configurationMutableLiveData.postValue(Unit)
-                    }
-
-                    it.registerComponentCallbacks(object : ComponentCallbacks {
-                        override fun onConfigurationChanged(newConfig: Configuration) {
-                            LogCat.logError("AndroidContext", "onConfigurationChanged $newConfig")
-                            if (configurationRelay.get() != null &&
-                                configurationRelay.get()?.diff(newConfig) == 0
-                            ) return
-                            else {
-                                configurationRelay.set(Configuration(newConfig ?: return))
-                                configurationMutableLiveData.postValue(Unit)
-                            }
-                        }
-
-                        override fun onLowMemory() {}
-                    })
-                    it.registerActivityLifecycleCallbacks(object :
-                        Application.ActivityLifecycleCallbacks {
-                        override fun onActivityCreated(
-                            activity: Activity,
-                            savedInstanceState: Bundle?
-                        ) {
-                            LogCat.logError(
-                                "AndroidContext",
-                                "onConfigurationChanged ${activity.resources.configuration}"
-                            )
-                            if (configurationRelay.get() != null &&
-                                configurationRelay.get()
-                                    ?.diff(activity.resources.configuration) == 0
-                            ) return
-                            else {
-                                configurationRelay.set(
-                                    Configuration(
-                                        activity.resources.configuration ?: return
-                                    )
-                                )
-                                configurationMutableLiveData.postValue(Unit)
-                            }
-                        }
-
-                        override fun onActivityStarted(activity: Activity) {}
-                        override fun onActivityResumed(activity: Activity) {
-                            _resumedActivityLiveData.postValue(SoftReference(activity))
-                            if (configurationRelay.get() != null &&
-                                configurationRelay.get()
-                                    ?.diff(activity.resources.configuration) == 0
-                            ) return
-                            else {
-                                configurationRelay.set(
-                                    Configuration(
-                                        activity.resources.configuration ?: return
-                                    )
-                                )
-                                configurationMutableLiveData.postValue(Unit)
-                            }
-
-                        }
-
-                        override fun onActivityPaused(activity: Activity) {
-                            if (activity !== resumedActivityLiveData.value) {
-                                LogCat.logError(
-                                    "AndroidContext", "Another activity already resumed"
-                                )
-                            } else {
-                                _resumedActivityLiveData.postValue(SoftReference(null))
-                            }
-                            LogCat.logError(
-                                "AndroidContext",
-                                "onActivityPaused: ${activity.javaClass.simpleName}"
-                            )
-                        }
-
-                        override fun onActivityStopped(activity: Activity) {}
-                        override fun onActivitySaveInstanceState(
-                            activity: Activity,
-                            outState: Bundle
-                        ) {
-                        }
-
-                        override fun onActivityDestroyed(activity: Activity) {
-                        }
-                    })
-                }
-            )
-        )
+    private fun removeResumedActivity(activity: Activity) {
+        resumedActivities.remove(activity)
+        publishResumedActivity()
     }
 
-    private fun ensureApplicationReference() {
-        if (getContextRef() != null)
-            return
-        try {
-            lock.runCatching { this.lock() }
-            if (getContextRef() == null)
-                updateApplicationReference()
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
+    private fun publishResumedActivity() {
+        // Application delivers lifecycle callbacks on Main. Publish synchronously so a
+        // rapid resume/pause cannot leave LiveData holding an already paused Activity.
+        val current = resumedActivities.current
+        if (resumedActivityLiveData.value !== current) {
+            resumedActivityLiveData.value = current
         }
     }
 
     private fun scheduleDirAccessFix(context: Context) {
         if (dirAccessFixStarted.compareAndSet(false, true)) {
-            ExecutorHelper.startOnBackground {
-                fixDirAccess(context)
+            try {
+                ExecutorHelper.startOnBackground {
+                    fixDirAccess(context)
+                }
+            } catch (error: Throwable) {
+                dirAccessFixStarted.set(false)
+                LogCat.logException(error, "AndroidContext")
             }
         }
     }
 
-    //Solution from
-    //https://github.com/google/google-authenticator-android/
     private fun fixDirAccess(context: Context) {
-        // Try to restrict data dir file permissions to owner (this app's UID) only. This mitigates the
-        // security vulnerability where SQLite database transaction journals are world-readable.
-        // See CVE-2011-3901 advisory for more information.
-        // NOTE: This also prevents all files in the data dir from being world-accessible, which is fine
-        // because this application does not need world-accessible files.
+        // Retain the owner-only data directory protection (0700) without hidden FileUtils.
         try {
             restrictAccessToOwnerOnly(context.applicationInfo.dataDir)
-        } catch (e: Throwable) {
-            // Ignore this exception and don't log anything to avoid attracting attention to this fix
+        } catch (_: Throwable) {
+            // Preserve the existing best-effort behavior on filesystems that reject chmod.
         }
     }
 
-    /**
-     * Restricts the file permissions of the provided path so that only the owner (UID)
-     * can access it.
-     */
     @Throws(IOException::class)
     private fun restrictAccessToOwnerOnly(path: String) {
-        // IMPLEMENTATION NOTE: The code below simply invokes the hidden API
-        // android.os.FileUtils.setPermissions(path, 0700, -1, -1) via Reflection.
-        val errorCode: Int = try {
-            setPermissionsMethod?.invoke(null, path, 448, -1, -1) as Int
-        } catch (e: Exception) {
-            // Can't chain exception because IOException doesn't have the right constructor on Froyo
-            // and below
-            throw IOException("Failed to set permissions: $e")
-        }
-        if (errorCode != 0) {
-            throw IOException("setPermissions failed with error code $errorCode")
+        try {
+            Os.chmod(path, OsConstants.S_IRWXU)
+        } catch (error: ErrnoException) {
+            throw IOException("Failed to restrict data directory permissions", error)
         }
     }
 
     init {
-        val context = appContext
-        LogCat.logError("Pkg ${context.packageName}")
+        // A very early access must not poison this singleton if Application is not ready yet.
+        // appContext/appInstance will retry discovery on the next access.
+        appInstance?.let { LogCat.logError("Pkg ${it.packageName}") }
     }
 }

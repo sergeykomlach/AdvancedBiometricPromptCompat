@@ -33,23 +33,19 @@ import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.HexUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
-import java.nio.charset.Charset
 import java.lang.reflect.Method
-import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
 abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule {
     companion object {
         private const val ENROLLED_PREF = "enrolled_"
+        private val enrollmentStores = ConcurrentHashMap<Int, EnrollmentBaselineStore>()
         internal var DEBUG_MANAGERS = false
-        private val managerEnrollmentMethods = ConcurrentHashMap<Class<*>, List<Method>>()
-        private val uniqueIdMethods = ConcurrentHashMap<Class<*>, Set<Method>>()
         private val myUserIdMethod: Method? by lazy {
             runCatching {
-                UserHandle::class.java.methods.firstOrNull { it.name == "myUserId" }
+                UserHandle::class.java.getMethod("myUserId")
             }.getOrNull()
         }
     }
@@ -120,200 +116,42 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
 
     abstract fun getManagers(): Set<Any>
 
-    @Deprecated("Starts from Android 9 for security reasons method unable to check biometric enroll change")
-    override val isBiometricEnrollChanged: Boolean
-        get() {
-            val lastKnown = preferences.getStringSet(
-                ENROLLED_PREF + tag(),
-                null
+    // Legacy external modules retain their contract through an isolated compatibility reader.
+    internal open fun createEnrollmentReader(): () -> EnrollmentSnapshot =
+        { LegacyEnrollmentReader.read(getManagers()) }
+
+    private val enrollmentTracker by lazy {
+        createEnrollmentReader().let { reader ->
+            val prefs = preferences
+            val key = "enrolled_v2_" + tag()
+            val store = enrollmentStores.getOrPut(tag()) {
+                EnrollmentBaselineStore(
+                    readValue = {
+                        if (prefs.contains(key)) decodeEnrollmentBaseline(prefs.getString(key, null)) else null
+                    },
+                    commitValue = { prefs.edit().putString(key, encodeEnrollmentBaseline(it)).commit() }
+                )
+            }
+            EnrollmentChangeTracker(
+                readSnapshot = reader,
+                readBaseline = store::read,
+                readLegacyBaseline = { prefs.getStringSet(ENROLLED_PREF + tag(), null)?.toSet() },
+                writeBaseline = store::write,
+                onError = { if (DEBUG_MANAGERS) e(it, "Hardware enrollment snapshot unavailable") }
             )
-            if (lastKnown == null) {
-                updateBiometricEnrollChanged()
-                return false
-            }
-            return getHashes().toMutableList().apply {
-                removeAll(lastKnown)
-            }.isNotEmpty()
-        }
-
-    fun updateBiometricEnrollChanged() {
-        preferences.edit().putStringSet(ENROLLED_PREF + tag(), getHashes()).apply()
-    }
-
-    private fun getIds(manager: Any): List<String> {
-        val ids = ArrayList<String?>()
-        try {
-            val methods = managerEnrollmentMethods.getOrPut(manager.javaClass) {
-                val clazz = manager.javaClass
-                clazz.declaredMethods.filter {
-                    (it.name.contains(
-                        "enrolled",
-                        ignoreCase = true
-                    ) || it.name.contains(
-                        "registered",
-                        ignoreCase = true
-                    )) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()
-                }.onEach { method ->
-                    if (!method.isAccessible) {
-                        method.isAccessible = true
-                    }
-                }
-            }
-            methods.forEach { method ->
-                method.invoke(manager)?.let { result ->
-                    when (result) {
-                        is List<*> -> {
-                            for (i in result) {
-                                i?.let {
-                                    ids.add(getUniqueId(it))
-                                }
-                            }
-                        }
-
-                        is Collection<*> -> {
-                            for (i in result) {
-                                i?.let {
-                                    ids.add(getUniqueId(it))
-                                }
-                            }
-                        }
-
-                        is IntArray -> {
-                            for (i in result) {
-                                e("$name: Int ids $i")
-                                ids.add(getUniqueId(i))
-                            }
-                        }
-
-                        is LongArray -> {
-                            for (i in result) {
-                                e("$name: Long ids $i")
-                                ids.add(getUniqueId(i))
-                            }
-                        }
-
-                        is Array<*> -> {
-                            for (i in result)
-                                i?.let {
-                                    ids.add(getUniqueId(it))
-                                }
-                        }
-
-                        else -> {
-                            ids.add(getUniqueId(result))
-                        }
-                    }
-                }
-                if (ids.filterNotNull().isNotEmpty()) return ids.filterNotNull()
-            }
-        } catch (e: Throwable) {
-            if (DEBUG_MANAGERS)
-                e("$name", e)
-        }
-        return emptyList()
-    }
-
-    private fun uniqueIdMethods(result: Any): Set<Method> {
-        return uniqueIdMethods.getOrPut(result.javaClass) {
-            val clazz = result.javaClass
-            val methods = clazz.declaredMethods.filter {
-                (it.name.endsWith(
-                    "id",
-                    ignoreCase = true
-                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()) || (it.name.endsWith(
-                    "name",
-                    ignoreCase = true
-                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty())
-            }.toMutableList()
-            clazz.superclass?.declaredMethods?.filterTo(methods) {
-                (it.name.endsWith(
-                    "id",
-                    ignoreCase = true
-                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()) || (it.name.endsWith(
-                    "name",
-                    ignoreCase = true
-                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty())
-            }
-            methods.onEach { method ->
-                if (!method.isAccessible) {
-                    method.isAccessible = true
-                }
-            }.toSet()
         }
     }
 
-    @Deprecated("Starts from Android 9 method return empty list due to Reflection restrictions")
-    private fun getHashes(): Set<String> {
-        val hashes = HashSet<String>()
-        getManagers().let {
-            val ids = ArrayList<String>()
-            for (manager in it) {
-                ids.addAll(getIds(manager))
-            }
-            val temp = HashSet<String>()
-            val countMatches = HashMap<String, Int>()
-            for (i in ids) {
-                countMatches[i] = countMatches[i]?.plus(1) ?: 0
-            }
-            for (key in countMatches.keys) {
-                val matches = countMatches[key] ?: 0
-                if (matches == 0) {
-                    temp.add(key)
-                } else {
-                    for (value in 0..matches) {
-                        temp.add("$key; index=$value")
-                    }
-                }
-            }
-
-
-            for (id in temp) {
-                digestEnrollmentId(id)?.let { hash ->
-                    hashes.add(hash)
-                }
-            }
+    @Deprecated("Enumeration may be unavailable; use system key invalidation for hardware protection")
+    override val isBiometricEnrollChanged: Boolean
+        get() = when (enrollmentTracker.check()) {
+            EnrollmentChange.CHANGED -> true
+            EnrollmentChange.UNCHANGED -> false
+            EnrollmentChange.UNAVAILABLE, EnrollmentChange.UNSUPPORTED -> enrollmentTracker.lastConfirmedChange
         }
 
-        return hashes
-    }
-
-    private fun getUniqueId(result: Any): String? {
-        if (result is Int)
-            return "$result"
-        if (result is Long)
-            return "$result"
-        if (result is String)
-            return result
-
-        try {
-            val stringBuilder = StringBuilder()
-            for (f in uniqueIdMethods(result)) {
-                val value = f.invoke(result) ?: continue
-                if (stringBuilder.isEmpty())
-                    stringBuilder.append(result.javaClass.simpleName).append("; ")
-                stringBuilder.append(f.name).append("=")
-                    .append(value).append("; ")
-            }
-            val s = stringBuilder.toString().trim()
-            if (s.isNotEmpty())
-                return s
-        } catch (e: Throwable) {
-            if (DEBUG_MANAGERS)
-                e("$name", e)
-        }
-        return null
-    }
-
-    private fun digestEnrollmentId(s: String): String? {
-        try {
-            val digest = MessageDigest.getInstance("SHA-256")
-            digest.reset()
-            digest.update(s.toByteArray(Charset.forName("UTF-8")))
-            return HexUtils.bytesToHex(digest.digest())
-        } catch (e: Exception) {
-
-        }
-        return null
+    open fun updateBiometricEnrollChanged() {
+        enrollmentTracker.acknowledge()
     }
 
     protected fun restartCauseTimeout(reason: AuthenticationFailureReason?): Boolean {

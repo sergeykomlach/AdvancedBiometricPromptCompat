@@ -7,6 +7,14 @@ import org.junit.Test
 
 class VoiceProviderTest {
     @Test
+    fun moduleIdPreservesPreviouslyStoredState() {
+        // Literal historical name: a future class rename must not change the persisted namespace.
+        val previousId = "dev.skomlach.biometric.compat.engine.internal.voice.VoiceBiometricManager".hashCode()
+
+        assertEquals(previousId, VoiceProvider().moduleId)
+    }
+
+    @Test
     fun voiceProviderExposesVoicePromptFactory() {
         val factory = VoiceProvider().getPromptFactory()
 

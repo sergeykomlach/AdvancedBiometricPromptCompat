@@ -24,6 +24,7 @@ import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.face.FaceLandmark
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssurance
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
@@ -517,7 +518,13 @@ class TensorFlowFaceUnlockManager(
         }
     }
 
-    override fun getEnrolls(): Collection<String> = detector?.getEnrolls() ?: emptyList()
+    override fun getEnrolls(): Collection<String> = readStoredFaceEnrollmentIds(
+        getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
+            .getString(REGISTERED_TEMPLATES_PREF_KEY, null)
+    )
+
+    override fun getEnrollmentSnapshot(): SoftwareBiometricEnrollment =
+        SoftwareBiometricEnrollment.read { getEnrolls() }
 
     override fun authenticate(
         crypto: CryptoObject?,

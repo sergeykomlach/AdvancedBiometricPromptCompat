@@ -35,19 +35,8 @@ import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.protection.A11yDetection
-import java.lang.reflect.Field
 
 object ScreenProtection {
-    private val accessibilityDelegateField: Field? by lazy {
-        runCatching {
-            View::class.java.getDeclaredField("mAccessibilityDelegate").apply {
-                if (!isAccessible) {
-                    isAccessible = true
-                }
-            }
-        }.getOrNull()
-    }
-
     private data class ProtectedViewState(
         val importantForAccessibility: Int,
         val importantForAutofill: Int?,
@@ -159,7 +148,7 @@ object ScreenProtection {
 
         if (includeHostActivity && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             runCatching {
-                (window.context as? Activity)?.setRecentsScreenshotEnabled(disableWindow)
+                (window.context as? Activity)?.setRecentsScreenshotEnabled(!disableWindow)
             }.onFailure { error ->
                 BiometricLoggerImpl.e("ScreenProtection", error)
             }
@@ -281,7 +270,7 @@ object ScreenProtection {
             } else {
                 null
             },
-            originalAccessibilityDelegate = getCurrentAccessibilityDelegateCompat(view),
+            originalAccessibilityDelegate = AccessibilityDelegateAccess.get(view),
             accessibilityDataSensitive = invokeAccessibilityDataSensitiveApiOrNull(
                 supportsAccessibilityDataSensitiveApi()
             ) {
@@ -290,15 +279,6 @@ object ScreenProtection {
         )
 
         view.setTag(R.id.bio_tag_screen_protection_state, state)
-    }
-
-    @Suppress("DiscouragedPrivateApi", "PrivateApi")
-    private fun getCurrentAccessibilityDelegateCompat(view: View): View.AccessibilityDelegate? {
-        return try {
-            accessibilityDelegateField?.get(view) as? View.AccessibilityDelegate
-        } catch (_: Throwable) {
-            null
-        }
     }
 }
 

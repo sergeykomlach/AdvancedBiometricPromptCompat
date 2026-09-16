@@ -25,42 +25,18 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.translate.LocalizationHelper
-import java.lang.reflect.Field
 
-@SuppressLint("StaticFieldLeak", "PrivateApi")
+@SuppressLint("StaticFieldLeak")
 object MiuiCodeToString {
 
-    private var stringArrayFields: Array<Field>? = null
-
-
-    init {
-        try {
-            stringArrayFields = Class.forName("com.android.internal.R\$array").declaredFields
-        } catch (e: Throwable) {
-            e(e)
-        }
-    }
-
-
-    private fun getStringArray(s: String): Array<String>? {
-        stringArrayFields?.let {
-            try {
-                for (field in it) {
-                    if (s == field.name) {
-                        val isAccessible = field.isAccessible
-                        return try {
-                            if (!isAccessible) field.isAccessible = true
-                            AndroidContext.appContext.resources.getStringArray(field[null] as Int)
-                        } finally {
-                            if (!isAccessible) field.isAccessible = false
-                        }
-                    }
-                }
-            } catch (e: Throwable) {
-                e(e)
-            }
-        }
-        return null
+    @SuppressLint("DiscouragedApi")
+    private fun getStringArray(name: String): Array<String>? = try {
+        val resources = AndroidContext.appContext.resources
+        val id = resources.getIdentifier(name, "array", "android")
+        if (id == 0) null else resources.getStringArray(id)
+    } catch (error: Exception) {
+        e(error)
+        null
     }
 
     fun getErrorString(errMsg: Int, vendorCode: Int): String? {
@@ -99,7 +75,7 @@ object MiuiCodeToString {
             8 -> {
                 try {
                     val msgArray = getStringArray("face_error_vendor")
-                    if (msgArray != null && vendorCode < msgArray.size) {
+                    if (msgArray != null && vendorCode in msgArray.indices) {
                         return msgArray[vendorCode]
                     }
                 } catch (_: Exception) {
@@ -247,7 +223,7 @@ object MiuiCodeToString {
             22 -> {
                 try {
                     val msgArray = getStringArray("face_acquired_vendor")
-                    if (msgArray != null && vendorCode < msgArray.size) {
+                    if (msgArray != null && vendorCode in msgArray.indices) {
                         return msgArray[vendorCode]
                     }
                 } catch (_: Exception) {

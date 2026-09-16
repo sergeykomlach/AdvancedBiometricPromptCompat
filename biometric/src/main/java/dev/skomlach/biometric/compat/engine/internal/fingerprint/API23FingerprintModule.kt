@@ -33,6 +33,8 @@ import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.internal.EnrollmentSnapshot
+import dev.skomlach.biometric.compat.engine.internal.FingerprintEnrollmentReader
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -72,6 +74,9 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
 
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = true
+    internal override fun createEnrollmentReader(): () -> EnrollmentSnapshot =
+        { FingerprintEnrollmentReader.read(manager) }
+
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         manager?.let {

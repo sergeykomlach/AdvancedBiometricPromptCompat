@@ -7,6 +7,14 @@ import org.junit.Test
 
 class BehaviorProviderTest {
     @Test
+    fun moduleIdPreservesPreviouslyStoredState() {
+        // Literal historical name: a future class rename must not change the persisted namespace.
+        val previousId = "dev.skomlach.biometric.compat.engine.internal.behavior.BehaviorBiometricManager".hashCode()
+
+        assertEquals(previousId, BehaviorProvider().moduleId)
+    }
+
+    @Test
     fun exposesBehaviorPromptFactory() {
         val factory = BehaviorProvider().getPromptFactory()
 

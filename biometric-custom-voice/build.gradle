@@ -10,6 +10,7 @@ android {
         minSdkVersion minSDK
         targetSdkVersion targetSDK
         multiDexEnabled true
+        consumerProguardFiles "proguard-project-biometric-custom-voice.pro"
     }
     namespace 'dev.skomlach.biometric.custom.voice'
     compileOptions {

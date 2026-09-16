@@ -176,7 +176,9 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
     private var mAuthenticationCallback: IMiuiFaceManager.AuthenticationCallback?
     private var mBiometricClient: BiometricClient? = null
     private var mDatabaseChanged = false
+    @Volatile
     private var mDatabaseStatus = 0
+    private val enrollmentSnapshot = CompleteEnrollmentSnapshot<Miuiface>()
     private var mDisonnected = false
     private var mEnrollmentCallback: IMiuiFaceManager.EnrollmentCallback?
     private var mFaceInfo: FaceInfo? = null
@@ -614,11 +616,14 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
     private fun initClientDB(listGroup: ArrayList<Parcelable>?, list: ArrayList<Parcelable>?) {
         if (mDatabaseStatus != 2 || mDatabaseChanged) {
             d(LOG_TAG, "initClientDB begin")
+            enrollmentSnapshot.invalidate()
+            var complete = list != null
             mTemplateItemList = ArrayList<TemplateItem?>()
             var it: Iterator<*> = list?.iterator() ?: listOf<TemplateItem?>().iterator()
             var clazz: Class<*>? = null
             while (it.hasNext()) {
                 val i = it.next()
+                if (i == null) complete = false
                 try {
                     if (clazz == null) {
                         clazz = i?.javaClass
@@ -632,6 +637,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                         mTemplateItemList?.add(item)
                     }
                 } catch (e: Throwable) {
+                    complete = false
                     e(e)
                 }
             }
@@ -655,6 +661,11 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                 }
             }
             clazz = null
+            if (complete) {
+                enrollmentSnapshot.publish(mTemplateItemList?.map { item ->
+                    item?.let { Miuiface(it.name, it.group_id, it.id, 0) }
+                })
+            }
             mDatabaseStatus = 2
             mDatabaseChanged = false
             d(LOG_TAG, "initClientDB ok")
@@ -903,19 +914,8 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         }
     }
 
-    override val enrolledFaces: List<Miuiface?>
-        get() {
-            val res: MutableList<Miuiface?> = ArrayList<Miuiface?>()
-            e(LOG_TAG, " xiaomi getEnrolledFaces!")
-            mTemplateItemList?.let {
-                for (i in it) {
-                    if (i != null) {
-                        res.add(Miuiface(i.name, i.group_id, i.id, 0))
-                    }
-                }
-            }
-            return res
-        }
+    override val enrolledFaces: List<Miuiface?>?
+        get() = enrollmentSnapshot.read(ready = mDatabaseStatus == 2 && !isReleased)
 
     override fun preInitAuthen() {
         tryConnectService()

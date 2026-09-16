@@ -146,6 +146,12 @@ publishing {
 signing {
     sign publishing.publications
 }
+
+afterEvaluate {
+    tasks.named('signReleasePublication') {
+        dependsOn tasks.named('bundleReleaseAar')
+    }
+}
 tasks.named('publish') {
     finalizedBy tasks.named('postRelease')
 }

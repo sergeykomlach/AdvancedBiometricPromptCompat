@@ -7,6 +7,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TensorFlowProviderTest {
+    @Test
+    fun moduleIdPreservesPreviouslyStoredState() {
+        // Literal historical name: a future class rename must not change the persisted namespace.
+        val previousId = "dev.skomlach.biometric.compat.engine.internal.face.tensorflow.TensorFlowFaceUnlockManager".hashCode()
+
+        assertEquals(previousId, TensorFlowProvider().moduleId)
+    }
+
 
     @Test
     fun faceTfProviderExposesFacePromptFactory() {

@@ -19,10 +19,12 @@
 -dontwarn com.samsung.android.bio.face.SemBioFaceManager$AuthenticationResult
 -dontwarn com.samsung.android.bio.face.SemBioFaceManager$CryptoObject
 -dontwarn com.samsung.android.bio.face.SemBioFaceManager
+-dontwarn com.samsung.android.bio.face.Face
 -dontwarn com.samsung.android.camera.iris.SemIrisManager$AuthenticationCallback
 -dontwarn com.samsung.android.camera.iris.SemIrisManager$AuthenticationResult
 -dontwarn com.samsung.android.camera.iris.SemIrisManager$CryptoObject
 -dontwarn com.samsung.android.camera.iris.SemIrisManager
+-dontwarn com.samsung.android.camera.iris.Iris
 -dontwarn com.samsung.android.fingerprint.FingerprintEvent
 -dontwarn com.samsung.android.fingerprint.FingerprintIdentifyDialog$FingerprintListener
 -dontwarn com.samsung.android.fingerprint.FingerprintManager$EnrollFinishListener
@@ -36,7 +38,7 @@
 -keep class com.tencent.soter.** { *; }
 -keep interface com.tencent.soter.** { *; }
 
--keep class dev.skomlach.biometric.compat.** { *; }
--keep interface dev.skomlach.biometric.compat.** { *; }
--keepnames class * implements dev.skomlach.biometric.compat.custom.CustomBiometricProvider
--keep class META-INF.services.** { *; }
+# R8 recognizes Java ServiceLoader usage and adapts META-INF/services to the
+# obfuscated interface and implementation names. Keep only constructors so the
+# providers cannot be removed before that rewrite.
+-keep,allowoptimization,allowobfuscation class * extends dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider { <init>(); }

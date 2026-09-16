@@ -1,4 +1,2 @@
+# ZK classes are reached by the vendor JNI/runtime contract.
 -keep class com.zkteco.** { *; }
--keep class dev.skomlach.biometric.compat.engine.internal.fingerprint.zk.** { *; }
--keepnames class dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
--keep class * extends dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider { *; }

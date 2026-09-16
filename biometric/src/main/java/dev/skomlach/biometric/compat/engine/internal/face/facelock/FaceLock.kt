@@ -264,54 +264,60 @@ class FaceLock {
         }
     }
 
-    private inner class CallBackBinder(private val mCallback: IFaceLockCallback) :
-        Binder() {
-        private val mMap = HashMap<Int, String>()
+    private inner class CallBackBinder(private val mCallback: IFaceLockCallback) : Binder() {
+        private val events = HashMap<Int, FaceLockCallbackEvent>()
+        private val descriptor = checkNotNull(flCallbackInterface).name
 
         @Throws(RemoteException::class)
-        override fun onTransact(
-            code: Int, data: Parcel, reply: Parcel?,
-            flags: Int
-        ): Boolean {
-            if (mMap.containsKey(code)) {
-                d(TAG + (" onTransact " + mMap[code]))
-
-                // Callback may be called outside the UI thread
-                ExecutorHelper.post {
-                    try {
-                        IFaceLockCallback::class.java.getMethod(mMap[code] ?: return@post)
-                            .invoke(mCallback)
-                    } catch (e: Throwable) {
-                        e(e, TAG + e.message)
-                    }
+        override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
+            val event = events[code] ?: return super.onTransact(code, data, reply, flags)
+            data.enforceInterface(descriptor)
+            val callback = event.capture(mCallback) { data.readInt() }
+            ExecutorHelper.post {
+                try {
+                    callback()
+                } catch (error: Exception) {
+                    e(error, TAG)
+                } catch (error: LinkageError) {
+                    e(error, TAG)
                 }
-                return true
-            } else {
-                d(TAG + " unknown transact : $code")
             }
-            return super.onTransact(code, data, reply, flags)
+            reply?.writeNoException()
+            return true
         }
 
         init {
-
-            // Find matching TRANSACTION_**** values
-            val methods = IFaceLockCallback::class.java.methods
-            for (m in methods) {
+            attachInterface(null, descriptor)
+            for (event in FaceLockCallbackEvent.entries) {
                 try {
-                    val f = flCallbackInterfaceStub?.getDeclaredField("TRANSACTION_" + m.name)
-                    val isAccessible = f?.isAccessible
-                    try {
-                        if (isAccessible == false) f.isAccessible = true
-                        f?.isAccessible = true
-                        mMap[f?.get(null) as Int] = m.name
-                    } finally {
-                        if (isAccessible == false) f.isAccessible = false
+                    // Resolve only the two known vendor AIDL variants, never local callback methods.
+                    if (event == FaceLockCallbackEvent.TIMED_WAKE) {
+                        flCallbackInterface?.getMethod("pokeWakelock", Int::class.javaPrimitiveType)
+                    } else if (event == FaceLockCallbackEvent.WAKE) {
+                        try {
+                            flCallbackInterface?.getMethod("pokeWakelock", Int::class.javaPrimitiveType)
+                            continue
+                        } catch (_: NoSuchMethodException) {
+                            flCallbackInterface?.getMethod("pokeWakelock")
+                        }
                     }
-                } catch (ignore: NoSuchFieldException) {
-                } catch (e: IllegalArgumentException) {
-                    e(e, TAG)
-                } catch (e: IllegalAccessException) {
-                    e(e, TAG)
+                    val field = checkNotNull(flCallbackInterfaceStub)
+                        .getDeclaredField("TRANSACTION_" + event.wireName)
+                    val wasAccessible = field.isAccessible
+                    try {
+                        field.isAccessible = true
+                        events[field.getInt(null)] = event
+                    } finally {
+                        field.isAccessible = wasAccessible
+                    }
+                } catch (_: NoSuchFieldException) {
+                    // Optional callbacks differ between vendor versions.
+                } catch (_: NoSuchMethodException) {
+                    // The alternate wake-lock signature is handled by the other event.
+                } catch (error: Exception) {
+                    e(error, TAG)
+                } catch (error: LinkageError) {
+                    e(error, TAG)
                 }
             }
         }

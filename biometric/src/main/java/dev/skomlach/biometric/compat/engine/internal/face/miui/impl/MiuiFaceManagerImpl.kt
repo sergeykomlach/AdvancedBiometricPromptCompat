@@ -800,7 +800,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
     override val enrolledFaces: List<Miuiface?>?
         get() {
             var stringBuilder: StringBuilder
-            var res: List<Miuiface?>? = ArrayList()
+            var res: List<Miuiface?>? = null
             try {
                 initService()
                 if (mMiuiFaceService != null) {
@@ -1044,18 +1044,21 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
         service: IBinder?,
         groupId: Int,
         packName: String
-    ): List<Miuiface?> {
+    ): List<Miuiface?>? {
+        val target = service ?: return null
         val request = Parcel.obtain()
         val reply = Parcel.obtain()
-        request.writeInterfaceToken(SERVICE_DESCRIPTOR)
-        request.writeInt(groupId)
-        request.writeString(packName)
-        service?.transact(9, request, reply, 0)
-        reply.readException()
-        val res: List<Miuiface> = ArrayList(reply.createTypedArrayList(Miuiface.CREATOR))
-        request.recycle()
-        reply.recycle()
-        return res
+        return try {
+            request.writeInterfaceToken(SERVICE_DESCRIPTOR)
+            request.writeInt(groupId)
+            request.writeString(packName)
+            if (!target.transact(9, request, reply, 0)) return null
+            reply.readException()
+            reply.createTypedArrayList(Miuiface.CREATOR)?.toList()
+        } finally {
+            request.recycle()
+            reply.recycle()
+        }
     }
 
     @Throws(RemoteException::class)

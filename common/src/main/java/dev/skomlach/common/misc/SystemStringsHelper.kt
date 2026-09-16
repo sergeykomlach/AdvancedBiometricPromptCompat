@@ -22,28 +22,17 @@ package dev.skomlach.common.misc
 import android.annotation.SuppressLint
 import android.content.Context
 import dev.skomlach.common.logging.LogCat
-import java.lang.reflect.Field
 
 
 object SystemStringsHelper {
-    private val systemStringFieldsByName: Map<String, Field> by lazy {
-        runCatching {
-            Class.forName("com.android.internal.R\$string").declaredFields
-                .onEach { field ->
-                    if (!field.isAccessible) {
-                        field.isAccessible = true
-                    }
-                }
-                .associateBy { it.name }
-        }.getOrDefault(emptyMap())
-    }
-
-    @SuppressLint("PrivateApi")
+    @SuppressLint("DiscouragedApi")
     fun getFromSystem(context: Context, alias: String): String? {
         try {
-            val field = systemStringFieldsByName[alias] ?: throw NoSuchFieldException(alias)
-            LogCat.log("SystemStringsHelper", field.name)
-            val s = context.resources.getString(field[null] as Int)
+            // The old API accepted an R field name, not a qualified resource reference.
+            if (alias.isEmpty() || ':' in alias || '/' in alias) return null
+            val id = context.resources.getIdentifier(alias, "string", "android")
+            if (id == 0) return null
+            val s = context.resources.getString(id)
             if (s == alias)
                 throw RuntimeException("String value must be different from key")
             if (s.isEmpty())

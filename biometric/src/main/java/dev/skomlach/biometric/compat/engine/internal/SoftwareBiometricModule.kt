@@ -27,6 +27,10 @@ import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.softwareBiometricHardwareBackedCryptoUnsupportedDescription
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
+import dev.skomlach.biometric.compat.custom.requireReadable
+import dev.skomlach.common.storage.SharedPreferenceProvider
+import dev.skomlach.common.storage.editProtected
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_LOCKOUT
@@ -89,6 +93,50 @@ class SoftwareBiometricModule(
     AbstractBiometricModule(method) {
     private val timeoutHandler = Handler(ExecutorHelper.handler.looper)
     private val sessionGuard = SoftwareBiometricSessionGuard()
+    private val enrollmentTracker by lazy {
+        EnrollmentChangeTracker(
+            readSnapshot = { (manager?.getEnrollmentSnapshot() ?: SoftwareBiometricEnrollment.Unavailable()).toEnrollmentSnapshot() },
+            readBaseline = {
+                val preferences = softwareEnrollmentPreferences()
+                val key = "enrolled_v1_" + tag()
+                if (preferences.contains(key)) {
+                    decodeEnrollmentBaseline(preferences.getString(key, null))
+                } else null
+            },
+            readLegacyBaseline = {
+                SharedPreferenceProvider.getPreferences("BiometricCompat_AbstractModule")
+                    .getStringSet("enrolled_" + tag(), null)?.toSet()
+            },
+            writeBaseline = { snapshot ->
+                softwareEnrollmentPreferences().editProtected {
+                    putString("enrolled_v1_" + tag(), encodeEnrollmentBaseline(snapshot))
+                }
+            },
+            onError = { e(it, "Software enrollment snapshot unavailable") }
+        )
+    }
+
+    private fun softwareEnrollmentPreferences() =
+        SharedPreferenceProvider.getProtectedPreferences("BiometricCompat_SoftwareEnrollment")
+
+    @Deprecated("Use provider snapshots when an unavailable state must be distinguished from unchanged")
+    override val isBiometricEnrollChanged: Boolean
+        get() = when (enrollmentTracker.check()) {
+            EnrollmentChange.CHANGED -> true
+            EnrollmentChange.UNCHANGED -> false
+            EnrollmentChange.UNAVAILABLE -> enrollmentTracker.lastConfirmedChange
+            EnrollmentChange.UNSUPPORTED -> super.isBiometricEnrollChanged
+        }
+
+    override fun updateBiometricEnrollChanged() {
+        if (enrollmentTracker.acknowledge() == EnrollmentChange.UNSUPPORTED) {
+            super.updateBiometricEnrollChanged()
+        }
+    }
+
+    private fun requireReadableEnrollment() {
+        (manager?.getEnrollmentSnapshot() ?: SoftwareBiometricEnrollment.Unavailable()).requireReadable()
+    }
     private var activeSessionToken: SoftwareBiometricSessionToken? = null
     private var enrollBundle: Bundle? = null
     private var enrollmentRollbackScope: EnrollmentRollbackScope? = null
@@ -120,7 +168,7 @@ class SoftwareBiometricModule(
     }
 
     override fun getManagers(): Set<Any> {
-        //No way to detect enrollments
+        // Retained only for providers that do not implement the typed snapshot contract.
         return manager?.getManagers() ?: emptySet()
     }
 
@@ -164,6 +212,7 @@ class SoftwareBiometricModule(
         get() {
 
             val result = try {
+                requireReadableEnrollment()
                 manager?.hasEnrolledBiometric() == true
             } catch (e: Throwable) {
                 false
@@ -176,7 +225,10 @@ class SoftwareBiometricModule(
         managerPresent = manager != null,
         moduleLockedOut = super.isLockOut,
         hardwareDetected = { manager?.isHardwareDetected() == true },
-        hasEnrollment = { manager?.hasEnrolledBiometric() == true },
+        hasEnrollment = {
+            requireReadableEnrollment()
+            manager?.hasEnrolledBiometric() == true
+        },
         lockoutError = { manager?.getLockoutError() },
         onError = { e(it, "$name: software state unavailable") },
         managerLockedOut = { manager?.isLockedOut() == true }
@@ -310,6 +362,8 @@ class SoftwareBiometricModule(
                     )
 
                 d("$name.authenticate:  Crypto=$crypto")
+                // Recheck after preparation: unavailable templates must never reach the provider.
+                requireReadableEnrollment()
                 authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(
                     crypto,

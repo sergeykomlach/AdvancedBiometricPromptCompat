@@ -5,6 +5,21 @@ import org.json.JSONObject
 
 internal const val REGISTERED_TEMPLATES_PREF_KEY = "registered"
 
+/** Strictly read the persisted membership without requiring a camera or a loaded detector. */
+internal fun readStoredFaceEnrollmentIds(jsonString: String?): Set<String> {
+    if (jsonString == null) return emptySet()
+    val templates = JSONObject(jsonString)
+    val ids = sortedSetOf<String>()
+    val keys = templates.keys()
+    while (keys.hasNext()) {
+        val id = keys.next()
+        // Do not accept partially corrupt entries as a complete enrollment snapshot.
+        require(templates.opt(id) is JSONObject) { "Invalid stored face enrollment entry" }
+        ids.add(id)
+    }
+    return ids
+}
+
 internal fun hasUsableFaceEnrollment(jsonString: String?, cameraPermissionGranted: Boolean): Boolean =
     cameraPermissionGranted && hasRegisteredTemplates(jsonString)
 

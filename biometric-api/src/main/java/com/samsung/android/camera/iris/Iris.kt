@@ -21,4 +21,9 @@
 
 package com.samsung.android.camera.iris
 
-class Iris 
+// Compile-only framework signatures; this module must not be packaged in the application.
+class Iris {
+    fun getGroupId(): Int = 0
+    fun getDeviceId(): Long = 0
+    fun getIrisId(): Int = 0
+}

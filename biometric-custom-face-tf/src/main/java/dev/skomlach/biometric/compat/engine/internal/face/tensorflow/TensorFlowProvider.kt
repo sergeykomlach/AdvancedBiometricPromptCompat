@@ -25,6 +25,13 @@ import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptFactory
 
 class TensorFlowProvider : SoftwareBiometricProvider() {
+    companion object {
+        // Historical manager-name hash. Keep this value when renaming or obfuscating classes.
+        private const val MODULE_ID = 1_722_956_153
+    }
+
+    override val moduleId: Int = MODULE_ID
+
 
     override fun getCustomManager(context: Context): AbstractSoftwareBiometricManager {
         return TensorFlowFaceUnlockManager(context.applicationContext)

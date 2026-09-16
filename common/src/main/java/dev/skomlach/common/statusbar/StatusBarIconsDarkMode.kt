@@ -28,27 +28,12 @@ import java.util.Locale
 
 
 object StatusBarIconsDarkMode {
-    private var SYSTEM_UI_FLAG_LIGHT_STATUS_BAR = 0x00002000
-    private var SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR = 0x00000010
+    private const val SYSTEM_UI_FLAG_LIGHT_STATUS_BAR = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+    private const val SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR = View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
     private val miuiStatusBarDarkModeFlag: Int? by lazy { findMiuiDarkModeFlag(BarType.STATUSBAR) }
     private val miuiNavBarDarkModeFlag: Int? by lazy { findMiuiDarkModeFlag(BarType.NAVBAR) }
     private val flymeStatusBarDarkModeFlag: Int? by lazy { findFlymeDarkModeFlag(BarType.STATUSBAR) }
     private val flymeNavBarDarkModeFlag: Int? by lazy { findFlymeDarkModeFlag(BarType.NAVBAR) }
-
-    init {
-        SYSTEM_UI_FLAG_LIGHT_STATUS_BAR = try {
-            //Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-            View::class.java.getField("SYSTEM_UI_FLAG_LIGHT_STATUS_BAR").getInt(null)
-        } catch (e: Exception) {
-            0x00002000
-        }
-        SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR = try {
-            //Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-            View::class.java.getField("SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR").getInt(null)
-        } catch (e: Exception) {
-            0x00000010
-        }
-    }
 
     private fun findMiuiDarkModeFlag(type: BarType): Int? {
         return try {

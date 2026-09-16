@@ -208,19 +208,11 @@ class FingerprintIconView @JvmOverloads constructor(
                 null
             }
             if (dr == null) try {
-                var targetThemeRes = 0
-                try {
-                    val wrapper: Class<*> = Context::class.java
-                    val method = wrapper.getMethod("getThemeResId")
-                    method.isAccessible = true
-                    targetThemeRes = method.invoke(context) as Int
-                } catch (ex: Exception) {
-                }
-                if (targetThemeRes == 0) targetThemeRes = R.style.Theme_BiometricPromptDialog
                 dr = VectorDrawableCompat.create(
                     context.resources,
                     resId,
-                    theme ?: ContextThemeWrapper(context, targetThemeRes).theme
+                    theme ?: context.theme
+                        ?: ContextThemeWrapper(context, R.style.Theme_BiometricPromptDialog).theme
                 )
             } catch (e: Exception) {
                 dr = null

@@ -31,6 +31,8 @@ import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.internal.EnrollmentSnapshot
+import dev.skomlach.biometric.compat.engine.internal.readIntegerHardwareEnrollments
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManager
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManagerFactory
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceRecognizeManager
@@ -58,6 +60,10 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         listener?.initFinished(biometricMethod, this@HuaweiFaceUnlockModule)
     }
 
+
+    internal override fun createEnrollmentReader(): () -> EnrollmentSnapshot = {
+        readIntegerHardwareEnrollments { huaweiFaceManagerLegacy?.getEnrolledTemplates() }
+    }
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
