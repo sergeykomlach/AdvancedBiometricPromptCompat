@@ -141,13 +141,9 @@ class PermissionsFragment : Fragment() {
             LogCat.log("PermissionsFragment.ActivityResult()")
             val denied = grants.filterValues { !it }.keys
             markDenied(denied)
-            if (denied.isNotEmpty() && isAdded && denied.none {
-                    ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), it)
-                }) {
-                showMandatoryPermissionsNeedDialog(denied.toList())
-            } else {
-                closeFragment()
-            }
+            // A completed runtime request returns control to the caller, including on denial.
+            // Settings recovery belongs to a later explicit permission request.
+            closeFragment()
         }
     private val startForResult: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {

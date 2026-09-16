@@ -2599,16 +2599,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 val biometricPromptRoute = biometricPromptRoute(type)
                 val legacyHardwareRoute = legacyHardwareRoute(type)
                 val fallbackRoute = fallbackRoute(type)
-                if (biometricAuthRequest.api == BiometricApi.AUTO &&
-                    biometricAuthRequest.type != BiometricType.BIOMETRIC_ANY && legacyHardwareRoute != null
-                ) return@getOrPut legacyHardwareRoute
                 pickSelectedBiometricRoute(
                     requestApi = biometricAuthRequest.api,
                     preferSystemFaceHardware = shouldPreferSystemHardwareFace(type),
                     preferHighPrioritySoftware = shouldRouteLegacyBeforeSystemHardware(type),
                     biometricPromptRoute = biometricPromptRoute,
                     legacyHardwareRoute = legacyHardwareRoute,
-                    fallbackRoute = fallbackRoute
+                    fallbackRoute = fallbackRoute,
+                    requestType = biometricAuthRequest.type
                 )
             }
         }
@@ -2697,7 +2695,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private fun shouldRouteLegacyBeforeSystemHardware(type: BiometricType): Boolean {
             if (biometricAuthRequest.provider == BiometricProviderType.HARDWARE ||
-                !hasBiometricPromptHardwareType(type) ||
                 shouldPreferSystemHardwareFace(type)
             ) {
                 return false

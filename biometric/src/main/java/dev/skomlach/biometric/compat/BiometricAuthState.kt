@@ -138,16 +138,20 @@ internal fun pickSelectedBiometricRoute(
     preferHighPrioritySoftware: Boolean,
     biometricPromptRoute: SelectedBiometricRoute?,
     legacyHardwareRoute: SelectedBiometricRoute?,
-    fallbackRoute: SelectedBiometricRoute?
+    fallbackRoute: SelectedBiometricRoute?,
+    requestType: BiometricType = BiometricType.BIOMETRIC_ANY
 ): SelectedBiometricRoute? {
+    val highPrioritySoftwareRoute = fallbackRoute?.takeIf {
+        preferHighPrioritySoftware && it.provider == BiometricProviderType.SOFTWARE
+    }
     return when (requestApi) {
         BiometricApi.BIOMETRIC_API -> biometricPromptRoute
-        BiometricApi.LEGACY_API -> legacyHardwareRoute ?: fallbackRoute
+        BiometricApi.LEGACY_API -> highPrioritySoftwareRoute ?: legacyHardwareRoute ?: fallbackRoute
         BiometricApi.AUTO -> when {
-            preferSystemFaceHardware -> biometricPromptRoute ?: legacyHardwareRoute ?: fallbackRoute
-            preferHighPrioritySoftware &&
-                    fallbackRoute?.provider == BiometricProviderType.SOFTWARE -> fallbackRoute
-
+            !preferSystemFaceHardware && highPrioritySoftwareRoute != null -> highPrioritySoftwareRoute
+            // A typed hardware request still needs a sensor-specific backend, but only
+            // after honoring an above-system provider such as ZKFinger.
+            requestType != BiometricType.BIOMETRIC_ANY && legacyHardwareRoute != null -> legacyHardwareRoute
             else -> biometricPromptRoute ?: legacyHardwareRoute ?: fallbackRoute
         }
     }
