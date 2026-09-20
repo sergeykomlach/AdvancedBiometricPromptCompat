@@ -1,6 +1,19 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
+def localZkFingerSdkJars = [
+    rootProject.file("biometric-zkfinger/vendor-sdk/libs/zkandroidcore.jar"),
+    rootProject.file("biometric-zkfinger/vendor-sdk/libs/zkandroidfingerservice.jar"),
+    rootProject.file("biometric-zkfinger/vendor-sdk/libs/zkandroidfpreader.jar")
+]
+def missingZkFingerSdkJars = localZkFingerSdkJars.findAll { !it.isFile() }
+if (!missingZkFingerSdkJars.isEmpty()) {
+    throw new GradleException(
+        "biometric-zkfinger requires official ZKTeco JARs for its direct integration: " +
+            missingZkFingerSdkJars.join(', ')
+    )
+}
+
 android {
     lint {
         baseline = file("lint-baseline.xml")
@@ -20,14 +33,23 @@ android {
     kotlinOptions {
         jvmTarget = javaVersion.toString()
     }
+    sourceSets {
+        debug {
+            jniLibs.srcDir "vendor-sdk/jniLibs"
+        }
+    }
 }
 
 dependencies {
     implementation project(":" + libArtifactId_common)
     implementation project(":" + libArtifactId_biometric)
     implementation libs.androidx.core.ktx
-    implementation fileTree(dir: "libs", include: ["*.jar"])
+    // Compile against the official SDK without bundling its classes or native libraries.
+    compileOnly files(localZkFingerSdkJars)
     testImplementation libs.junit
+    // The consuming application must hold the ZKTeco licence. These ignored local JARs are
+    // deliberately available only to debug builds and never become a published dependency.
+    debugRuntimeOnly files(localZkFingerSdkJars)
 }
 
 // Publishing

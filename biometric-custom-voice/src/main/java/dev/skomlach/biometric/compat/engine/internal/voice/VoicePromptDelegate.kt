@@ -7,9 +7,9 @@ import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptHost
 import dev.skomlach.biometric.compat.custom.SoftwarePromptStatus
 
 internal class VoicePromptDelegate(
-    private val host: SoftwareBiometricPromptHost
+    private val host: SoftwareBiometricPromptHost,
+    private val lockoutManager: VoiceBiometricManager
 ) : SoftwareBiometricPromptDelegate {
-    private val lockoutManager = VoiceBiometricManager(host.context)
     private val controller = VoiceAutoCaptureController(
         context = host.context,
         builder = host.builder,

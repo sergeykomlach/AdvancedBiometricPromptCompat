@@ -549,7 +549,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 softwareEnrollTargetsAtStart.isNotEmpty() || requiresReadyExtrasBeforeAuthentication(type)
             },
             canPrepareInBackground = { type ->
-                dialog == null && SoftwareBiometricPromptRegistry.resolve(type)
+                dialog == null && SoftwareBiometricPromptRegistry.resolve(
+                    type,
+                    builder.getContext()
+                )
                     ?.supportsBackgroundPreparation(builder.enroll) == true
             }
         )
@@ -619,7 +622,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         fun active() = authSessionState.owns(sessionToken) && parallelCapture === capture
         for (type in types) {
             if (!active()) break
-            val delegate = SoftwareBiometricPromptRegistry.resolve(type)?.create(
+            val delegate = SoftwareBiometricPromptRegistry.resolve(
+                type,
+                builder.getContext()
+            )
+                ?.createPrompt(
                 SoftwareBiometricPromptHost(
                     context = builder.getContext().applicationContext,
                     builder = builder,
@@ -708,7 +715,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     private fun requiresReadyExtrasBeforeAuthentication(type: BiometricType): Boolean {
-        return SoftwareBiometricPromptRegistry.resolve(type)
+        return SoftwareBiometricPromptRegistry.resolve(
+            type,
+            builder.getContext()
+        )
             ?.requiresReadyExtrasBeforeAuthentication == true
     }
 

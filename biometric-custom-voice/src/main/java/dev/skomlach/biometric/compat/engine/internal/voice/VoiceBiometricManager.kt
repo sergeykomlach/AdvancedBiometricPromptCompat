@@ -24,11 +24,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 class VoiceBiometricManager(
     private val context: Context,
     private val store: VoiceTemplateStore = VoiceTemplateStore(),
-    private val engine: VoiceEngine = CepstralVoiceEngine()
+    private val engine: VoiceEngine = CepstralVoiceEngine(),
+    private val modulePriority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
 ) : AbstractSoftwareBiometricManager() {
 
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_VOICE
-    override val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
+    override val priority: Int = modulePriority
     override val securityProfile: SoftwareBiometricSecurityProfile =
         SoftwareBiometricSecurityProfile(
             biometricType = BiometricType.BIOMETRIC_VOICE,

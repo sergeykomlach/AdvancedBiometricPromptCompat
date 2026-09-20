@@ -81,6 +81,16 @@ dependencies {
     implementation project(":" + libArtifactId_biometric_zkfinger)
 //    implementation project(":" + libArtifactId_biometric_custom_behavior)
     implementation project(":" + libArtifactId_biometric_custom_voice)
+    implementation project(":biometric-sherpa-onnx")
+
+    // Local-only runtime downloaded from the official sherpa-onnx release. It is intentionally
+    // absent from source control and release builds; production consumers add their own copy.
+    def localSherpaOnnxAar = rootProject.file(
+        "biometric-sherpa-onnx/vendor-sdk/libs/sherpa-onnx-1.13.8.aar"
+    )
+    if (localSherpaOnnxAar.isFile()) {
+        debugImplementation files(localSherpaOnnxAar)
+    }
 
 //"dev.skomlach:biometric:${libsMajorVersion + "." + libsMinorVersion}"
     implementation libs.conscrypt.android

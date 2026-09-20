@@ -12,4 +12,6 @@
 /captures
 .externalNativeBuild
 .cxx
+biometric-zkfinger/vendor-sdk/
+biometric-sherpa-onnx/vendor-sdk/
 local.properties

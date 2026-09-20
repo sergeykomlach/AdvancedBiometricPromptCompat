@@ -47,6 +47,7 @@ import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSessionGuard
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSessionToken
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricTerminalState
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricRuntime
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -85,12 +86,14 @@ internal fun resolveSoftwareLockoutFailureReason(
     }
 }
 
-class SoftwareBiometricModule(
+class SoftwareBiometricModule internal constructor(
     private val method: BiometricMethod,
-    internal val manager: AbstractSoftwareBiometricManager?,
+    internal val runtime: SoftwareBiometricRuntime?,
     private val listener: LegacyBiometricInitListener?
 ) :
     AbstractBiometricModule(method) {
+    internal val manager: AbstractSoftwareBiometricManager?
+        get() = runtime?.manager
     private val timeoutHandler = Handler(ExecutorHelper.handler.looper)
     private val sessionGuard = SoftwareBiometricSessionGuard()
     private val enrollmentTracker by lazy {

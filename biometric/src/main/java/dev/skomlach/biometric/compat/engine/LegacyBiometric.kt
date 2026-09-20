@@ -35,7 +35,7 @@ import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.isSkippablePreparationError
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
-import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptRegistry
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -65,7 +65,6 @@ import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 import java.util.Collections
-import java.util.ServiceLoader
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import dev.skomlach.biometric.compat.impl.PendingAuthStart
@@ -194,6 +193,7 @@ object LegacyBiometric {
                     moduleHashMap.remove(it.key)
                 }
             }
+            SoftwareBiometricPromptRegistry.reset()
         } catch (e: Throwable) {
             e("BiometricAuthentication", "resetSoftwareModules failure", e)
         } finally {
@@ -207,47 +207,43 @@ object LegacyBiometric {
         d("BiometricAuthentication", "loadSoftwareModules called")
         try {
             customLoading = true
-            val loader = ServiceLoader.load(SoftwareBiometricProvider::class.java)
             val newSoftwareModules = HashMap<BiometricMethod, BiometricModule>()
-            val ambiguousTypes = HashSet<BiometricType>()
-
-            for (provider in loader) {
+            val runtimes = SoftwareBiometricPromptRegistry.discover(AndroidContext.appContext)
+            val runtimesToRegister = runtimes
+                .map { it.manager.biometricType }
+                .distinct()
+                .mapNotNull { type ->
+                    SoftwareBiometricPromptRegistry.select(
+                        type = type,
+                        runtimes = runtimes,
+                        requirePromptFactory = false,
+                        allowUnavailable = true
+                    )
+                }
+            for (runtime in runtimesToRegister) {
                 try {
-                    val customManager = provider.getCustomManager(AndroidContext.appContext)
+                    val customManager = runtime.manager
                     val targetType = customManager.biometricType
+                    val biometricMethod = BiometricMethod.createCustomModule(
+                        runtime.moduleId,
+                        targetType
+                    )
 
-                    val isAlreadyRegistered = synchronized(customModuleHashMap) {
-                        customModuleHashMap.values.any { it.biometricType == targetType }
-                    }
-
-                    if (isAlreadyRegistered) {
-                        ambiguousTypes += targetType
-                        val conflictingMethods = synchronized(customModuleHashMap) {
-                            customModuleHashMap.entries
-                                .filter { it.value.biometricType == targetType }
-                                .map { it.key }
-                        }
-                        conflictingMethods.forEach { customModuleHashMap.remove(it) }
-                        newSoftwareModules.keys
-                            .filter { it.biometricType == targetType }
-                            .toList()
-                            .forEach { newSoftwareModules.remove(it) }
+                    if (customModuleHashMap.containsKey(biometricMethod) ||
+                        newSoftwareModules.containsKey(biometricMethod)
+                    ) {
                         e(
                             "BiometricAuthentication",
-                            "Rejected ambiguous software biometric type: $targetType"
+                            "Rejected duplicate software biometric module: $biometricMethod"
                         )
-                    } else if (!ambiguousTypes.contains(targetType)) {
-                        val biometricMethod = BiometricMethod.createCustomModule(
-                            provider.resolveModuleId { customManager::class.java.name },
-                            targetType
-                        )
-
+                    } else {
                         customModuleHashMap[biometricMethod] = customManager
                         newSoftwareModules[biometricMethod] =
-                            SoftwareBiometricModule(biometricMethod, customManager, null)
+                            SoftwareBiometricModule(biometricMethod, runtime, null)
                         d(
                             "BiometricAuthentication",
-                            "Registered custom module: ${customManager.javaClass.simpleName}"
+                            "Registered custom module: ${customManager.javaClass.simpleName} " +
+                                "priority=${customManager.priority}"
                         )
                     }
                 } catch (e: Throwable) {

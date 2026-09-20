@@ -18,14 +18,6 @@ import android.util.Base64
 import androidx.core.content.ContextCompat
 import dev.skomlach.common.storage.editProtected
 import dev.skomlach.common.storage.ProtectedStorageUnavailableException
-import com.zkteco.android.biometric.FingerprintExceptionListener
-import com.zkteco.android.biometric.core.device.ParameterHelper
-import com.zkteco.android.biometric.core.device.TransportType
-import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener
-import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor
-import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory
-import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService
-import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
@@ -130,7 +122,7 @@ class ZkFingerUnlockManager(
     private var authCallback: AuthenticationCallback? = null
     private var cancellationSignal: CancellationSignal? = null
     @Volatile
-    private var fingerprintSensor: FingerprintSensor? = null
+    private var fingerprintSensor: ZkFingerSdkBridge.Sensor? = null
     private var usbReceiver: BroadcastReceiver? = null
     private var isEnrolling = false
     private var enrollmentTag = ""
@@ -178,6 +170,13 @@ class ZkFingerUnlockManager(
     private fun prepareOnWorker(callback: PreparationCallback) {
         clearPendingUsbPermission()
         try {
+            if (sdkOrNull() == null) {
+                callback.onPreparationError(
+                    CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable)
+                )
+                return
+            }
             val device = findSupportedDevice()
             if (device == null) {
                 callback.onPreparationError(
@@ -223,7 +222,7 @@ class ZkFingerUnlockManager(
 
     override fun isHardwareDetected(): Boolean {
         return resolveZkHardwareDetected(
-            usbHostAvailable = isUsbHostAvailable(),
+            usbHostAvailable = sdkOrNull() != null && isUsbHostAvailable(),
             supportedDeviceConnected = findSupportedDevice() != null
         )
     }
@@ -239,10 +238,10 @@ class ZkFingerUnlockManager(
         val tag = extra?.getString(ENROLLMENT_TAG_KEY)
         if (tag.isNullOrBlank()) {
             getEnrolls().forEach { removeTemplate(it) }
-            nativeHandler.post { runCatching { ZKFingerService.clear() } }
+            nativeHandler.post { runCatching { sdkOrNull()?.clear() } }
         } else {
             removeTemplate(tag)
-            nativeHandler.post { runCatching { ZKFingerService.del(tag) } }
+            nativeHandler.post { runCatching { sdkOrNull()?.delete(tag) } }
         }
     }
 
@@ -560,53 +559,38 @@ class ZkFingerUnlockManager(
     private fun openDevice(device: UsbDevice) {
         if (!isSessionActive.get()) return
         try {
-            ensureTemplateEngine()
-            loadTemplatesIntoEngine()
-            val params = HashMap<String, Any>().apply {
-                put(ParameterHelper.PARAM_KEY_VID, device.vendorId)
-                put(ParameterHelper.PARAM_KEY_PID, device.productId)
-            }
-            val sensor = FingprintFactory.createFingerprintSensor(
-                context,
-                TransportType.USB,
-                params
-            )
+            val sdk = requireSdk()
+            ensureTemplateEngine(sdk)
+            loadTemplatesIntoEngine(sdk)
+            val sensor = sdk.createSensor(context, device)
             fingerprintSensor = sensor
-            sensor.setFingerprintCaptureListener(effectiveConfig.deviceIndex, captureListener(captureSession))
-            sensor.SetFingerprintExceptionListener(exceptionListener(captureSession))
-            sensor.open(effectiveConfig.deviceIndex)
-            sensor.startCapture(effectiveConfig.deviceIndex)
+            sdk.setCaptureListener(
+                sensor = sensor,
+                deviceIndex = effectiveConfig.deviceIndex,
+                onExtracted = { template ->
+                    captureSession.postTemplate(template, ::processTemplate)
+                },
+                onExtractError = { errorCode ->
+                    captureSession.post {
+                        LogCat.logError(TAG, "extractError=$errorCode")
+                        onAuthenticationFailed()
+                    }
+                }
+            )
+            sdk.setExceptionListener(sensor) {
+                captureSession.post {
+                    onAuthenticationError(
+                        CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                        localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable)
+                    )
+                    stopAuthentication()
+                }
+            }
+            sdk.open(sensor, effectiveConfig.deviceIndex)
+            sdk.startCapture(sensor, effectiveConfig.deviceIndex)
             postHelp(initialScanMessage())
         } catch (e: Throwable) {
             LogCat.logException(e)
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable)
-            )
-            stopAuthentication()
-        }
-    }
-
-    private fun captureListener(session: ZkFingerCaptureSession) = object : FingerprintCaptureListener {
-
-        override fun captureOK(image: ByteArray?) = Unit
-
-        override fun captureError(e: FingerprintException?) = Unit
-
-        override fun extractOK(template: ByteArray?) {
-            session.postTemplate(template, ::processTemplate)
-        }
-
-        override fun extractError(errorCode: Int) {
-            session.post {
-                LogCat.logError(TAG, "extractError=$errorCode")
-                onAuthenticationFailed()
-            }
-        }
-    }
-
-    private fun exceptionListener(session: ZkFingerCaptureSession) = FingerprintExceptionListener {
-        session.post {
             onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                 localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable)
@@ -650,7 +634,7 @@ class ZkFingerUnlockManager(
         }
 
         val previous = enrollmentSamples.lastOrNull()
-        if (previous != null && ZKFingerService.verify(previous, template) <= 0) {
+        if (previous != null && requireSdk().verify(previous, template) <= 0) {
             enrollmentSamples.clear()
             onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
@@ -675,7 +659,7 @@ class ZkFingerUnlockManager(
         postHelp(localized(R.string.biometriccompat_zkfinger_help_enroll_finalizing))
         val merged = ByteArray(TEMPLATE_SIZE)
         val ret = if (enrollmentSamples.size >= 3) {
-            ZKFingerService.merge(enrollmentSamples[0], enrollmentSamples[1], enrollmentSamples[2], merged)
+            requireSdk().merge(enrollmentSamples[0], enrollmentSamples[1], enrollmentSamples[2], merged)
         } else {
             System.arraycopy(enrollmentSamples.first(), 0, merged, 0, TEMPLATE_SIZE)
             TEMPLATE_SIZE
@@ -689,7 +673,7 @@ class ZkFingerUnlockManager(
             return
         }
 
-        val saveRet = ZKFingerService.save(merged, enrollmentTag)
+        val saveRet = requireSdk().save(merged, enrollmentTag)
         if (saveRet != 0) {
             onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
@@ -727,7 +711,7 @@ class ZkFingerUnlockManager(
 
     private fun identify(template: ByteArray): Pair<String, Int>? {
         val buffer = ByteArray(IDENTIFY_BUFFER_SIZE)
-        val score = ZKFingerService.identify(template, buffer, effectiveConfig.matchThreshold, 1)
+        val score = requireSdk().identify(template, buffer, effectiveConfig.matchThreshold, 1)
         if (score <= 0) return null
         val payload = String(buffer, UTF_8).substringBefore('\u0000').trim()
         val parts = payload.split('\t')
@@ -736,13 +720,13 @@ class ZkFingerUnlockManager(
         return if (id.isNotEmpty()) id to parsedScore else null
     }
 
-    private fun ensureTemplateEngine() {
-        runCatching { ZKFingerService.init() }
+    private fun ensureTemplateEngine(sdk: ZkFingerSdkBridge) {
+        runCatching { sdk.init() }
             .onFailure { LogCat.logException(it) }
     }
 
-    private fun loadTemplatesIntoEngine() {
-        runCatching { ZKFingerService.clear() }
+    private fun loadTemplatesIntoEngine(sdk: ZkFingerSdkBridge) {
+        runCatching { sdk.clear() }
         prefs.all.forEach { (key, value) ->
             val id = key.removePrefix(TEMPLATE_PREFIX)
             if (id == key) return@forEach
@@ -751,7 +735,7 @@ class ZkFingerUnlockManager(
                 Base64.decode(encoded, Base64.NO_WRAP)
             }.getOrNull() ?: return@forEach
             if (template.isNotEmpty()) {
-                val ret = ZKFingerService.save(template, id)
+                val ret = sdk.save(template, id)
                 if (ret != 0) {
                     LogCat.log(TAG, "Failed to load ZK template for $id: $ret")
                 }
@@ -811,22 +795,29 @@ class ZkFingerUnlockManager(
         if (!isSessionActive.compareAndSet(true, false)) return
         val sensor = fingerprintSensor
         fingerprintSensor = null
+        val sdk = sdkOrNull()
         try {
-            sensor?.stopCapture(effectiveConfig.deviceIndex)
+            if (sensor != null && sdk != null) {
+                sdk.stopCapture(sensor, effectiveConfig.deviceIndex)
+            }
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
         try {
-            sensor?.close(effectiveConfig.deviceIndex)
+            if (sensor != null && sdk != null) {
+                sdk.close(sensor, effectiveConfig.deviceIndex)
+            }
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
         try {
-            sensor?.let { FingprintFactory.destroy(it) }
+            if (sensor != null && sdk != null) {
+                sdk.destroy(sensor)
+            }
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
-        runCatching { ZKFingerService.free() }
+        runCatching { sdk?.free() }
         authCallback = null
         cancellationSignal = null
         enrollmentSamples.clear()
@@ -843,6 +834,11 @@ class ZkFingerUnlockManager(
                     currentConfig.productIds.contains(device.productId)
         }
     }
+
+    private fun sdkOrNull(): ZkFingerSdkBridge? = ZkFingerSdkBridge.loadOrNull()
+
+    private fun requireSdk(): ZkFingerSdkBridge = sdkOrNull()
+        ?: error("ZKFinger SDK is not available in the application")
 
     private fun usbManager(): UsbManager? {
         return context.getSystemService(Context.USB_SERVICE) as? UsbManager

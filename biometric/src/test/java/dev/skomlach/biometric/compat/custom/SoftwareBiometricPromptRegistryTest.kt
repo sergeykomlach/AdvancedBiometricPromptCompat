@@ -1,6 +1,8 @@
 package dev.skomlach.biometric.compat.custom
 
-import android.content.Context
+import android.os.Bundle
+import android.os.CancellationSignal
+import android.os.Handler
 import dev.skomlach.biometric.compat.BiometricType
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -8,87 +10,168 @@ import org.junit.Test
 
 class SoftwareBiometricPromptRegistryTest {
     @Test
-    fun resolveReturnsFactoryForRequestedBiometricType() {
+    fun resolveReturnsRuntimeForRequestedBiometricType() {
         val factory = FakeFactory(BiometricType.BIOMETRIC_VOICE)
-        val provider = object : SoftwareBiometricProvider() {
-            override fun getCustomManager(context: Context): AbstractSoftwareBiometricManager {
-                error("unused")
-            }
+        val runtime = fakeRuntime(factory, managerPriority = -100)
 
-            override fun getPromptFactory(): SoftwareBiometricPromptFactory = factory
-        }
-
-        val resolved = SoftwareBiometricPromptRegistry.resolve(
+        val resolved = SoftwareBiometricPromptRegistry.select(
             BiometricType.BIOMETRIC_VOICE,
-            listOf(provider)
+            listOf(runtime),
+            requirePromptFactory = true,
+            allowUnavailable = false
         )
 
-        assertSame(factory, resolved)
+        assertSame(runtime, resolved)
+        assertSame(factory, resolved?.promptFactory)
     }
 
     @Test
     fun resolveReturnsNullWhenNoFactoryMatchesType() {
-        val provider = object : SoftwareBiometricProvider() {
-            override fun getCustomManager(context: Context): AbstractSoftwareBiometricManager {
-                error("unused")
-            }
-        }
+        val runtime = fakeRuntime(FakeFactory(BiometricType.BIOMETRIC_VOICE))
 
-        val resolved = SoftwareBiometricPromptRegistry.resolve(
+        val resolved = SoftwareBiometricPromptRegistry.select(
             BiometricType.BIOMETRIC_BEHAVIOR,
-            listOf(provider)
+            listOf(runtime),
+            requirePromptFactory = true,
+            allowUnavailable = false
         )
 
         assertNull(resolved)
     }
 
     @Test
-    fun resolveRejectsAmbiguousTopPriorityFactories() {
-        val first = FakeFactory(BiometricType.BIOMETRIC_VOICE)
-        val second = FakeFactory(BiometricType.BIOMETRIC_VOICE)
-        val providers = listOf(
-            fakeProvider(first, priority = 10),
-            fakeProvider(second, priority = 10)
+    fun resolveUsesStableModuleIdForEqualManagerPriority() {
+        val first = fakeRuntime(
+            FakeFactory(BiometricType.BIOMETRIC_VOICE),
+            managerPriority = -100
+        )
+        val second = fakeRuntime(
+            FakeFactory(BiometricType.BIOMETRIC_VOICE),
+            managerPriority = -100,
+            moduleId = 2
         )
 
-        assertNull(
-            SoftwareBiometricPromptRegistry.resolve(
+        assertSame(
+            first.promptFactory,
+            SoftwareBiometricPromptRegistry.select(
                 BiometricType.BIOMETRIC_VOICE,
-                providers
-            )
+                listOf(first, second),
+                requirePromptFactory = true,
+                allowUnavailable = false
+            )?.promptFactory
         )
     }
 
     @Test
-    fun resolveSelectsHighestPriorityFactoryDeterministically() {
-        val low = FakeFactory(BiometricType.BIOMETRIC_VOICE)
-        val high = FakeFactory(BiometricType.BIOMETRIC_VOICE)
+    fun resolveUsesManagerPriorityBeforePromptFactoryPriority() {
+        val voiceFactory = FakeFactory(BiometricType.BIOMETRIC_VOICE)
+        val sherpaFactory = FakeFactory(BiometricType.BIOMETRIC_VOICE)
 
-        assertSame(
-            high,
-            SoftwareBiometricPromptRegistry.resolve(
-                BiometricType.BIOMETRIC_VOICE,
-                listOf(fakeProvider(low, 1), fakeProvider(high, 2))
-            )
+        val resolved = SoftwareBiometricPromptRegistry.select(
+            BiometricType.BIOMETRIC_VOICE,
+            listOf(
+                fakeRuntime(
+                    factory = voiceFactory,
+                    managerPriority = -100,
+                    promptFactoryPriority = 100,
+                    moduleId = 1
+                ),
+                fakeRuntime(
+                    factory = sherpaFactory,
+                    managerPriority = -99,
+                    promptFactoryPriority = 0,
+                    moduleId = 2
+                )
+            ),
+            requirePromptFactory = true,
+            allowUnavailable = false
         )
+
+        assertSame(sherpaFactory, resolved?.promptFactory)
     }
 
-    private fun fakeProvider(
+    @Test
+    fun resolveFallsBackWhenTheHigherPriorityManagerIsUnavailable() {
+        val voiceFactory = FakeFactory(BiometricType.BIOMETRIC_VOICE)
+        val sherpaFactory = FakeFactory(BiometricType.BIOMETRIC_VOICE)
+
+        val resolved = SoftwareBiometricPromptRegistry.select(
+            BiometricType.BIOMETRIC_VOICE,
+            listOf(
+                fakeRuntime(
+                    factory = voiceFactory,
+                    managerPriority = -100,
+                    moduleId = 1
+                ),
+                fakeRuntime(
+                    factory = sherpaFactory,
+                    managerPriority = -99,
+                    hardwareDetected = false,
+                    moduleId = 2
+                )
+            ),
+            requirePromptFactory = true,
+            allowUnavailable = false
+        )
+
+        assertSame(voiceFactory, resolved?.promptFactory)
+    }
+
+    private fun fakeRuntime(
         factory: FakeFactory,
-        priority: Int
-    ): SoftwareBiometricProvider = object : SoftwareBiometricProvider() {
-        override val promptFactoryPriority: Int = priority
-
-        override fun getCustomManager(context: Context): AbstractSoftwareBiometricManager {
-            error("unused")
-        }
-
-        override fun getPromptFactory(): SoftwareBiometricPromptFactory = factory
-    }
+        managerPriority: Int = 0,
+        promptFactoryPriority: Int = 0,
+        hardwareDetected: Boolean = true,
+        moduleId: Int = 1
+    ): SoftwareBiometricRuntime = SoftwareBiometricRuntime(
+        moduleId = moduleId,
+        manager = FakeManager(
+            biometricType = factory.biometricType,
+            priority = managerPriority,
+            hardwareDetected = hardwareDetected
+        ),
+        promptFactory = factory,
+        promptFactoryPriority = promptFactoryPriority
+    )
 
     private class FakeFactory(
         override val biometricType: BiometricType
     ) : SoftwareBiometricPromptFactory {
         override fun create(host: SoftwareBiometricPromptHost): SoftwareBiometricPromptDelegate? = null
+    }
+
+    private class FakeManager(
+        override val biometricType: BiometricType,
+        override val priority: Int,
+        private val hardwareDetected: Boolean
+    ) : AbstractSoftwareBiometricManager() {
+        override fun getTimeoutMessage(): CharSequence? = null
+
+        override fun resetLockOut() = Unit
+
+        override fun resetPermanentLockOut() = Unit
+
+        override fun getPermissions(): List<String> = emptyList()
+
+        override fun isHardwareDetected(): Boolean = hardwareDetected
+
+        override fun hasEnrolledBiometric(): Boolean = true
+
+        override fun getManagers(): Set<Any> = emptySet()
+
+        override fun remove(extra: Bundle?) = Unit
+
+        override fun getEnrollBundle(name: String?): Bundle = Bundle()
+
+        override fun getEnrolls(): Collection<String> = emptyList()
+
+        override fun authenticate(
+            crypto: CryptoObject?,
+            flags: Int,
+            cancel: CancellationSignal?,
+            callback: AuthenticationCallback?,
+            handler: Handler?,
+            extra: Bundle?
+        ) = Unit
     }
 }

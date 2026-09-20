@@ -8,6 +8,16 @@ interface SoftwareBiometricPromptFactory {
         get() = false
 
     fun create(host: SoftwareBiometricPromptHost): SoftwareBiometricPromptDelegate?
+
+    /**
+     * The core supplies the manager selected for this exact provider runtime. Existing factories
+     * keep source compatibility through the one-argument method; factories that coordinate
+     * preparation with manager state may override this overload.
+     */
+    fun create(
+        host: SoftwareBiometricPromptHost,
+        manager: AbstractSoftwareBiometricManager
+    ): SoftwareBiometricPromptDelegate? = create(host)
 }
 
 /** Opt-in for authentication preparation with a null rootView and status-only feedback. */

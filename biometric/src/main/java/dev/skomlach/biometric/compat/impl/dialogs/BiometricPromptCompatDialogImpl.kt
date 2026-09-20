@@ -175,8 +175,10 @@ class BiometricPromptCompatDialogImpl(
             feedbackClosed = false
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. started.")
 
-            softwarePromptDelegate = SoftwareBiometricPromptRegistry.resolve(primaryBiometricType)
-                ?.create(
+            softwarePromptDelegate = SoftwareBiometricPromptRegistry.resolve(
+                primaryBiometricType,
+                compatBuilder.getContext()
+            )?.createPrompt(
                     SoftwareBiometricPromptHost(
                         context = dialog.rootView?.context ?: compatBuilder.getContext(),
                         builder = compatBuilder,

@@ -37,10 +37,47 @@ abstract class SoftwareBiometricProvider {
     internal fun resolveModuleId(legacyManagerClassName: () -> String): Int =
         moduleId ?: legacyManagerClassName().hashCode()
 
-    /** Higher values win when multiple prompt factories target one modality. */
+    /** Tie-breaker after the manager priority when prompt factories target one modality. */
     open val promptFactoryPriority: Int = 0
 
     abstract fun getCustomManager(context: Context): AbstractSoftwareBiometricManager
 
     open fun getPromptFactory(): SoftwareBiometricPromptFactory? = null
+
+    /**
+     * Creates the manager and prompt factory as one runtime unit. The core keeps this pairing for
+     * the whole provider lifetime so prompt preparation, authentication and cleanup cannot drift
+     * to independently loaded provider instances.
+     */
+    internal fun createRuntime(context: Context): SoftwareBiometricRuntime {
+        val manager = getCustomManager(context)
+        return SoftwareBiometricRuntime(
+            moduleId = resolveModuleId { manager::class.java.name },
+            manager = manager,
+            promptFactory = getPromptFactory(),
+            promptFactoryPriority = promptFactoryPriority
+        )
+    }
+}
+
+/** Internal, manager-bound runtime for one discovered software provider. */
+internal class SoftwareBiometricRuntime(
+    val moduleId: Int,
+    val manager: AbstractSoftwareBiometricManager,
+    val promptFactory: SoftwareBiometricPromptFactory?,
+    val promptFactoryPriority: Int
+) {
+    val priority: Int
+        get() = manager.priority
+
+    fun createPrompt(host: SoftwareBiometricPromptHost): SoftwareBiometricPromptDelegate? {
+        return promptFactory?.create(host, manager)
+    }
+
+    fun supportsBackgroundPreparation(enroll: Boolean): Boolean {
+        return promptFactory?.supportsBackgroundPreparation(enroll) == true
+    }
+
+    val requiresReadyExtrasBeforeAuthentication: Boolean
+        get() = promptFactory?.requiresReadyExtrasBeforeAuthentication == true
 }

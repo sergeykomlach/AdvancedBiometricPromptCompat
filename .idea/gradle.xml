@@ -16,6 +16,7 @@
             <option value="$PROJECT_DIR$/biometric-custom-face-tf" />
             <option value="$PROJECT_DIR$/biometric-custom-voice" />
             <option value="$PROJECT_DIR$/biometric-ktx" />
+            <option value="$PROJECT_DIR$/biometric-sherpa-onnx" />
             <option value="$PROJECT_DIR$/biometric-zkfinger" />
             <option value="$PROJECT_DIR$/common" />
           </set>
