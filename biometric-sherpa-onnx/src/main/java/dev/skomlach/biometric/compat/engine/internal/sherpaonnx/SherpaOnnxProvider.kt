@@ -1,19 +1,15 @@
-package dev.skomlach.biometric.compat.engine.internal.voice.sherpaonnx
+package dev.skomlach.biometric.compat.engine.internal.sherpaonnx
 
 import android.content.Context
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptFactory
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
-import dev.skomlach.biometric.compat.engine.internal.voice.VoiceBiometricManager
-import dev.skomlach.biometric.compat.engine.internal.voice.VoicePromptFactory
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 
 /**
- * Voice provider backed by a locally supplied sherpa-onnx runtime and speaker-embedding model.
- *
- * The capture, enrollment, protected template storage, replay protection, lockout and prompt
- * lifecycle are deliberately shared with [VoiceBiometricManager]. Only embedding extraction is
- * supplied by this module.
+ * Atomic voice provider backed by a locally supplied sherpa-onnx runtime and
+ * speaker-embedding model. The manager, capture flow, prompt, storage and
+ * lockout implementation live in this module; no VoiceAuth module is needed.
  */
 class SherpaOnnxProvider : SoftwareBiometricProvider() {
     companion object {
@@ -27,11 +23,11 @@ class SherpaOnnxProvider : SoftwareBiometricProvider() {
     override val promptFactoryPriority: Int = PROMPT_FACTORY_PRIORITY
 
     override fun getCustomManager(context: Context): AbstractSoftwareBiometricManager =
-        VoiceBiometricManager(
+        SherpaOnnxBiometricManager(
             context = context.applicationContext,
             engine = SherpaOnnxVoiceEngine(context.applicationContext),
             modulePriority = MODULE_PRIORITY
         )
 
-    override fun getPromptFactory(): SoftwareBiometricPromptFactory = VoicePromptFactory()
+    override fun getPromptFactory(): SoftwareBiometricPromptFactory = SherpaOnnxPromptFactory()
 }

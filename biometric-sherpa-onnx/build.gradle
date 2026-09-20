@@ -29,6 +29,7 @@ android {
 }
 
 dependencies {
+    implementation project(":" + libArtifactId_common)
     implementation project(":" + libArtifactId_biometric)
     // Compile against the official API without bundling its Java classes or native libraries.
     compileOnly files(localSherpaOnnxAar)
@@ -43,4 +44,3 @@ ext {
 }
 
 apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
-

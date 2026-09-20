@@ -1,7 +1,5 @@
-package dev.skomlach.biometric.compat.engine.internal.voice.sherpaonnx
+package dev.skomlach.biometric.compat.engine.internal.sherpaonnx
 
-import dev.skomlach.biometric.compat.engine.internal.voice.VoiceQualityIssue
-import dev.skomlach.biometric.compat.engine.internal.voice.VoiceSample
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

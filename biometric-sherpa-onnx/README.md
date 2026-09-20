@@ -8,9 +8,11 @@ supplies both of the following locally:
 2. A licensed speaker-embedding model as the application asset
    `sherpa-onnx/speaker-embedding.onnx`.
 
-The module reuses `biometric-custom-voice` for microphone capture, enrollment prompting,
-protected embedding storage, replay checks, lockout, cancellation, and matching. It substitutes
-only sherpa-onnx's `SpeakerEmbeddingExtractor` for the default cepstral embedding engine.
+The module is atomic: it contains its own `SoftwareBiometricProvider`, manager, microphone capture,
+enrollment/authentication prompt, protected template storage, replay checks, lockout, cancellation,
+and matching flow. It does not depend on or instantiate `biometric-custom-voice`/`VoiceAuth`.
+The only external biometric runtime used by this module is sherpa-onnx's typed
+`SpeakerEmbeddingExtractor` API.
 
 `vendor-sdk/` is Git-ignored. The wrapper compiles against sherpa-onnx's public typed API using a
 `compileOnly` dependency and has no tracked sherpa binary or model. The sample app adds the local

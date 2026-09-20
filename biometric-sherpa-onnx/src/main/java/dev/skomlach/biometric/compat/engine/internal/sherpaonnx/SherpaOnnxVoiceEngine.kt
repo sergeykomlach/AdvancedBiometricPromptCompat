@@ -1,13 +1,13 @@
-package dev.skomlach.biometric.compat.engine.internal.voice.sherpaonnx
+package dev.skomlach.biometric.compat.engine.internal.sherpaonnx
 
 import android.content.Context
 import com.k2fsa.sherpa.onnx.OnlineStream
 import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractor
 import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractorConfig
-import dev.skomlach.biometric.compat.engine.internal.voice.VoiceEmbeddingResult
-import dev.skomlach.biometric.compat.engine.internal.voice.VoiceEngine
-import dev.skomlach.biometric.compat.engine.internal.voice.VoiceQualityIssue
-import dev.skomlach.biometric.compat.engine.internal.voice.VoiceSample
+import dev.skomlach.biometric.compat.engine.internal.sherpaonnx.VoiceEmbeddingResult
+import dev.skomlach.biometric.compat.engine.internal.sherpaonnx.VoiceEngine
+import dev.skomlach.biometric.compat.engine.internal.sherpaonnx.VoiceQualityIssue
+import dev.skomlach.biometric.compat.engine.internal.sherpaonnx.VoiceSample
 import java.io.IOException
 
 /**
@@ -148,3 +148,4 @@ private object UnavailableSherpaOnnxEmbeddingRuntime : SherpaOnnxEmbeddingRuntim
 
     override fun extractEmbedding(pcm: FloatArray, sampleRateHz: Int): FloatArray? = null
 }
+
