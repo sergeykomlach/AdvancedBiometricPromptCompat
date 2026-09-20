@@ -30,16 +30,17 @@ android {
 
 dependencies {
     implementation project(":" + libArtifactId_biometric)
-    implementation project(":" + libArtifactId_biometric_custom_voice)
     // Compile against the official API without bundling its Java classes or native libraries.
     compileOnly files(localSherpaOnnxAar)
     testImplementation libs.junit
 }
 
+
 ext {
     PUBLISH_GROUP_ID = libsGroupId
-    PUBLISH_ARTIFACT_ID = 'biometric-sherpa-onnx'
+    PUBLISH_ARTIFACT_ID = libArtifactId_biometric_sherpa_onnx
     PUBLISH_VERSION = libVersion
 }
 
 apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
+
