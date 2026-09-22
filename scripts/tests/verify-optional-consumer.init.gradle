@@ -1,11 +1,12 @@
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+import org.gradle.plugins.signing.Sign
 import java.util.zip.ZipFile
 
 // Build/inspect only. This gate must never publish or use release signing credentials.
 gradle.taskGraph.whenReady { graph ->
-    if (graph.allTasks.any { it instanceof PublishToMavenRepository || it.name == 'postRelease' }) {
-        throw new GradleException('Remote publication forbidden by consumer verification')
+    if (graph.allTasks.any { it instanceof PublishToMavenRepository || it instanceof Sign || it.name == 'postRelease' }) {
+        throw new GradleException('Maven signing and remote publication forbidden by consumer verification')
     }
 }
 gradle.projectsEvaluated {
@@ -21,10 +22,31 @@ gradle.projectsEvaluated {
             }.artifacts.artifacts
             def forbidden = artifacts.findAll {
                 def identity = it.id.componentIdentifier.displayName
-                ['zkandroidcore.jar', 'zkandroidfingerservice.jar', 'zkandroidfpreader.jar',
-                    'sherpa-onnx-1.13.8.aar'].any { identity.contains(it) }
+                identity =~ /(?i)(zkandroid[^\/\\]*\.jar|sherpa-onnx[^\/\\]*\.aar)/
             }
             assert forbidden.empty : "Vendor runtime leaked into consumer: ${forbidden}"
+            // JNI source directories bypass Gradle's dependency graph. Inspect the APK too.
+            def vendorNativeNames = root.fileTree('biometric-zkfinger/vendor-sdk/jniLibs') {
+                include '**/*.so'
+            }.files.collect { it.name } as Set
+            root.fileTree('biometric-sherpa-onnx/vendor-sdk/libs') {
+                include 'sherpa-onnx*.aar'
+            }.files.each { aar ->
+                new ZipFile(aar).withCloseable { zip ->
+                    zip.entries().each { entry ->
+                        if (entry.name.startsWith('jni/') && entry.name.endsWith('.so')) {
+                            vendorNativeNames.add(entry.name.tokenize('/').last())
+                        }
+                    }
+                }
+            }
+            def apk = app.layout.buildDirectory.file('outputs/apk/sdkAbsent/app-sdkAbsent.apk').get().asFile
+            new ZipFile(apk).withCloseable { zip ->
+                def leakedNative = zip.entries().findAll {
+                    it.name.startsWith('lib/') && vendorNativeNames.contains(it.name.tokenize('/').last())
+                }
+                assert leakedNative.empty : "Vendor native libraries leaked into APK: ${leakedNative}"
+            }
             def ktx = root.project(':biometric-ktx')
             def pom = new XmlSlurper().parse(ktx.layout.buildDirectory.file('publications/release/pom-default.xml').get().asFile)
             def core = pom.dependencies.dependency.findAll { it.artifactId.text() == 'biometric' }
