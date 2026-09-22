@@ -25,6 +25,16 @@ data class SoftwareBiometricSecurityProfile(
     companion object {
         const val MAX_CAPTURE_DURATION_MS = 120_000L
 
+        /** Matching caller-supplied samples is neither a live challenge nor attested capture. */
+        fun passiveCompatibility(type: BiometricType) = SoftwareBiometricSecurityProfile(
+            biometricType = type,
+            assurance = SoftwareBiometricAssuranceLevel.PASSIVE_MATCH,
+            requiresTrustedCapture = false,
+            allowsCompatibilityCapture = true,
+            supportsCryptoObject = false,
+            maxCaptureDurationMs = 30_000L
+        )
+
         fun conservativeDefault(type: BiometricType) = SoftwareBiometricSecurityProfile(
             biometricType = type,
             assurance = SoftwareBiometricAssuranceLevel.LEGACY_COMPATIBILITY,

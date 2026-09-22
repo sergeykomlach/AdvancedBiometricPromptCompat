@@ -13,7 +13,8 @@ internal fun resolveApi28Completion(
     availableTypes: Collection<BiometricType>,
     softwareEnrollmentTargets: Collection<BiometricType>,
     hardwareConfirmation: AuthResult.AuthResultState?,
-    results: Map<out BiometricType?, AuthResult>
+    results: Map<out BiometricType?, AuthResult>,
+    softwarePreparationPending: Boolean = false
 ): AuthenticationCompletion {
     if (softwareEnrollmentTargets.isNotEmpty()) {
         when (hardwareConfirmation) {
@@ -22,11 +23,14 @@ internal fun resolveApi28Completion(
             else -> return AuthenticationCompletion.PENDING
         }
     }
-    return resolveAuthenticationCompletion(
+    val completion = resolveAuthenticationCompletion(
         confirmation,
         softwareEnrollmentTargets.ifEmpty { availableTypes },
         results
     )
+    return if (softwarePreparationPending && softwareEnrollmentTargets.isEmpty() &&
+        confirmation == BiometricConfirmation.ANY && completion == AuthenticationCompletion.FAILED
+    ) AuthenticationCompletion.PENDING else completion
 }
 
 // A system prompt reports no individual modality. One success cannot prove both face and finger.

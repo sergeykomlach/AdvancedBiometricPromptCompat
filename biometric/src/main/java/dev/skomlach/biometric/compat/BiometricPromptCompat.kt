@@ -40,16 +40,18 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import dev.skomlach.biometric.compat.crypto.CryptographyManager
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptRegistry
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
-import dev.skomlach.biometric.compat.engine.internal.EnrollmentRollbackScope
+import dev.skomlach.biometric.compat.engine.internal.EnrollmentRollbackSession
 import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.BiometricPromptSilentImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
+import dev.skomlach.biometric.compat.impl.canPrepareSoftwareAlongsideNative
 import dev.skomlach.biometric.compat.impl.credentials.CredentialsRequestFragment
 import dev.skomlach.biometric.compat.impl.dialogs.UntrustedAccessibilityFragment
 import dev.skomlach.biometric.compat.impl.permissions.InitiateSystemBiometricEnrollFragment
@@ -64,6 +66,8 @@ import dev.skomlach.biometric.compat.utils.TruncatedTextFix
 import dev.skomlach.biometric.compat.impl.dialogs.SystemBiometricDialogResources
 import dev.skomlach.biometric.compat.utils.WideGamutBug
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
+import dev.skomlach.biometric.compat.utils.activityView.ForegroundFeedbackSession
+import dev.skomlach.biometric.compat.custom.BiometricFeedbackOptions
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.appstate.AppBackgroundDetector
 import dev.skomlach.biometric.compat.utils.hardware.BiometricPromptHardware
@@ -319,10 +323,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
 
                 override fun onBiometricReady() {
-                    ExecutorHelper.post {
-                        // Hardware probing can finish with no usable modules. Register software
-                        // on the main thread as before, but publish readiness only afterwards.
-                        BiometricManagerCompat.loadNonHardwareBiometrics()
+                    completeBiometricInitialization(
+                        dispatchBackground = ExecutorHelper::startOnBackground,
+                        dispatchMain = ExecutorHelper::post,
+                        loadSoftware = BiometricManagerCompat::loadNonHardwareBiometrics
+                    ) {
                         BiometricLoggerImpl.e("BiometricPromptCompat initialized in ${System.currentTimeMillis() - initStart} ms")
                         isBiometricInit.set(true)
                         initInProgress.set(false)
@@ -665,6 +670,38 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         authFlowId: Long,
         onReady: (AuthenticationCallback, Long) -> Unit
     ) {
+        if (timeout || builder.getBiometricAuthRequest().provider == BiometricProviderType.HARDWARE) {
+            continueAfterInitialSoftwarePreparation(callback, timeout, authFlowId, onReady)
+            return
+        }
+        if (canStartNativeBeforeSoftwarePreparation()) {
+            builder.deferSoftwarePreparation = true
+            continueAfterInitialSoftwarePreparation(callback, false, authFlowId, onReady)
+            return
+        }
+        ExecutorHelper.startOnBackground {
+            if (!isCurrentAuthFlow(authFlowId)) return@startOnBackground
+            SoftwareBiometricPromptRegistry.prepareInitial(
+                builder.getBiometricAuthRequest().type,
+                builder.getContext(),
+                { isCurrentAuthFlow(authFlowId) }
+            ) {
+                ExecutorHelper.post {
+                    if (isCurrentAuthFlow(authFlowId)) {
+                        builder.invalidateAvailableTypes()
+                        continueAfterInitialSoftwarePreparation(callback, false, authFlowId, onReady)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun continueAfterInitialSoftwarePreparation(
+        callback: AuthenticationCallback,
+        timeout: Boolean,
+        authFlowId: Long,
+        onReady: (AuthenticationCallback, Long) -> Unit
+    ) {
         ExecutorHelper.startOnBackground {
             if (authFlowGeneration.get() != authFlowId) {
                 return@startOnBackground
@@ -900,6 +937,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                     else -> false
                 }
+                val foregroundFeedback = ForegroundFeedbackSession()
+                builder.foregroundFeedback = foregroundFeedback
                 val activityViewWatcher = try {
                     if (!builder.isSilentAuthEnabled()) ActivityViewWatcher(
                         builder,
@@ -915,7 +954,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
 
                 var hadUi = false
-                var rollbackEnrollment = false
                 var enrollmentSucceeded = false
                 val lastKnownOrientation = AtomicInteger(0)
                 val orientationLocked = AtomicBoolean(false)
@@ -923,12 +961,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     post = { task -> ExecutorHelper.post { task() } },
                     ownsFlow = { authFlowGeneration.get() == authFlowId && authFlowInProgress.get() },
                     cleanup = {
+                        runCatching { foregroundFeedback.close() }.onFailure { BiometricLoggerImpl.e(it) }
+                        if (builder.foregroundFeedback === foregroundFeedback) builder.foregroundFeedback = null
                         // All engine/UI teardown belongs to this generation. No cleanup is
                         // queued after release: client callbacks may immediately start again.
                         runCatching { if (implementationStarted) impl.cancelAuthentication() }
                             .onFailure { BiometricLoggerImpl.e(it) }
                         runCatching { LegacyBiometric.cancelAuthentication() }
                             .onFailure { BiometricLoggerImpl.e(it) }
+                        runCatching { activityViewWatcher?.resetListeners() }.onFailure { BiometricLoggerImpl.e(it) }
                         builder.isUIOpened.set(false)
                         builder.release()
                         if (orientationLocked.getAndSet(false)) {
@@ -936,12 +977,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         }
                         if (hadUi) appBackgroundDetector.detachListeners()
                         builder.finishEnrollSession(
-                            succeeded = enrollmentSucceeded && !authCanceled.get(),
-                            rollbackConfirmed = rollbackEnrollment ||
-                                    (authCanceled.get() && builder.shouldRollbackEnrollSession())
+                            succeeded = enrollmentSucceeded && !authCanceled.get()
                         )
                         if (hadUi && !builder.isSilentAuthEnabled()) {
-                            activityViewWatcher?.resetListeners()
                             builder.getActivity()?.let {
                                 StatusBarTools.setNavBarAndStatusBarColors(
                                     it.window, builder.getNavBarColor(),
@@ -1022,7 +1060,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                     override fun onCanceled(canceled: Set<AuthenticationResult>) {
                         if (!isCurrentAuthFlow(authFlowId) || completion.isFinishing()) return
-                        rollbackEnrollment = builder.shouldRollbackEnrollSession()
                         completion.finish {
                             if (canceled.any { it.reason == AuthenticationFailureReason.INTERNAL_ERROR }) {
                                 callbackOuter.onFailed(canceled)
@@ -1043,7 +1080,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             restartWithCurrentFlow()
                             return
                         }
-                        rollbackEnrollment = builder.shouldRollbackEnrollSession()
                         completion.finish { callbackOuter.onFailed(canceled) }
                     }
 
@@ -1365,12 +1401,36 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         authFlowId: Long,
         authTask: () -> Unit
     ) {
+        if (builder.deferSoftwarePreparation) {
+            // Permissions/sensor checks may have removed the native route since readiness.
+            if (canStartNativeBeforeSoftwarePreparation()) {
+                authTask()
+            } else {
+                builder.deferSoftwarePreparation = false
+                ExecutorHelper.startOnBackground {
+                    SoftwareBiometricPromptRegistry.prepareInitial(
+                        builder.getBiometricAuthRequest().type, builder.getContext(),
+                        { isCurrentAuthFlow(authFlowId) }
+                    ) {
+                        ExecutorHelper.post {
+                            if (isCurrentAuthFlow(authFlowId)) {
+                                builder.invalidateAvailableTypes()
+                                runAuthPreflight(callback, authFlowId, authTask,
+                                    requestNotificationPermission = false)
+                            }
+                        }
+                    }
+                }
+            }
+            return
+        }
         BiometricLoggerImpl.e("BiometricPromptCompat.checkModulePreparation")
         LegacyBiometric.prepareSoftwareModulesForAuthentication(
             builder.getBiometricAuthRequest(),
             getSoftwarePreparationTypes(),
             builder.enroll,
             builder.getDisabledModuleTags(),
+            isActive = { isCurrentAuthFlow(authFlowId) },
             onModuleSkipped = { module ->
                 if (isCurrentAuthFlow(authFlowId)) {
                     builder.disableBiometricModule(module)
@@ -1508,6 +1568,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             permission
         ).onEach(builder::disableBiometricType)
     }
+
+    private fun canStartNativeBeforeSoftwarePreparation(): Boolean =
+        canPrepareSoftwareAlongsideNative(
+            builder.enroll,
+            builder.isSilentAuthEnabled() || builder.forceDeviceCredential() || DevicesWithKnownBugs.isMissedBiometricUI,
+            builder.getBiometricAuthRequest().confirmation,
+            builder.getPrimaryAvailableTypes().any {
+                builder.selectedRoute(it)?.usesBiometricPromptHardware == true
+            },
+            shouldUseBiometricPromptImpl()
+        )
 
     private fun shouldUseBiometricPromptImpl(): Boolean {
         if (builder.getBiometricAuthRequest().provider == BiometricProviderType.SOFTWARE) {
@@ -1896,17 +1967,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
         }
 
-        private val allAvailableTypes: HashSet<BiometricType> by lazy {
-            val types = HashSet<BiometricType>()
-            types.addAll(primaryAvailableTypes)
-            types.addAll(secondaryAvailableTypes)
-            types
-        }
+        private val availableTypeCache = AuthFlowRouteCache<Boolean, HashSet<BiometricType>>()
         private val disabledModuleTags = Collections.synchronizedSet(HashSet<Int>())
         private val disabledBiometricTypes = Collections.synchronizedSet(HashSet<BiometricType>())
+        internal var deferSoftwarePreparation = false
         private val selectedRouteCache =
             AuthFlowRouteCache<BiometricType, SelectedBiometricRoute?>()
-        private val primaryAvailableTypes: HashSet<BiometricType> by lazy {
+        private val primaryAvailableTypes: HashSet<BiometricType>
+            get() = availableTypeCache.getOrPut(true) {
             val types = HashSet<BiometricType>()
             val isNewBiometric =
                 HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi
@@ -1967,7 +2035,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
             types
         }
-        private val secondaryAvailableTypes: HashSet<BiometricType> by lazy {
+        private val secondaryAvailableTypes: HashSet<BiometricType>
+            get() = availableTypeCache.getOrPut(false) {
             val types = HashSet<BiometricType>()
             if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) {
                 if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
@@ -2055,6 +2124,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var notificationEnabled = false
 
         private var backgroundBiometricIconsEnabled = true
+        internal var foregroundFeedback: ForegroundFeedbackSession? = null
+        private var biometricFeedbackOptions = BiometricFeedbackOptions()
+
+        /** Configure the app-window message card. Does not alter biometric routing or trust. */
+        fun setBiometricFeedbackOptions(options: BiometricFeedbackOptions): Builder {
+            biometricFeedbackOptions = options
+            return this
+        }
+
+        fun getBiometricFeedbackOptions(): BiometricFeedbackOptions = biometricFeedbackOptions
+
         internal var systemPromptOwnsUi = false
         internal var frameworkFingerprintUiOwner = AuthenticationUiOwner.UNKNOWN
 
@@ -2095,7 +2175,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var behaviorSignatureContainer = WeakReference<ViewGroup?>(null)
         private val confirmedEnrollTypes = LinkedHashSet<BiometricType>()
         private val rollbackEligibleEnrollTypes = LinkedHashSet<BiometricType>()
-        private val parallelEnrollments = LinkedHashMap<SoftwareBiometricModule, EnrollmentRollbackScope>()
+        private fun newEnrollmentSession() = EnrollmentRollbackSession<SoftwareBiometricModule>(
+            start = { it.trackEnrollmentRollback() },
+            finish = { module, scope, succeeded -> module.finishEnrollmentRollback(scope, succeeded) }
+        )
+        private var softwareEnrollments = newEnrollmentSession()
         internal var voicePhrase: CharSequence? = null
         internal var isUIOpened = AtomicBoolean(false)
         private var observer: Observer<Activity?>? = Observer<Activity?> { context ->
@@ -2407,6 +2491,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         internal fun resetEnrollSessionState() {
+            softwareEnrollments.finish(succeeded = false)
+            softwareEnrollments = newEnrollmentSession()
             confirmedEnrollTypes.clear()
             rollbackEligibleEnrollTypes.clear()
         }
@@ -2441,28 +2527,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return LinkedHashSet(rollbackEligibleEnrollTypes)
         }
 
-        internal fun trackParallelEnrollment(type: BiometricType) {
+        internal fun trackSoftwareEnrollment(type: BiometricType) {
             if (!enroll) return
             val module = selectedRoute(type)?.module as? SoftwareBiometricModule ?: return
-            parallelEnrollments.getOrPut(module) { module.trackEnrollmentRollback() }
+            softwareEnrollments.track(module)
         }
 
-        internal fun finishEnrollSession(succeeded: Boolean, rollbackConfirmed: Boolean) {
-            // A parallel software result cannot commit templates before the whole setup succeeds.
-            // Staged ALL rollback retains its policy, scoped to modules confirmed by this run.
-            if (rollbackConfirmed) {
-                rollbackEligibleEnrollTypes.mapNotNull { selectedRoute(it)?.module as? SoftwareBiometricModule }
-                    .filterNot { it in parallelEnrollments }
-                    .forEach { it.rollbackLastEnroll() }
-            }
-            parallelEnrollments.forEach { (module, scope) -> module.finishEnrollmentRollback(scope, succeeded) }
-            parallelEnrollments.clear()
-        }
-
-        internal fun shouldRollbackEnrollSession(): Boolean {
-            return enroll &&
-                    biometricAuthRequest.confirmation == BiometricConfirmation.ALL &&
-                    rollbackEligibleEnrollTypes.isNotEmpty()
+        internal fun finishEnrollSession(succeeded: Boolean) {
+            // Persistence can precede success delivery in every UI path, including staged
+            // and silent setup. Commit only when the entire outer setup succeeds.
+            softwareEnrollments.finish(succeeded)
         }
 
         internal fun getEnrolledHardwareScopeTypes(): Set<BiometricType> {
@@ -2503,13 +2577,22 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         internal fun beginAuthFlow(authFlowId: Long) {
+            deferSoftwarePreparation = false
             disabledModuleTags.clear()
             disabledBiometricTypes.clear()
             selectedRouteCache.beginFlow(authFlowId)
+            availableTypeCache.beginFlow(authFlowId)
         }
 
         internal fun endAuthFlow(authFlowId: Long) {
             selectedRouteCache.endFlow(authFlowId)
+            availableTypeCache.endFlow(authFlowId)
+        }
+
+        internal fun invalidateAvailableTypes() {
+            availableTypeCache.invalidate()
+            isTruncateChecked = null
+            invalidateSelectedRoutes()
         }
 
         internal fun invalidateSelectedRoutes() {

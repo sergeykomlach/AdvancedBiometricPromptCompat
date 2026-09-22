@@ -6,11 +6,45 @@ import org.junit.Test
 
 class FaceAntiSpoofingPolicyTest {
     @Test
-    fun compatibilityDefaultsDoNotRequireChallengeOrPadAvailability() {
+    fun defaultAuthenticationRejectsUnavailablePad() {
         val config = TensorFlowFaceConfig()
 
-        assertEquals(false, config.faceChallengeEnabled)
-        assertEquals(false, config.requireAntiSpoofingForAuthentication)
+        assertEquals(
+            TensorFlowFacePreflightIssue.ANTI_SPOOFING_UNAVAILABLE,
+            resolveTensorFlowFacePreflightIssue(
+                isHardwareDetected = true,
+                usesRealCameraProvider = true,
+                isCameraBlocked = false,
+                isCameraInUse = false,
+                isEnrolling = false,
+                hasEnrolledBiometric = true,
+                antiSpoofingAvailable = false,
+                requireAntiSpoofing = config.requireAntiSpoofingForAuthentication
+            )
+        )
+    }
+
+    @Test
+    fun negativeAndNonFiniteModelScoresAreUnavailableRatherThanLivenessEvidence() {
+        for (score in listOf(-0.1f, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY)) {
+            assertEquals(
+                SoftwareBiometricAssurance.UNAVAILABLE,
+                classifyFaceAntiSpoofingScore(score, 0.28f)
+            )
+        }
+    }
+
+    @Test
+    fun requiredPadAlsoProtectsEnrollment() {
+        assertEquals(
+            TensorFlowFacePreflightIssue.ANTI_SPOOFING_UNAVAILABLE,
+            resolveTensorFlowFacePreflightIssue(
+                isHardwareDetected = true, usesRealCameraProvider = true,
+                isCameraBlocked = false, isCameraInUse = false,
+                isEnrolling = true, hasEnrolledBiometric = false,
+                antiSpoofingAvailable = false, requireAntiSpoofing = true
+            )
+        )
     }
 
     @Test

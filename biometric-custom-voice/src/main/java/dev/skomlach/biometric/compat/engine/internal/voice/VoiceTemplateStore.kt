@@ -1,6 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
 import dev.skomlach.common.storage.editProtected
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkScope
 import android.content.SharedPreferences
 import android.util.Base64
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
@@ -34,26 +35,50 @@ data class VoiceTemplate(
     }
 }
 
-class VoiceTemplateStore {
-    private val prefs: SharedPreferences by lazy {
-        getProtectedPreferences(STORAGE_NAME)
-    }
+class VoiceTemplateStore internal constructor(
+    preferences: () -> SharedPreferences,
+    private val enrollmentEngine: VoiceEngine?
+) {
+    /** Read/maintenance compatibility constructor. Public writes require an engine-bound store. */
+    constructor() : this({ getProtectedPreferences(STORAGE_NAME) }, null)
+
+    /**
+     * Bind public enrollment writes to the engine that produced their embeddings.
+     * Prepare that engine off the UI thread first; this store never initializes a native runtime.
+     */
+    constructor(engine: VoiceEngine) : this({ getProtectedPreferences(STORAGE_NAME) }, engine)
+
+    private val prefs: SharedPreferences by lazy(preferences)
+
+    internal fun newWorkSession() = operationScope.newSession()
 
     fun hasTemplate(): Boolean = templateNames().isNotEmpty()
 
-    fun templateNames(): Collection<String> {
-        return prefs.all.keys
+    fun enrollmentStatus(identity: String?): VoiceEnrollmentStatus = synchronized(storageLock) {
+        voiceEnrollmentStatus(templateNames().map { prefs.getString(IDENTITY_PREFIX + it, null) }, identity)
+    }
+
+    fun templateNames(): Collection<String> = synchronized(storageLock) {
+        prefs.all.keys
             .filter { it.startsWith(TEMPLATE_PREFIX) }
             .map { it.removePrefix(TEMPLATE_PREFIX) }
             .sorted()
     }
 
-    fun loadTemplates(): List<VoiceTemplate> {
-        return templateNames().flatMap { tag ->
+    fun loadTemplates(): List<VoiceTemplate> = synchronized(storageLock) {
+        templateNames().flatMap { tag ->
             prefs.getString(TEMPLATE_PREFIX + tag, null)
                 ?.let { deserializeTemplates(tag, it) }
                 .orEmpty()
         }
+    }
+
+    fun templateNames(identity: String?): Collection<String> = synchronized(storageLock) {
+        templateNames().filter { voiceTemplateIdentityMatches(prefs.getString(IDENTITY_PREFIX + it, null), identity) }
+    }
+
+    fun loadTemplates(identity: String?): List<VoiceTemplate> = synchronized(storageLock) {
+        loadTemplates().filter { voiceTemplateIdentityMatches(prefs.getString(IDENTITY_PREFIX + it.tag, null), identity) }
     }
 
     fun save(tag: String?, phrase: String?, embedding: FloatArray): String {
@@ -66,28 +91,56 @@ class VoiceTemplateStore {
         embeddings: List<FloatArray>,
         featureBatches: List<List<FloatArray>> = emptyList()
     ): String {
-        val normalizedTag = sanitizeTag(tag) ?: UUID.randomUUID().toString()
-        val storageKey = TEMPLATE_PREFIX + normalizedTag
-        val existingTemplates = prefs.getString(storageKey, null)
-            ?.let { deserializeTemplates(normalizedTag, it) }
-            .orEmpty()
-        val incomingTemplates = trainVoiceTemplates(normalizedTag, phrase, embeddings, featureBatches)
-        if (incomingTemplates.isEmpty()) return normalizedTag
-        val templates = mergeVoiceTemplates(
-            existing = existingTemplates,
-            incoming = incomingTemplates,
-            maxTemplates = MAX_TEMPLATES_PER_TAG
-        )
-        prefs.editProtected { putString(storageKey, serializeTemplates(templates)) }
-        return normalizedTag
+        val session = newWorkSession()
+        try {
+            return session.runIfActive {
+                // Validation is cheap; model preparation is the caller's responsibility.
+                checkNotNull(enrollmentEngine) { "Use VoiceTemplateStore(engine) for enrollment writes" }
+            }?.let { engine ->
+                check(engine.isAvailable()) { "Prepare the voice engine before saving enrollment" }
+                val identity = checkNotNull(voiceEnrollmentIdentity(engine)) {
+                    "Voice enrollment requires a stable VoiceTemplateIdentityProvider identity"
+                }
+                val normalizedTag = sanitizeTag(tag) ?: UUID.randomUUID().toString()
+                val incoming = trainVoiceTemplates(normalizedTag, phrase, embeddings, featureBatches)
+                require(incoming.isNotEmpty()) { "Voice enrollment requires a consistent set of recordings and features" }
+                session.runIfActive { saveTrained(normalizedTag, incoming, identity) }
+            } ?: throw java.util.concurrent.CancellationException("Voice enrollment was removed")
+        } finally {
+            session.complete()
+        }
+    }
+
+    /** Training is performed outside the cancellation/commit monitor. */
+    internal fun saveTrained(tag: String, incoming: List<VoiceTemplate>, identity: String?): String = synchronized(storageLock) {
+        require(incoming.isNotEmpty())
+        val storageKey = TEMPLATE_PREFIX + tag
+        val sameIdentity = prefs.getString(IDENTITY_PREFIX + tag, null) == identity
+        val existing = if (sameIdentity) prefs.getString(storageKey, null)
+            ?.let { deserializeTemplates(tag, it) }.orEmpty() else emptyList()
+        val templates = mergeVoiceTemplates(existing, incoming, MAX_TEMPLATES_PER_TAG)
+        prefs.editProtected {
+            putString(storageKey, serializeTemplates(templates))
+            if (identity == null) remove(IDENTITY_PREFIX + tag)
+            else putString(IDENTITY_PREFIX + tag, identity)
+        }
+        tag
     }
 
     fun remove(tag: String?) {
-        prefs.editProtected {
-            if (tag.isNullOrBlank()) {
-                templateNames().forEach { remove(TEMPLATE_PREFIX + it) }
-            } else {
-                sanitizeTag(tag)?.let { remove(TEMPLATE_PREFIX + it) }
+        operationScope.revoke {
+            prefs.editProtected {
+                if (tag.isNullOrBlank()) {
+                    templateNames().forEach {
+                        remove(TEMPLATE_PREFIX + it)
+                        remove(IDENTITY_PREFIX + it)
+                    }
+                } else {
+                    sanitizeTag(tag)?.let {
+                        remove(TEMPLATE_PREFIX + it)
+                        remove(IDENTITY_PREFIX + it)
+                    }
+                }
             }
         }
     }
@@ -203,8 +256,14 @@ class VoiceTemplateStore {
     }
 
     private companion object {
+        // Stores share one protected namespace. Per-instance locks cannot prevent mixed
+        // payload/identity reads or lost read-modify-write updates across public stores.
+        // All persistence stays inside this lock; inference/training remains outside.
+        val operationScope = SoftwareBiometricWorkScope()
+        val storageLock = operationScope.lock
         const val STORAGE_NAME = "voice_templates"
         const val TEMPLATE_PREFIX = "template_"
+        const val IDENTITY_PREFIX = "identity_"
         const val FORMAT_VERSION_V1 = "v1"
         const val FORMAT_VERSION = "v2"
         const val MAX_TAG_LENGTH = 80
@@ -236,24 +295,24 @@ internal fun trainVoiceTemplates(
     embeddings: List<FloatArray>,
     featureBatches: List<List<FloatArray>> = emptyList()
 ): List<VoiceTemplate> {
-    val normalized = embeddings
-        .mapNotNull { it.normalizedCopy() }
-    val gmmModel = GmmVoiceTrainer.train(featureBatches)
-    if (normalized.size <= 1) {
-        return normalized.map { VoiceTemplate(tag, phrase, it, gmmModel) }
-    }
-
-    val filtered = normalized.filterIndexed { index, embedding ->
-        val averageSimilarity = normalized
-            .filterIndexed { otherIndex, _ -> otherIndex != index }
-            .map { other -> VoiceScorer.score(embedding, other) }
-            .average()
-            .takeIf { !it.isNaN() }
-            ?: 0.0
-        averageSimilarity >= TRAINING_MIN_AVERAGE_SIMILARITY
-    }.ifEmpty {
-        normalized
-    }
+    if (embeddings.map { it.size }.distinct().size != 1) return emptyList()
+    if (featureBatches.isNotEmpty() && featureBatches.size != embeddings.size) return emptyList()
+    // Preserve recording indices: filtering invalid embeddings would misalign GMM frames.
+    val normalized = embeddings.map { it.normalizedCopy() ?: return emptyList() }
+    val acceptedIndices = consistentMajorityIndices(normalized)
+    if (acceptedIndices.isEmpty()) return emptyList()
+    val filtered = acceptedIndices.map { normalized[it] }
+    val acceptedBatches = if (featureBatches.isEmpty()) emptyList()
+        else acceptedIndices.map { featureBatches[it] }
+    val hasFeatures = acceptedBatches.any { it.isNotEmpty() }
+    val gmmModel = if (hasFeatures) {
+        if (acceptedBatches.any { it.isEmpty() }) return emptyList()
+        val frameSize = acceptedBatches.first().first().size
+        if (frameSize == 0 || acceptedBatches.any { batch ->
+                batch.any { frame -> frame.size != frameSize || frame.any { !it.isFinite() } }
+            }) return emptyList()
+        GmmVoiceTrainer.train(acceptedBatches) ?: return emptyList()
+    } else null
 
     val centroid = centroidEmbedding(filtered)
     val templates = filtered.map { VoiceTemplate(tag, phrase, it) }.toMutableList()
@@ -264,6 +323,41 @@ internal fun trainVoiceTemplates(
         templates.add(0, first.copy(gmmModel = gmmModel))
     }
     return templates
+}
+
+/**
+ * A strict majority must form an isolated, pairwise-consistent group. A bridging recording
+ * makes the entire group ambiguous; ties, minorities and disconnected singletons fail closed.
+ * Connected components keep the decision deterministic and quadratic, without clique search.
+ */
+private fun consistentMajorityIndices(embeddings: List<FloatArray>): List<Int> {
+    val compatible = Array(embeddings.size) { left ->
+        BooleanArray(embeddings.size) { right ->
+            left == right || VoiceScorer.score(embeddings[left], embeddings[right]) >=
+                TRAINING_MIN_PAIR_SIMILARITY
+        }
+    }
+    val visited = BooleanArray(embeddings.size)
+    for (start in embeddings.indices) {
+        if (visited[start]) continue
+        val component = mutableListOf(start)
+        visited[start] = true
+        var cursor = 0
+        while (cursor < component.size) {
+            val current = component[cursor++]
+            for (other in embeddings.indices) {
+                if (!visited[other] && compatible[current][other]) {
+                    visited[other] = true
+                    component.add(other)
+                }
+            }
+        }
+        if (component.size > embeddings.size / 2 &&
+            component.all { left -> component.all { right -> compatible[left][right] } }) {
+            return component.sorted()
+        }
+    }
+    return emptyList()
 }
 
 private fun FloatArray.normalizedCopy(): FloatArray? {
@@ -279,7 +373,8 @@ private fun FloatArray.normalizedCopy(): FloatArray? {
 
 private fun centroidEmbedding(embeddings: List<FloatArray>): FloatArray? {
     if (embeddings.isEmpty()) return null
-    val size = embeddings.minOf { it.size }
+    val size = embeddings.first().size
+    if (embeddings.any { it.size != size }) return null
     val centroid = FloatArray(size)
     embeddings.forEach { embedding ->
         for (index in 0 until size) {
@@ -289,4 +384,4 @@ private fun centroidEmbedding(embeddings: List<FloatArray>): FloatArray? {
     return centroid.normalizedCopy()
 }
 
-private const val TRAINING_MIN_AVERAGE_SIMILARITY = 0.70
+private const val TRAINING_MIN_PAIR_SIMILARITY = 0.70

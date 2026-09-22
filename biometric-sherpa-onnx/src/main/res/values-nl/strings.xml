@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">Het opgeslagen stemprofiel is niet compatibel met deze spraakengine. Stel stemontgrendeling opnieuw in.</string>
     <string name="biometriccompat_voice_help_timeout">Time-out bij spraakauthenticatie</string>
     <string name="biometriccompat_voice_help_unavailable">Spraakauthenticatie is niet beschikbaar</string>
     <string name="biometriccompat_voice_help_permission_required">Microfoontoestemming is vereist voor spraakauthenticatie</string>

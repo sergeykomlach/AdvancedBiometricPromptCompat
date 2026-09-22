@@ -1,9 +1,6 @@
 package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 
-import dev.skomlach.common.storage.ProtectedStorageUnavailableException
-
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -11,7 +8,6 @@ import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
 import android.os.Looper
-import android.os.HandlerThread
 import android.os.SystemClock
 import androidx.core.content.edit
 import androidx.core.graphics.createBitmap
@@ -25,9 +21,12 @@ import com.google.mlkit.vision.face.FaceLandmark
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
-import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssurance
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkSession
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkerCallback
+import dev.skomlach.biometric.compat.custom.newSoftwareBiometricWorker
+import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.CaptureContinuityProvider
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.IFrameProvider
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.RealCameraProvider
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
@@ -35,6 +34,7 @@ import dev.skomlach.biometric.custom.face.tf.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.storage.ProtectedStorageUnavailableException
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.Job
@@ -51,10 +51,14 @@ class TensorFlowFaceUnlockManager(
 ) : AbstractSoftwareBiometricManager() {
 
     override val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
-    override val securityProfile: SoftwareBiometricSecurityProfile =
-        SoftwareBiometricSecurityProfile(
+    override val securityProfile: SoftwareBiometricSecurityProfile
+        get() = SoftwareBiometricSecurityProfile(
             biometricType = BiometricType.BIOMETRIC_FACE,
-            assurance = SoftwareBiometricAssuranceLevel.ACTIVE_CHALLENGE,
+            assurance = if (effectiveConfig.base.faceChallengeEnabled) {
+                SoftwareBiometricAssuranceLevel.ACTIVE_CHALLENGE
+            } else {
+                SoftwareBiometricAssuranceLevel.PASSIVE_MATCH
+            },
             requiresTrustedCapture = true,
             allowsCompatibilityCapture = false,
             supportsCryptoObject = false,
@@ -76,11 +80,8 @@ class TensorFlowFaceUnlockManager(
         @Volatile
         private var config: TensorFlowFaceConfig = TensorFlowFaceConfig()
 
-        private val activeSessionLock = Any()
-
-        @SuppressLint("StaticFieldLeak")
-        @Volatile
-        private var currentActiveManager: TensorFlowFaceUnlockManager? = null
+        private val worker = newSoftwareBiometricWorker("FaceUnlockWorker")
+        private val sessionOwner = FaceSessionOwner()
 
         private val configurationObserverRegistered = AtomicBoolean(false)
         private val prefetchLock = Any()
@@ -145,24 +146,6 @@ class TensorFlowFaceUnlockManager(
                 ?.take(MAX_ENROLLMENT_TAG_LENGTH)
         }
 
-        private fun requestActiveSession(newManager: TensorFlowFaceUnlockManager) {
-            synchronized(activeSessionLock) {
-                val previous = currentActiveManager
-                if (previous != null && previous != newManager) {
-                    previous.cancelInternal()
-                }
-                currentActiveManager = newManager
-            }
-        }
-
-        private fun releaseSession(manager: TensorFlowFaceUnlockManager) {
-            synchronized(activeSessionLock) {
-                if (currentActiveManager == manager) {
-                    currentActiveManager = null
-                }
-            }
-        }
-
         private const val MAX_ENROLLMENT_TAG_LENGTH = 80
     }
 
@@ -176,13 +159,21 @@ class TensorFlowFaceUnlockManager(
         hasAssetFile(context.assets, TF_OD_API_MODEL_FILE)
     }
 
-    private var frameProvider: IFrameProvider = RealCameraProvider(context)
-    private var backgroundThread: HandlerThread? = null
-    private var backgroundHandler: Handler? = null
-
-    private val isProcessingFrame = AtomicBoolean(false)
+    @Volatile private var frameProvider: IFrameProvider = RealCameraProvider(context)
+    @Volatile private var pendingOperation: SoftwareBiometricWorkSession? = null
+    private var cancelPendingOperation: (() -> Unit)? = null
+    private var frameSession: FaceCaptureSession? = null
+    private var frameTicket: Long? = null
+    private var runningProvider: IFrameProvider? = null
     private val isSessionActive = AtomicBoolean(false)
-    private val spoofScoresWindow = ArrayDeque<Float>()
+    private val spoofWindow by lazy {
+        FaceAntiSpoofingWindow(
+            effectiveConfig.antiSpoofingWindowSize,
+            effectiveConfig.antiSpoofingMinFramesToDecide,
+            effectiveConfig.antiSpoofingScoreThreshold
+        )
+    }
+    private var antiSpoofCandidateId: String? = null
     private var processedFrameCounter = 0
     private var consecutiveMatchCounter = 0
     private var lastMatchedId: String? = null
@@ -275,7 +266,6 @@ class TensorFlowFaceUnlockManager(
     }
 
     private var authCallback: AuthenticationCallback? = null
-    private var cancellationSignal: CancellationSignal? = null
     private var isEnrolling: Boolean = false
     private var enrollmentTag: String = ""
 
@@ -286,14 +276,11 @@ class TensorFlowFaceUnlockManager(
             lockoutDurationMs = effectiveConfig.lockoutDurationMs
         )
 
+    @Synchronized
     fun setFrameProvider(provider: IFrameProvider) {
+        cancelPendingOperation?.invoke()
+        worker.execute { stopAuthentication() }
         this.frameProvider = provider
-    }
-
-    private fun Handler?.safePost(action: Runnable): Boolean {
-        return this?.let {
-            it.looper.thread.isAlive && it.post(action)
-        } ?: false
     }
 
     private fun checkLockoutState(): Int? {
@@ -310,10 +297,11 @@ class TensorFlowFaceUnlockManager(
     override fun getLockoutError(): Int? = checkLockoutState()
 
     private fun handleFailedAttempt() {
-        recordFailedAttempt(
-            getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME),
-            lockoutPolicy
-        )
+        commitSessionState {
+            recordFailedAttempt(
+                getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME), lockoutPolicy
+            )
+        }
     }
 
     private fun isErrorActive(): Boolean {
@@ -322,7 +310,7 @@ class TensorFlowFaceUnlockManager(
         val now = System.currentTimeMillis()
         if (activeUntil <= now) {
             if (activeUntil != 0L) {
-                prefs.edit { remove(KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP) }
+                commitSessionState { prefs.edit { remove(KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP) } }
             }
             return false
         }
@@ -330,51 +318,33 @@ class TensorFlowFaceUnlockManager(
     }
 
     private fun setErrorActive(durationMs: Long = effectiveConfig.errorCooldownMs) {
-        getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME).edit {
-            putLong(KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP, System.currentTimeMillis() + durationMs)
-        }
-    }
-
-    private fun startBackgroundThread() {
-        if (backgroundThread == null) {
-            backgroundThread = HandlerThread("FaceUnlockBackground").apply {
-                start()
-                backgroundHandler = Handler(looper)
+        commitSessionState {
+            getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME).edit {
+                putLong(KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP, System.currentTimeMillis() + durationMs)
             }
         }
     }
 
-    private fun stopBackgroundThread() {
-        backgroundHandler = null
-        backgroundThread?.quitSafely()
-        backgroundThread = null
-    }
-
-    private fun cancelInternal() {
-        if (isSessionActive.get()) {
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_CANCELED,
-                LocalizationHelper.getLocalizedString(
-                    context,
-                    R.string.biometriccompat_tf_face_help_canceled_by_new_operation
-                )
-            )
-        }
-        stopAuthentication()
+    private fun <T> commitSessionState(action: () -> T): T? {
+        val session = frameSession ?: return null
+        val ticket = frameTicket
+        return if (ticket == null) session.operation.runIfActive(action)
+        else session.commit(ticket, action)
     }
 
     private fun stopAuthentication() {
         if (!isSessionActive.compareAndSet(true, false)) return
 
-        spoofScoresWindow.clear()
+        clearAntiSpoofingWindow()
 
         try {
-            frameProvider.stop()
+            (runningProvider as? CaptureContinuityProvider)?.setCaptureDiscontinuityListener(null)
+            runningProvider?.stop()
+            runningProvider = null
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
 
-        isProcessingFrame.set(false)
         processedFrameCounter = 0
         consecutiveMatchCounter = 0
         lastMatchedId = null
@@ -383,11 +353,9 @@ class TensorFlowFaceUnlockManager(
         faceChallengeSessionNonce = null
         faceChallengeStepStartedAtMs = 0L
         faceChallengeRejectedAttempts = 0
-        releaseSession(this)
+        frameSession?.operation?.takeUnless { it.isActive }?.let(sessionOwner::release)
         authCallback = null
-        cancellationSignal = null
         isEnrolling = false
-        stopBackgroundThread()
     }
 
     override fun getTimeoutMessage(): CharSequence {
@@ -499,9 +467,11 @@ class TensorFlowFaceUnlockManager(
     }
     override fun getManagers(): Set<Any> = emptySet()
 
+    @Synchronized
     override fun remove(extra: Bundle?) {
-        stopAuthentication()
-        detector?.delete(extra?.getString(ENROLLMENT_TAG_KEY))
+        sessionOwner.revoke {
+            detector?.delete(extra?.getString(ENROLLMENT_TAG_KEY))
+        }
     }
 
     override fun getEnrollBundle(name: String?): Bundle {
@@ -526,6 +496,7 @@ class TensorFlowFaceUnlockManager(
     override fun getEnrollmentSnapshot(): SoftwareBiometricEnrollment =
         SoftwareBiometricEnrollment.read { getEnrolls() }
 
+    @Synchronized
     override fun authenticate(
         crypto: CryptoObject?,
         flags: Int,
@@ -534,35 +505,57 @@ class TensorFlowFaceUnlockManager(
         handler: Handler?,
         extra: Bundle?
     ) {
-        try {
-            authenticateWithStorage(crypto, flags, cancel, callback, handler, extra)
-        } catch (error: ProtectedStorageUnavailableException) {
-            onProtectedStorageUnavailable(error)
+        val operation = SoftwareBiometricWorkSession().also { pendingOperation = it }
+        val session = FaceCaptureSession(operation)
+        val resultHandler = handler ?: Handler(Looper.getMainLooper())
+        val workerCallback = SoftwareBiometricWorkerCallback(operation, resultHandler, callback) {
+            sessionOwner.release(operation)
+            synchronized(this) {
+                if (pendingOperation === operation) {
+                    pendingOperation = null
+                    cancelPendingOperation = null
+                }
+            }
         }
-    }
-
-    private fun authenticateWithStorage(
-        crypto: CryptoObject?,
-        flags: Int,
-        cancel: CancellationSignal?,
-        callback: AuthenticationCallback?,
-        handler: Handler?,
-        extra: Bundle?
-    ) {
-        requestActiveSession(this)
-        isSessionActive.set(true)
-        spoofScoresWindow.clear()
-        processedFrameCounter = 0
-        consecutiveMatchCounter = 0
-        lastMatchedId = null
-        authCallback = callback
-        cancellationSignal = cancel
-        cancellationSignal?.setOnCancelListener {
-            if (isSessionActive.get()) {
-                authCallback?.onAuthenticationCancelled()
+        val arguments = extra?.let(::Bundle)
+        val cancelAttempt = {
+            workerCallback.onAuthenticationCancelled()
+            sessionOwner.release(operation)
+            worker.execute { if (frameSession === session) stopAuthentication() }
+        }
+        cancelPendingOperation = cancelAttempt
+        sessionOwner.claim(operation, cancelAttempt)
+        cancel?.setOnCancelListener(cancelAttempt)
+        worker.execute {
+            stopAuthentication()
+            if (!operation.isActive) {
+                sessionOwner.release(operation)
+                return@execute
+            }
+            frameSession = session
+            authCallback = workerCallback
+            try {
+                authenticateWithStorage(arguments)
+            } catch (error: ProtectedStorageUnavailableException) {
+                onProtectedStorageUnavailable(error)
+            } catch (error: Exception) {
+                LogCat.logException(error)
+                workerCallback.onAuthenticationError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE, getTimeoutMessage())
+                stopAuthentication()
+            } catch (error: LinkageError) {
+                LogCat.logException(error)
+                workerCallback.onAuthenticationError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE, getTimeoutMessage())
                 stopAuthentication()
             }
         }
+    }
+
+    private fun authenticateWithStorage(extra: Bundle?) {
+        isSessionActive.set(true)
+        clearAntiSpoofingWindow()
+        processedFrameCounter = 0
+        consecutiveMatchCounter = 0
+        lastMatchedId = null
 
         val lockoutError = checkLockoutState()
         if (lockoutError != null) {
@@ -599,7 +592,7 @@ class TensorFlowFaceUnlockManager(
                 isCameraInUse = usesRealCameraProvider && SensorPrivacyCheck.isCameraInUse(),
                 isEnrolling = isEnrolling,
                 hasEnrolledBiometric = hasEnrolledBiometric(),
-                antiSpoofingAvailable = antiSpoofing != null,
+                antiSpoofingAvailable = isAntiSpoofingEnabledForFlow() && antiSpoofing != null,
                 requireAntiSpoofing = effectiveConfig.base.requireAntiSpoofingForAuthentication,
                 requireRealCameraProvider = effectiveConfig.base.requireRealCameraProviderForAuthentication
             )
@@ -680,6 +673,34 @@ class TensorFlowFaceUnlockManager(
             }
         }
 
+        restartFaceChallenge()
+        val session = frameSession ?: return
+        if (!canStartAuthenticationSession()) return
+        val provider = frameProvider
+        runningProvider = provider
+        (provider as? CaptureContinuityProvider)?.setCaptureDiscontinuityListener {
+            onCaptureDiscontinuity(session)
+        }
+        provider.start(
+            faceDetector!!,
+            { bitmap, faces -> onFrameReceived(session, bitmap, faces) },
+            { code, msg ->
+                worker.execute {
+                    if (frameSession === session && session.operation.isActive && isSessionActive.get()) {
+                        onAuthenticationError(code, msg)
+                        stopAuthentication()
+                    }
+                }
+            }
+        )
+    }
+
+    private fun restartFaceChallenge() {
+        faceChallengeActions = emptyList()
+        faceChallengeIndex = 0
+        faceChallengeSessionNonce = null
+        faceChallengeStepStartedAtMs = 0L
+        faceChallengeRejectedAttempts = 0
         if (!isEnrolling && effectiveConfig.base.faceChallengeEnabled) {
             val nonce = faceChallengeRandom.nextLong()
             faceChallengeSessionNonce = nonce
@@ -696,64 +717,65 @@ class TensorFlowFaceUnlockManager(
             faceChallengeRejectedAttempts = 0
             emitFaceChallengeInstruction()
         }
-
-        if (!canStartAuthenticationSession()) {
-            return
-        }
-        startBackgroundThread()
-        if (!canStartAuthenticationSession()) {
-            stopBackgroundThread()
-            return
-        }
-        frameProvider.start(
-            faceDetector!!,
-            { bitmap, faces -> onFrameReceived(bitmap, faces) },
-            { code, msg ->
-                if (isSessionActive.get()) {
-                    onAuthenticationError(code, msg)
-                    stopAuthentication()
-                }
-            }
-        )
-
     }
 
-    private fun onFrameReceived(fullBitmap: Bitmap, faces: List<Face>) {
-        if (!isSessionActive.get()) {
-            fullBitmap.recycle()
+    private fun onCaptureDiscontinuity(session: FaceCaptureSession) {
+        // This invalidates a frame even when the inference worker is busy.
+        session.discontinue()
+        worker.execute {
+            if (frameSession !== session || !session.operation.isActive || !isSessionActive.get()) return@execute
+            clearAntiSpoofingWindow()
+            processedFrameCounter = 0
+            consecutiveMatchCounter = 0
+            lastMatchedId = null
+            restartFaceChallenge()
+            authCallback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
+                LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_not_detected))
+        }
+    }
+
+    private fun onFrameReceived(session: FaceCaptureSession, fullBitmap: Bitmap, faces: List<Face>) {
+        if (faces.isEmpty()) {
+            onCaptureDiscontinuity(session)
+            if (!fullBitmap.isRecycled) fullBitmap.recycle()
             return
         }
-        if (!isProcessingFrame.compareAndSet(false, true)) {
-            fullBitmap.recycle()
+        val ticket = session.acquireFrame()
+        if (ticket == null) {
+            if (!fullBitmap.isRecycled) fullBitmap.recycle()
             return
         }
-        val posted = backgroundHandler.safePost {
+        worker.execute {
             try {
-                useOwnedFrame(
-                    frame = fullBitmap,
-                    release = { bitmap ->
-                        if (!bitmap.isRecycled) bitmap.recycle()
+                useOwnedFrame(fullBitmap, { if (!it.isRecycled) it.recycle() }) { bitmap ->
+                    if (frameSession === session && session.owns(ticket) && isSessionActive.get()) {
+                        frameTicket = ticket
+                        processFaces(bitmap, faces)
                     }
-                ) { bitmap ->
-                    if (isSessionActive.get()) processFaces(bitmap, faces)
                 }
             } catch (error: ProtectedStorageUnavailableException) {
                 onProtectedStorageUnavailable(error)
-            } catch (e: Throwable) {
-                LogCat.logException(e)
+            } catch (error: Exception) {
+                LogCat.logException(error)
+                onCaptureDiscontinuity(session)
+            } catch (error: LinkageError) {
+                LogCat.logException(error)
+                onAuthenticationError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE, getTimeoutMessage().toString())
+                stopAuthentication()
             } finally {
-                isProcessingFrame.set(false)
+                frameTicket = null
+                session.releaseFrame()
             }
         }
-        if (!posted) {
-            if (!fullBitmap.isRecycled) fullBitmap.recycle()
-            isProcessingFrame.set(false)
-        }
+    }
+    private fun clearAntiSpoofingWindow() {
+        spoofWindow.reset()
+        antiSpoofCandidateId = null
     }
 
-    private fun clearAntiSpoofingWindow() {
-        spoofScoresWindow.clear()
-    }
+    private fun isAntiSpoofingEnabledForFlow(): Boolean = antiSpoofingEnabled &&
+        effectiveConfig.antiSpoofingMode != AntiSpoofingMode.OFF &&
+        if (isEnrolling) effectiveConfig.antiSpoofingOnEnrollment else effectiveConfig.antiSpoofingOnAuthentication
 
     private enum class AntiSpoofingStage {
         NONE,
@@ -806,42 +828,43 @@ class TensorFlowFaceUnlockManager(
         }
     }
 
-    private fun isSpoofDetected(bitmap: Bitmap): SoftwareBiometricAssurance {
-        val engine = antiSpoofing ?: return SoftwareBiometricAssurance.UNAVAILABLE
+    private fun readAntiSpoofingScore(bitmap: Bitmap): Float? {
+        val engine = antiSpoofing ?: return null
         return try {
-            val currentScore = engine.antiSpoofing(bitmap)
-            val currentDecision = classifyFaceAntiSpoofingScore(
-                score = currentScore,
-                threshold = effectiveConfig.antiSpoofingScoreThreshold
-            )
-            if (currentDecision == SoftwareBiometricAssurance.UNAVAILABLE) {
-                return currentDecision
-            }
-            spoofScoresWindow.addLast(currentScore)
-            while (spoofScoresWindow.size > effectiveConfig.antiSpoofingWindowSize) {
-                spoofScoresWindow.removeFirst()
-            }
-            if (spoofScoresWindow.size < effectiveConfig.antiSpoofingMinFramesToDecide) {
-                return SoftwareBiometricAssurance.PASS
-            }
-            val averageScore = spoofScoresWindow.average().toFloat()
-            val highScores =
-                spoofScoresWindow.count { it >= effectiveConfig.antiSpoofingScoreThreshold }
-            val spoofDetected = averageScore >= effectiveConfig.antiSpoofingScoreThreshold &&
-                    currentScore >= effectiveConfig.antiSpoofingScoreThreshold &&
-                    highScores >= effectiveConfig.antiSpoofingMinFramesToDecide
-            if (spoofDetected) SoftwareBiometricAssurance.SPOOF else SoftwareBiometricAssurance.PASS
+            engine.antiSpoofing(bitmap)
         } catch (e: Throwable) {
             LogCat.logException(e, TAG)
-            SoftwareBiometricAssurance.UNAVAILABLE
+            null
         }
+    }
+
+    private fun checkFaceLiveness(score: Float?): FaceAttemptResult? {
+        val required = effectiveConfig.base.requireAntiSpoofingForAuthentication
+        val decision = spoofWindow.add(score)
+        if (isFaceLivenessAccepted(decision, required)) return null
+        if (decision == FaceAntiSpoofingDecision.PENDING) return FaceAttemptResult.MatchInProgress
+        clearAntiSpoofingWindow()
+        consecutiveMatchCounter = 0
+        lastMatchedId = null
+        if (decision == FaceAntiSpoofingDecision.SPOOF) {
+            handleSpoofFailure()
+            return FaceAttemptResult.Spoof
+        }
+        onAuthenticationError(
+            CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+            LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_not_available)
+        )
+        return FaceAttemptResult.FatalError
     }
 
     private fun onAuthenticationError(code: Int, msg: String) {
         try {
-            if (isErrorActive()) return
+            val ticket = frameTicket
+            if (ticket != null && frameSession?.owns(ticket) != true) return
             setErrorActive()
             authCallback?.onAuthenticationError(code, msg)
+            // The callback is terminal even for a direct manager user without a module wrapper.
+            stopAuthentication()
         } catch (error: ProtectedStorageUnavailableException) {
             onProtectedStorageUnavailable(error)
         }
@@ -858,7 +881,8 @@ class TensorFlowFaceUnlockManager(
     }
 
     private fun canStartAuthenticationSession(): Boolean {
-        return shouldStartTensorFlowFaceSession(isSessionActive = isSessionActive.get())
+        return shouldStartTensorFlowFaceSession(isSessionActive =
+            isSessionActive.get() && frameSession?.operation?.isActive == true)
     }
 
     private fun maybeHandleMismatchFailure(distance: Float) {
@@ -1077,25 +1101,15 @@ class TensorFlowFaceUnlockManager(
                 return FaceAttemptResult.InvalidFace
             }
 
-            var antiSpoofCheckedThisFace = false
+            val needsLiveness = effectiveConfig.base.requireAntiSpoofingForAuthentication ||
+                isAntiSpoofingEnabledForFlow()
             val antiSpoofStageBefore = resolveAntiSpoofingStage(
                 frameNumber = processedFrameCounter,
                 consecutiveMatches = consecutiveMatchCounter,
                 candidateMatched = false
             )
-            if (antiSpoofStageBefore == AntiSpoofingStage.BEFORE_RECOGNITION) {
-                antiSpoofCheckedThisFace = true
-                if (!isFaceAntiSpoofingAccepted(
-                        decision = isSpoofDetected(livenessCrop),
-                        requiredForAuthentication = effectiveConfig.base.requireAntiSpoofingForAuthentication
-                    )
-                ) {
-                    consecutiveMatchCounter = 0
-                    lastMatchedId = null
-                    handleSpoofFailure()
-                    return FaceAttemptResult.Spoof
-                }
-            }
+            val measuredBefore = needsLiveness && antiSpoofStageBefore == AntiSpoofingStage.BEFORE_RECOGNITION
+            val scoreBefore = if (measuredBefore) readAntiSpoofingScore(livenessCrop) else null
 
             val results = detector?.recognizeImage(alignedFace, isEnrolling)
             if (results.isNullOrEmpty()) {
@@ -1113,32 +1127,21 @@ class TensorFlowFaceUnlockManager(
             val result = results.minByOrNull { it.distance ?: Float.MAX_VALUE }
                 ?: return FaceAttemptResult.InvalidFace
 
-            val antiSpoofStageAfter = resolveAntiSpoofingStage(
-                frameNumber = processedFrameCounter,
-                consecutiveMatches = consecutiveMatchCounter,
-                candidateMatched = isEnrolling
-            )
-
             if (isEnrolling) {
-                if (!antiSpoofCheckedThisFace &&
-                    antiSpoofStageAfter == AntiSpoofingStage.AFTER_CANDIDATE &&
-                    !isFaceAntiSpoofingAccepted(
-                        decision = isSpoofDetected(livenessCrop),
-                        requiredForAuthentication = effectiveConfig.base.requireAntiSpoofingForAuthentication
-                    )
-                ) {
-                    clearAntiSpoofingWindow()
-                    handleSpoofFailure()
-                    return FaceAttemptResult.Spoof
+                if (needsLiveness) {
+                    // Enrollment itself is terminal: frame stride cannot skip this security gate.
+                    checkFaceLiveness(if (measuredBefore) scoreBefore else readAntiSpoofingScore(livenessCrop))
+                        ?.let { return it }
                 }
 
-                result.crop =
-                    alignedFace.copy(alignedFace.config ?: Bitmap.Config.ARGB_8888, false)
-                detector?.register(enrollmentTag, result)
+                commitSessionState {
+                    result.crop = alignedFace.copy(alignedFace.config ?: Bitmap.Config.ARGB_8888, false)
+                    detector?.register(enrollmentTag, result)
+                    resetPermanentLockOut()
+                } ?: return FaceAttemptResult.FatalError
                 LogCat.logError(TAG, "processFaces onAuthenticationSucceeded (enroll)")
                 authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                 stopAuthentication()
-                resetPermanentLockOut()
                 return FaceAttemptResult.Success
             }
 
@@ -1146,26 +1149,16 @@ class TensorFlowFaceUnlockManager(
             val id = result.id
             val matched = distance < effectiveConfig.maxDistanceThreshold
 
+            if (!matched || id != antiSpoofCandidateId) {
+                clearAntiSpoofingWindow()
+                if (matched) antiSpoofCandidateId = id
+            }
+
             val antiSpoofStageForMatch = resolveAntiSpoofingStage(
                 frameNumber = processedFrameCounter,
                 consecutiveMatches = consecutiveMatchCounter,
                 candidateMatched = matched
             )
-            if (!antiSpoofCheckedThisFace &&
-                matched &&
-                antiSpoofStageForMatch == AntiSpoofingStage.AFTER_CANDIDATE &&
-                !isFaceAntiSpoofingAccepted(
-                    decision = isSpoofDetected(livenessCrop),
-                    requiredForAuthentication = effectiveConfig.base.requireAntiSpoofingForAuthentication
-                )
-            ) {
-                clearAntiSpoofingWindow()
-                consecutiveMatchCounter = 0
-                lastMatchedId = null
-                handleSpoofFailure()
-                return FaceAttemptResult.Spoof
-            }
-
             val attempt = evaluateFaceAuthenticationAttempt(
                 state = FaceAuthenticationAttemptState(lastMatchedId, consecutiveMatchCounter),
                 candidateId = id,
@@ -1175,12 +1168,19 @@ class TensorFlowFaceUnlockManager(
             )
             consecutiveMatchCounter = attempt.state.consecutiveMatches
             lastMatchedId = attempt.state.matchedId
+            if (matched && needsLiveness && (measuredBefore ||
+                    antiSpoofStageForMatch == AntiSpoofingStage.AFTER_CANDIDATE ||
+                    attempt.outcome == FaceAuthenticationAttemptOutcome.SUCCESS)) {
+                // Always measure the terminal candidate, even on a frame skipped by the stride.
+                checkFaceLiveness(if (measuredBefore) scoreBefore else readAntiSpoofingScore(livenessCrop))
+                    ?.let { return it }
+            }
             when (attempt.outcome) {
                 FaceAuthenticationAttemptOutcome.SUCCESS -> {
+                    commitSessionState { resetPermanentLockOut() } ?: return FaceAttemptResult.FatalError
                     LogCat.logError(TAG, "processFaces onAuthenticationSucceeded (auth)")
                     authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                     stopAuthentication()
-                    resetPermanentLockOut()
                     return FaceAttemptResult.Success
                 }
                 FaceAuthenticationAttemptOutcome.MATCH_IN_PROGRESS -> return FaceAttemptResult.MatchInProgress
@@ -1305,14 +1305,14 @@ class TensorFlowFaceUnlockManager(
             cropRect.height()
         )
 
-        return try {
+        return transformFaceCrop(originalBitmap, sourceBitmap, { it.recycle() }) {
             val leftEyePos = leftEye.position
             val rightEyePos = rightEye.position
             val deltaX = rightEyePos.x - leftEyePos.x
             val deltaY = rightEyePos.y - leftEyePos.y
             val angle = Math.toDegrees(atan2(deltaY.toDouble(), deltaX.toDouble())).toFloat()
             val eyeDistance = sqrt((deltaX * deltaX + deltaY * deltaY).toDouble()).toFloat()
-            if (eyeDistance <= 0f) return null
+            if (eyeDistance <= 0f) return@transformFaceCrop null
 
             val eyeCenter = android.graphics.PointF(
                 ((leftEyePos.x + rightEyePos.x) / 2f) - cropRect.left,
@@ -1337,8 +1337,6 @@ class TensorFlowFaceUnlockManager(
                 }
                 canvas.drawBitmap(sourceBitmap, matrix, paint)
             }
-        } finally {
-            sourceBitmap.recycle()
         }
     }
 
@@ -1357,10 +1355,11 @@ class TensorFlowFaceUnlockManager(
             cropRect.width(),
             cropRect.height()
         )
-        return try {
-            croppedBitmap.scale(outputSize, outputSize)
-        } finally {
-            croppedBitmap.recycle()
+        return transformFaceCrop(originalBitmap, croppedBitmap, { it.recycle() }) {
+            val scaled = it.scale(outputSize, outputSize)
+            // The returned crop belongs to the consumer, never to the camera-frame owner.
+            if (scaled === originalBitmap) scaled.copy(scaled.config ?: Bitmap.Config.ARGB_8888, false)
+            else scaled
         }
     }
 

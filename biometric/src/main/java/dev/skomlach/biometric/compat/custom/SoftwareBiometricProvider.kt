@@ -21,6 +21,11 @@ package dev.skomlach.biometric.compat.custom
 
 import android.content.Context
 
+/**
+ * Automatic discovery constructs managers and prompt factories on a background worker.
+ * Constructors must not touch views or assume a thread-local Looper. Create UI in the prompt's
+ * UI lifecycle instead; bind any UI handlers explicitly to the main Looper.
+ */
 abstract class SoftwareBiometricProvider {
     /**
      * Stable module ID, unique across installed software and hardware modules.
@@ -69,6 +74,10 @@ internal class SoftwareBiometricRuntime(
 ) {
     val priority: Int
         get() = manager.priority
+
+    // A deferred fallback is registered but cannot participate until its whole runtime is selected.
+    @Volatile internal var selectionIsActive: () -> Boolean = { true }
+    internal val isSelected: Boolean get() = selectionIsActive()
 
     fun createPrompt(host: SoftwareBiometricPromptHost): SoftwareBiometricPromptDelegate? {
         return promptFactory?.create(host, manager)

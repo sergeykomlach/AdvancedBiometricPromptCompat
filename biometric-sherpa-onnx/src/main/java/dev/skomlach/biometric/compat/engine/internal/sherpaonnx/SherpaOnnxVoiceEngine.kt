@@ -4,10 +4,8 @@ import android.content.Context
 import com.k2fsa.sherpa.onnx.OnlineStream
 import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractor
 import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractorConfig
-import dev.skomlach.biometric.compat.engine.internal.sherpaonnx.VoiceEmbeddingResult
-import dev.skomlach.biometric.compat.engine.internal.sherpaonnx.VoiceEngine
-import dev.skomlach.biometric.compat.engine.internal.sherpaonnx.VoiceQualityIssue
-import dev.skomlach.biometric.compat.engine.internal.sherpaonnx.VoiceSample
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricDeferredInitialization
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricInitializationState
 import java.io.IOException
 
 /**
@@ -16,23 +14,74 @@ import java.io.IOException
  * [DEFAULT_MODEL_ASSET_PATH].
  */
 class SherpaOnnxVoiceEngine internal constructor(
-    private val runtime: SherpaOnnxEmbeddingRuntime
-) : VoiceEngine {
-    constructor(context: Context) : this(
-        SherpaOnnxEmbeddingRuntimeFactory.create(
-            context = context.applicationContext,
-            modelAssetPath = DEFAULT_MODEL_ASSET_PATH
-        )
-    )
+    private val createRuntime: () -> SherpaOnnxEmbeddingRuntime
+) : VoiceEngine, VoiceTemplateIdentityProvider, PreparingVoiceEngine,
+    SoftwareBiometricDeferredInitialization {
+    private val preparationLock = Any()
+    private var runtime: SherpaOnnxEmbeddingRuntime? = null
+    @Volatile private var runtimeHealthy = false
+    @Volatile override var templateIdentity: String? = null
+        private set
+    @Volatile override var initializationState = SoftwareBiometricInitializationState.NEW
+        private set
 
-    override fun isAvailable(): Boolean = runtime.isAvailable()
+    internal constructor(runtime: SherpaOnnxEmbeddingRuntime) : this({ runtime })
+
+    constructor(context: Context) : this(defaultRuntimeFactory(context.applicationContext))
+
+    /** Worker-only. Concurrent calls join one preparation; UI queries never acquire this lock. */
+    override fun prepare(): Boolean = synchronized(preparationLock) {
+        when (initializationState) {
+            SoftwareBiometricInitializationState.READY -> return@synchronized runtimeHealthy
+            SoftwareBiometricInitializationState.FAILED,
+            SoftwareBiometricInitializationState.PREPARING -> return@synchronized false
+            SoftwareBiometricInitializationState.NEW -> Unit
+        }
+        initializationState = SoftwareBiometricInitializationState.PREPARING
+        var ready = false
+        try {
+            val prepared = createRuntime()
+            if (prepared.prepare() && prepared.isAvailable()) {
+                val identity = prepared.templateIdentity
+                if (!identity.isNullOrBlank()) {
+                    runtime = prepared
+                    templateIdentity = identity
+                    runtimeHealthy = true
+                    ready = true
+                }
+            }
+        } catch (_: Exception) {
+            // Optional model/runtime cannot make provider discovery or authentication crash.
+        } catch (_: LinkageError) {
+            // Includes absent AAR/SO and incompatible native ABI.
+        } finally {
+            initializationState = if (ready) SoftwareBiometricInitializationState.READY
+                else SoftwareBiometricInitializationState.FAILED
+        }
+        ready
+    }
+
+    override fun isAvailable(): Boolean =
+        initializationState == SoftwareBiometricInitializationState.READY && runtimeHealthy
 
     override fun extractEmbedding(sample: VoiceSample): VoiceEmbeddingResult? {
         val pcm = sample.pcmFloat ?: return invalidEmbedding(VoiceQualityIssue.SAMPLE_MISSING)
         if (sample.sampleRateHz <= 0 || pcm.isEmpty()) {
             return invalidEmbedding(VoiceQualityIssue.SAMPLE_MISSING)
         }
-        val embedding = runtime.extractEmbedding(pcm, sample.sampleRateHz)
+        if (!isAvailable()) return invalidEmbedding(VoiceQualityIssue.EMBEDDING_INVALID)
+        val prepared = runtime ?: return invalidEmbedding(VoiceQualityIssue.EMBEDDING_INVALID)
+        val embedding = try {
+            val result = prepared.extractEmbedding(pcm, sample.sampleRateHz)
+            runtimeHealthy = prepared.isAvailable()
+            result.takeIf { runtimeHealthy }
+        } catch (_: Exception) {
+            runtimeHealthy = false
+            null
+        } catch (_: LinkageError) {
+            runtimeHealthy = false
+            null
+        }
             ?: return invalidEmbedding(VoiceQualityIssue.EMBEDDING_INVALID)
         return VoiceEmbeddingResult(embedding = embedding)
     }
@@ -44,10 +93,16 @@ class SherpaOnnxVoiceEngine internal constructor(
 
     internal companion object {
         const val DEFAULT_MODEL_ASSET_PATH = "sherpa-onnx/speaker-embedding.onnx"
+
+        private fun defaultRuntimeFactory(appContext: Context): () -> SherpaOnnxEmbeddingRuntime = {
+            SherpaOnnxEmbeddingRuntimeFactory.create(appContext, DEFAULT_MODEL_ASSET_PATH)
+        }
     }
 }
 
 internal interface SherpaOnnxEmbeddingRuntime {
+    val templateIdentity: String? get() = null
+    fun prepare(): Boolean = isAvailable() && !templateIdentity.isNullOrBlank()
     fun isAvailable(): Boolean
 
     fun extractEmbedding(pcm: FloatArray, sampleRateHz: Int): FloatArray?
@@ -62,15 +117,20 @@ private class DirectSherpaOnnxEmbeddingRuntime(
     private val context: Context,
     private val modelAssetPath: String
 ) : SherpaOnnxEmbeddingRuntime {
-    private var permanentlyUnavailable = false
-    private var extractor: SpeakerEmbeddingExtractor? = null
+    private val modelIdentity = PreparedModelIdentity { context.assets.open(modelAssetPath) }
+    override val templateIdentity: String? get() = modelIdentity.value
 
-    override fun isAvailable(): Boolean = synchronized(this) {
-        ensureExtractor() != null
-    }
+    // Only the explicit worker preparation may open the model or construct a native extractor.
+    override fun prepare(): Boolean =
+        modelIdentity.prepare() != null && synchronized(this) { ensureExtractor() != null }
+    @Volatile private var permanentlyUnavailable = false
+    @Volatile private var extractor: SpeakerEmbeddingExtractor? = null
+
+    override fun isAvailable(): Boolean = !permanentlyUnavailable && extractor != null
 
     override fun extractEmbedding(pcm: FloatArray, sampleRateHz: Int): FloatArray? = synchronized(this) {
-        val currentExtractor = ensureExtractor() ?: return@synchronized null
+        if (permanentlyUnavailable) return@synchronized null
+        val currentExtractor = extractor ?: return@synchronized null
         var stream: OnlineStream? = null
         try {
             stream = currentExtractor.createStream()

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">Hồ sơ giọng nói đã lưu không tương thích với bộ máy giọng nói này. Hãy thiết lập lại mở khóa bằng giọng nói.</string>
     <string name="biometriccompat_voice_help_timeout">Đã hết thời gian xác thực bằng giọng nói</string>
     <string name="biometriccompat_voice_help_unavailable">Xác thực bằng giọng nói không khả dụng</string>
     <string name="biometriccompat_voice_help_permission_required">Cần quyền micro để xác thực bằng giọng nói</string>

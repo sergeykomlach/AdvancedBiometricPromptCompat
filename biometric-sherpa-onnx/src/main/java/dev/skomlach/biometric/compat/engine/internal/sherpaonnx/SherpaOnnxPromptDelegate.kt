@@ -35,6 +35,15 @@ internal class SherpaOnnxPromptDelegate(
     )
 
     override fun start() {
+        if (!host.enroll) {
+            lockoutManager.enrollmentProblem()?.let { problem ->
+                problem.description?.let { message ->
+                    host.callbacks.onStatus(SoftwarePromptStatus(primaryText = message, terminal = true))
+                }
+                host.callbacks.onFailure(problem)
+                return
+            }
+        }
         if (controller.shouldAutoCapture()) {
             controller.start()
         } else {
@@ -58,7 +67,9 @@ internal class SherpaOnnxPromptDelegate(
         return SoftwarePromptStatus(
             primaryText = primaryMessage,
             secondaryText = secondaryMessage,
-            terminal = state == VoicePromptState.Timeout || state == VoicePromptState.Lockout
+            terminal = state == VoicePromptState.Timeout || state == VoicePromptState.Lockout,
+            persistent = state is VoicePromptState.EnrollInstruction || state is VoicePromptState.AuthInstruction ||
+                state == VoicePromptState.Listening || state == VoicePromptState.SpeechDetected
         )
     }
 }

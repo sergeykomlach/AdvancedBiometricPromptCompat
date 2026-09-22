@@ -34,6 +34,7 @@ import dev.skomlach.biometric.compat.biometricRequiredCryptoMissingDescription
 import dev.skomlach.biometric.compat.resolveEnrollSessionOutcome
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
+import dev.skomlach.biometric.compat.engine.StatusLegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.API23FingerprintModule
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
@@ -58,6 +59,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     private val authSessionState = AuthSessionState<AuthenticationResult>()
     @Volatile
     private var authSessionToken = -1L
+    private var foregroundFeedback: dev.skomlach.biometric.compat.utils.activityView.ForegroundFeedbackSession? = null
     private var fmAuthCallback: LegacyBiometricAuthenticationListener? = null
     private var callback: BiometricPromptCompat.AuthenticationCallback? = null
     private val useUnderDisplayFingerprintLayout = AtomicBoolean(false)
@@ -126,6 +128,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     }
 
     override fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?) {
+        foregroundFeedback = builder.foregroundFeedback
         pendingAuthStart.cancel()
         pendingAuthFailure.cancel()
         authSessionToken = authSessionState.begin()
@@ -197,6 +200,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         } else emptyList()
         pendingAuthStart.schedule(legacyAuthStartDelayMillis(systemPromptOwnsUi)) {
             if (!authSessionState.owns(sessionToken)) return@schedule
+            foregroundFeedback?.setSystemPromptActive(systemPromptOwnsUi)
+            types.filterNotNull().forEach(builder::trackSoftwareEnrollment)
             LegacyBiometric.authenticate(
                 builder.getCryptographyPurpose(),
                 dialog?.authPreview,
@@ -212,6 +217,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     }
 
     override fun stopAuth() {
+        foregroundFeedback?.clear()
         pendingAuthStart.cancel()
         d("BiometricPromptGenericImpl.stopAuth():")
         LegacyBiometric.cancelAuthentication()
@@ -295,6 +301,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         }
         val failureReason = normalizedModule?.reason
         if (normalizedAuthResult == AuthResult.AuthResultState.SUCCESS) {
+            foregroundFeedback?.finishSource(normalizedModule?.type)
             if (builder.enroll && normalizedModule != null) {
                 builder.markEnrollConfirmedResults(setOf(normalizedModule))
             }
@@ -303,6 +310,15 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             }
             IconStateHelper.successType(normalizedModule?.type)
         } else if (normalizedAuthResult == AuthResult.AuthResultState.FATAL_ERROR) {
+            val terminal = failureReason != AuthenticationFailureReason.SENSOR_FAILED &&
+                failureReason != AuthenticationFailureReason.AUTHENTICATION_FAILED
+            val status = normalizedModule?.description?.takeIf { it.isNotBlank() }
+                ?.let { SoftwarePromptStatus(it, terminal = terminal) }
+            if (terminal) {
+                foregroundFeedback?.finishSource(normalizedModule?.type, status)
+            } else if (status != null) {
+                foregroundFeedback?.show(normalizedModule.type, status)
+            }
             failureCounter.incrementAndGet()
             dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
             IconStateHelper.errorType(normalizedModule?.type)
@@ -514,7 +530,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         private val expectedSessionToken: Long,
         private val expectedStageGeneration: Long
     ) :
-        LegacyBiometricAuthenticationListener {
+        StatusLegacyBiometricAuthenticationListener {
 
         override fun onSuccess(result: AuthenticationResult) {
             if (!authSessionState.owns(expectedSessionToken) || stageGeneration != expectedStageGeneration) return
@@ -524,7 +540,15 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         override fun onHelp(msg: CharSequence?) {
             if (!authSessionState.owns(expectedSessionToken) || stageGeneration != expectedStageGeneration) return
             if (!msg.isNullOrEmpty()) {
-                dialog?.onSoftwareStatus(SoftwarePromptStatus(primaryText = msg))
+                onStatus(null, SoftwarePromptStatus(primaryText = msg))
+            }
+        }
+
+        override fun onStatus(source: BiometricType?, status: SoftwarePromptStatus) {
+            ExecutorHelper.post {
+                if (!authSessionState.owns(expectedSessionToken) || stageGeneration != expectedStageGeneration) return@post
+                if (builder.getBiometricFeedbackOptions().enabled) foregroundFeedback?.show(source, status)
+                else dialog?.onSoftwareStatus(status)
             }
         }
 

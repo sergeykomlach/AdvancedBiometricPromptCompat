@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">आपकी सहेजी गई वॉइस प्रोफ़ाइल इस वॉइस इंजन के अनुकूल नहीं है। वॉइस अनलॉक फिर से सेट करें।</string>
     <string name="biometriccompat_voice_help_timeout">वॉइस प्रमाणीकरण का समय समाप्त हो गया</string>
     <string name="biometriccompat_voice_help_unavailable">वॉइस प्रमाणीकरण उपलब्ध नहीं है</string>
     <string name="biometriccompat_voice_help_permission_required">वॉइस प्रमाणीकरण के लिए माइक्रोफ़ोन अनुमति आवश्यक है</string>

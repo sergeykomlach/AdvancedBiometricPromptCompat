@@ -12,6 +12,7 @@ class SherpaOnnxVoiceEngineTest {
         val expected = floatArrayOf(0.1f, -0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f)
         val runtime = FakeRuntime(available = true, embedding = expected)
         val engine = SherpaOnnxVoiceEngine(runtime)
+        assertTrue(engine.prepare())
         val result = engine.extractEmbedding(sample())
 
         assertTrue(engine.isAvailable())
@@ -54,6 +55,7 @@ class SherpaOnnxVoiceEngineTest {
         private val available: Boolean,
         private val embedding: FloatArray?
     ) : SherpaOnnxEmbeddingRuntime {
+        override val templateIdentity = "test-model"
         override fun isAvailable(): Boolean = available
 
         override fun extractEmbedding(pcm: FloatArray, sampleRateHz: Int): FloatArray? = embedding

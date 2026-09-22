@@ -69,3 +69,25 @@ Optional multilingual engines should implement `VoiceEngineProvider` in a
 separate module and register it at:
 
 `META-INF/services/dev.skomlach.biometric.compat.engine.internal.voice.VoiceEngineProvider`
+
+## Engine identity and direct enrollment writes
+
+Custom engines must also implement `VoiceTemplateIdentityProvider` with a stable, nonblank
+algorithm/model/preprocessing identity. Change that identity when the embedding space changes.
+Older profiles without the current consensus-versioned identity require re-enrollment; they are
+not automatically deleted. This is a runtime migration requirement, not an optional security check.
+
+For direct store writes, use `VoiceTemplateStore(engine)` with the same prepared engine that
+produced the embeddings. Run model preparation and storage/training work off the UI thread.
+`save`/`saveAll` then write the identity used by the manager's authentication path.
+The no-argument store remains available for reading/removal and internal manager use, but its
+public `save`/`saveAll` calls throw `IllegalStateException` before accessing preferences. They can
+no longer silently create an unusable profile or strip an existing profile's identity.
+
+Removal through any manager or store revokes pending operations across this provider's
+process-local namespace, including queued results and in-flight public enrollment writes.
+This conservatively cancels all pending operations in that namespace even for a single-tag
+removal; another provider's namespace is unaffected. A revoked `save`/`saveAll` throws
+`CancellationException`. Operations admitted after removal can proceed normally.
+Terminal results that already claimed completion before removal are not retroactively revoked.
+This is not a cross-process synchronization guarantee.

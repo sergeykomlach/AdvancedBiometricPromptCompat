@@ -4,6 +4,53 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ZkFingerCaptureSessionTest {
+    @Test fun canceledNativeResultCannotCommitEnrollmentOrLockout() {
+        val session = ZkFingerCaptureSession { it() }
+        val enteredNative = java.util.concurrent.CountDownLatch(1)
+        val finishNative = java.util.concurrent.CountDownLatch(1)
+        val writes = mutableListOf<String>()
+        val worker = Thread {
+            session.post {
+                enteredNative.countDown()
+                check(finishNative.await(5, java.util.concurrent.TimeUnit.SECONDS))
+                session.commit { writes += "template"; writes += "lockout" }
+            }
+        }
+        worker.start()
+        try {
+            assertTrue(enteredNative.await(5, java.util.concurrent.TimeUnit.SECONDS))
+            assertTrue(session.invalidate())
+        } finally { finishNative.countDown() }
+        worker.join(5_000)
+        assertFalse(worker.isAlive)
+        assertTrue(writes.isEmpty())
+    }
+
+    @Test fun activeCommitReturnsItsResultAndCancellationRejectsLaterCommits() {
+        val session = ZkFingerCaptureSession { it() }
+        assertEquals("saved", session.commit { "saved" })
+        session.invalidate()
+        assertNull(session.commit { error("must not mutate retired session") })
+    }
+
+    @Test
+    fun `registered vendor callbacks stay bound when the manager replaces its session`() {
+        val queue = ArrayDeque<() -> Unit>()
+        val events = mutableListOf<String>()
+        var current = ZkFingerCaptureSession { queue.addLast(it) }
+        val extracted = current.bindTemplate { events += "old template" }
+        val error = current.bind<Int> { events += "old error" }
+        val permission = current.bind<String> { events += "old permission" }
+        current.invalidate()
+        current = ZkFingerCaptureSession { queue.addLast(it) }
+        extracted(byteArrayOf(1))
+        error(42)
+        permission("device")
+        current.bindTemplate { events += "new template" }(byteArrayOf(2))
+        while (queue.isNotEmpty()) queue.removeFirst().invoke()
+        assertEquals(listOf("new template"), events)
+    }
+
     @Test
     fun `vendor buffer is copied before the callback returns`() {
         val queue = ArrayDeque<() -> Unit>()

@@ -5,6 +5,23 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class SoftwareBiometricSecurityPolicyTest {
+    @Test
+    fun passiveCompatibilityAllowsUnattestedSamplesButNeverCrypto() {
+        val passive = SoftwareBiometricSecurityProfile.passiveCompatibility(BiometricType.BIOMETRIC_VOICE)
+        assertEquals(SoftwareBiometricAssuranceLevel.PASSIVE_MATCH, passive.assurance)
+        assertEquals(
+            SoftwareBiometricSecurityDecision.ALLOW,
+            SoftwareBiometricSecurityPolicy.evaluate(passive, BiometricType.BIOMETRIC_VOICE, null,
+                trustedCapture = false, compatibilityCapture = true)
+        )
+        assertEquals(
+            SoftwareBiometricSecurityDecision.REJECT_CRYPTO,
+            SoftwareBiometricSecurityPolicy.evaluate(passive, BiometricType.BIOMETRIC_VOICE,
+                AbstractSoftwareBiometricManager.CryptoObject(null as java.security.Signature?),
+                trustedCapture = false, compatibilityCapture = true)
+        )
+    }
+
 
     private val profile = SoftwareBiometricSecurityProfile(
         biometricType = BiometricType.BIOMETRIC_FACE,

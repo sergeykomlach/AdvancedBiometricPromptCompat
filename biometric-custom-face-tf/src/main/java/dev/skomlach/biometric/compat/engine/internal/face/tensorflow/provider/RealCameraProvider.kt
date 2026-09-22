@@ -27,7 +27,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.translate.LocalizationHelper
 
-class RealCameraProvider(private val context: Context) : IFrameProvider,
+class RealCameraProvider(private val context: Context) : IFrameProvider, CaptureContinuityProvider,
     ImageReader.OnImageAvailableListener {
 
     companion object {
@@ -37,6 +37,12 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
     private var onFrame: ((Bitmap, List<Face>) -> Unit)? = null
     private var onError: ((Int, String) -> Unit)? = null
+    private var onDiscontinuity: (() -> Unit)? = null
+
+    @Synchronized
+    override fun setCaptureDiscontinuityListener(listener: (() -> Unit)?) {
+        onDiscontinuity = listener
+    }
     private var backgroundHandler: Handler? = null
     private var mlKitDetector: FaceDetector? = null
 
@@ -295,6 +301,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
             lifetime.acquireFrame { reader.acquireLatestImage() }
         } catch (e: Exception) {
             LogCat.logException(e)
+            onDiscontinuity?.invoke()
             null
         } ?: return
 
@@ -303,6 +310,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
         } catch (e: Exception) {
             lifetime.completeFrame { image.close() }
             LogCat.logException(e)
+            onDiscontinuity?.invoke()
             return
         }
         // This executor outlives the camera HandlerThread, so stop() cannot discard
@@ -314,12 +322,17 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                     if (result.isSuccessful) {
                         val faces = result.result
                         if (faces.isNotEmpty()) processImageToBitmap(image, faces)
+                        else onDiscontinuity?.invoke()
                     } else {
                         result.exception?.let { LogCat.logException(it) }
+                        onDiscontinuity?.invoke()
                     }
                 }
             } catch (e: Exception) {
                 LogCat.logException(e)
+                synchronized(this) {
+                    if (reader === imageReader && lifetime.isOpen()) onDiscontinuity?.invoke()
+                }
             } finally {
                 lifetime.completeFrame { image.close() }
             }
@@ -377,6 +390,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
         } catch (e: Exception) {
             LogCat.logException(e)
+            onDiscontinuity?.invoke()
         }
     }
 

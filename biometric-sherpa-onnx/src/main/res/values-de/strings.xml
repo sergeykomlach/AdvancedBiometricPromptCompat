@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">Das gespeicherte Stimmprofil ist mit dieser Spracherkennung nicht kompatibel. Richten Sie die Sprachentsperrung erneut ein.</string>
     <string name="biometriccompat_voice_help_timeout">Zeitüberschreitung bei der Sprachauthentifizierung</string>
     <string name="biometriccompat_voice_help_unavailable">Sprachauthentifizierung ist nicht verfügbar</string>
     <string name="biometriccompat_voice_help_permission_required">Für die Sprachauthentifizierung ist die Mikrofonberechtigung erforderlich</string>

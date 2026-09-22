@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">Your saved voice profile is incompatible with this voice engine. Set up voice unlock again.</string>
     <string name="biometriccompat_voice_help_timeout">Voice authentication timed out</string>
     <string name="biometriccompat_voice_help_unavailable">Voice authentication is unavailable</string>
     <string name="biometriccompat_voice_help_permission_required">Microphone permission is required for voice authentication</string>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">Il profilo vocale salvato non è compatibile con questo motore vocale. Configura nuovamente lo sblocco vocale.</string>
     <string name="biometriccompat_voice_help_timeout">Timeout dell’autenticazione vocale</string>
     <string name="biometriccompat_voice_help_unavailable">L’autenticazione vocale non è disponibile</string>
     <string name="biometriccompat_voice_help_permission_required">Per l’autenticazione vocale è necessaria l’autorizzazione del microfono</string>

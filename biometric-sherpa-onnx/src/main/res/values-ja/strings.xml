@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">保存された音声プロファイルはこの音声エンジンと互換性がありません。音声によるロック解除を再設定してください。</string>
     <string name="biometriccompat_voice_help_timeout">音声認証がタイムアウトしました</string>
     <string name="biometriccompat_voice_help_unavailable">音声認証は利用できません</string>
     <string name="biometriccompat_voice_help_permission_required">音声認証にはマイクの権限が必要です</string>

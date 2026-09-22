@@ -9,39 +9,44 @@ import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
+import android.os.Looper
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkSession
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkerCallback
+import dev.skomlach.biometric.compat.custom.newSoftwareBiometricWorker
 import android.os.SystemClock
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
-import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricDeferredInitialization
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricInitializationState
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
 import dev.skomlach.biometric.sherpaonnx.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import dev.skomlach.common.translate.LocalizationHelper
-import java.util.concurrent.atomic.AtomicBoolean
 
 class SherpaOnnxBiometricManager(
     private val context: Context,
     private val store: VoiceTemplateStore = VoiceTemplateStore(),
     private val engine: VoiceEngine = SherpaOnnxVoiceEngine(context.applicationContext),
     private val modulePriority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
-) : AbstractSoftwareBiometricManager() {
+) : AbstractSoftwareBiometricManager(), SoftwareBiometricDeferredInitialization {
+
+    override val initializationState: SoftwareBiometricInitializationState
+        get() = (engine as? SoftwareBiometricDeferredInitialization)?.initializationState
+            ?: SoftwareBiometricInitializationState.READY
 
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_VOICE
     override val priority: Int = modulePriority
     override val securityProfile: SoftwareBiometricSecurityProfile =
-        SoftwareBiometricSecurityProfile(
-            biometricType = BiometricType.BIOMETRIC_VOICE,
-            assurance = SoftwareBiometricAssuranceLevel.ACTIVE_CHALLENGE,
-            requiresTrustedCapture = true,
-            allowsCompatibilityCapture = false,
-            supportsCryptoObject = false,
-            maxCaptureDurationMs = 30_000L
-        )
-    override val trustedCaptureForAuthentication: Boolean = true
+        SoftwareBiometricSecurityProfile.passiveCompatibility(BiometricType.BIOMETRIC_VOICE)
+    // PCM may originate from the caller. Phrase metadata and duplicate hashes do not prove liveness.
+    override val trustedCaptureForAuthentication: Boolean = false
 
-    private var sessionActive = AtomicBoolean(false)
+    private val worker = newSoftwareBiometricWorker("SherpaOnnxBiometricManager")
+    @Volatile private var activeOperation: SoftwareBiometricWorkSession? = null
+    private var activeCallback: SoftwareBiometricWorkerCallback? = null
     private var lastProbeFingerprint: Long? = null
     private var lastProbeAtMs: Long = 0L
     private val prefs by lazy {
@@ -75,17 +80,61 @@ class SherpaOnnxBiometricManager(
 
     override fun isHardwareDetected(): Boolean {
         return context.packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE) &&
-            engine.isAvailable()
+            (initializationState == SoftwareBiometricInitializationState.NEW ||
+                initializationState == SoftwareBiometricInitializationState.PREPARING ||
+                engine.isAvailable())
     }
 
-    override fun hasEnrolledBiometric(): Boolean = store.hasTemplate()
+    // Stored profiles keep the route discoverable so incompatible profiles receive repair guidance.
+    // Authentication still requires a matching identity; this is not an engine-readiness signal.
+    override fun hasEnrolledBiometric(): Boolean = getEnrolls().isNotEmpty()
+
+    /** Use this after preparation to distinguish saved profiles from usable profiles. */
+    fun getEnrollmentStatus(): VoiceEnrollmentStatus = store.enrollmentStatus(templateIdentity())
+
+    override fun prepareForAuthentication(callback: PreparationCallback) {
+        val resultHandler = Handler(Looper.getMainLooper())
+        worker.execute {
+            val ready = prepareVoiceEngine(engine)
+            resultHandler.post {
+                if (ready) callback.onPrepared()
+                else callback.onPreparationError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    localized(R.string.biometriccompat_voice_help_unavailable))
+            }
+        }
+    }
+
+    internal fun enrollmentProblem(): dev.skomlach.biometric.compat.AuthenticationResult? {
+        val status = try {
+            getEnrollmentStatus()
+        } catch (_: Exception) {
+            VoiceEnrollmentStatus.ENGINE_NOT_READY
+        } catch (_: LinkageError) {
+            VoiceEnrollmentStatus.ENGINE_NOT_READY
+        }
+        val messageId = when (status) {
+            VoiceEnrollmentStatus.READY -> return null
+            VoiceEnrollmentStatus.NOT_ENROLLED -> R.string.biometriccompat_voice_help_not_registered
+            VoiceEnrollmentStatus.REENROLLMENT_REQUIRED -> R.string.biometriccompat_voice_help_reenrollment_required
+            VoiceEnrollmentStatus.ENGINE_NOT_READY -> R.string.biometriccompat_voice_help_unavailable
+        }
+        return dev.skomlach.biometric.compat.AuthenticationResult(
+            type = biometricType,
+            reason = if (status == VoiceEnrollmentStatus.ENGINE_NOT_READY)
+                AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+            else AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
+            description = localized(messageId)
+        )
+    }
 
     override fun getEnrollmentSnapshot(): SoftwareBiometricEnrollment =
         SoftwareBiometricEnrollment.read { getEnrolls() }
 
     override fun getManagers(): Set<Any> = setOf(this, engine)
 
+    @Synchronized
     override fun remove(extra: Bundle?) {
+        activeCallback?.onAuthenticationCancelled()
         store.remove(extra?.getString(ENROLLMENT_TAG_KEY))
     }
 
@@ -96,7 +145,10 @@ class SherpaOnnxBiometricManager(
         }
     }
 
+    // Complete membership must not change while a model is preparing or after a model update.
     override fun getEnrolls(): Collection<String> = store.templateNames()
+
+    private fun templateIdentity(): String? = voiceEnrollmentIdentity(engine)
 
     @Synchronized
     override fun authenticate(
@@ -107,31 +159,48 @@ class SherpaOnnxBiometricManager(
         handler: Handler?,
         extra: Bundle?
     ) {
-        try {
-            authenticateWithStorage(crypto, flags, cancel, callback, handler, extra)
-        } catch (error: ProtectedStorageUnavailableException) {
-            e(error, "Voice protected storage unavailable")
-            finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                localized(R.string.biometriccompat_voice_help_unavailable))
+        activeCallback?.onAuthenticationCancelled()
+        val session = store.newWorkSession().also { activeOperation = it }
+        val resultHandler = handler ?: Handler(Looper.getMainLooper())
+        val workerCallback = SoftwareBiometricWorkerCallback(session, resultHandler, callback) {
+            synchronized(this) {
+                if (activeOperation === session) {
+                    activeOperation = null
+                    activeCallback = null
+                }
+            }
+        }
+        activeCallback = workerCallback
+        cancel?.setOnCancelListener(workerCallback::onAuthenticationCancelled)
+        // Snapshot bounded PCM arrays before returning ownership of the Bundle to the caller.
+        val samples = VoiceSample.fromBundleSamples(extra)
+        val isEnrollment = extra?.getBoolean(IS_ENROLLMENT_KEY, false) == true
+        val enrollmentTag = extra?.getString(ENROLLMENT_TAG_KEY)
+        worker.execute {
+            if (!session.isActive) return@execute
+            try {
+                authenticateWithStorage(session, crypto, workerCallback, samples, isEnrollment, enrollmentTag)
+            } catch (error: Exception) {
+                e(error, "Voice authentication unavailable")
+                finishWithError(workerCallback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    localized(R.string.biometriccompat_voice_help_unavailable))
+            } catch (error: LinkageError) {
+                e(error, "Voice runtime unavailable")
+                finishWithError(workerCallback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    localized(R.string.biometriccompat_voice_help_unavailable))
+            }
         }
     }
 
     private fun authenticateWithStorage(
+        session: SoftwareBiometricWorkSession,
         crypto: CryptoObject?,
-        flags: Int,
-        cancel: CancellationSignal?,
         callback: AuthenticationCallback?,
-        handler: Handler?,
-        extra: Bundle?
+        samples: List<VoiceSample>,
+        isEnrollment: Boolean,
+        enrollmentTag: String?
     ) {
-        cancelActiveSession()
-        val session = AtomicBoolean(true).also { sessionActive = it }
-        cancel?.setOnCancelListener {
-            if (session.compareAndSet(true, false)) {
-                callback?.onAuthenticationCancelled()
-            }
-        }
-        if (!session.get()) return
+        if (!session.isActive) return
 
         val lockoutError = getLockoutError()
         if (lockoutError != null) {
@@ -148,6 +217,22 @@ class SherpaOnnxBiometricManager(
             return
         }
 
+        if (!prepareVoiceEngine(engine)) {
+            finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                localized(R.string.biometriccompat_voice_help_unavailable))
+            return
+        }
+        if (!session.isActive) return
+        if (!isEnrollment) {
+            enrollmentProblem()?.let { problem ->
+                finishWithError(callback,
+                    if (problem.reason == AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
+                        CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE else CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
+                    problem.description ?: localized(R.string.biometriccompat_voice_help_unavailable))
+                return
+            }
+        }
+
         if (!hasRecordAudioPermission()) {
             finishWithError(
                 callback,
@@ -157,7 +242,6 @@ class SherpaOnnxBiometricManager(
             return
         }
 
-        val samples = VoiceSample.fromBundleSamples(extra)
         if (samples.isEmpty()) {
             e("SherpaOnnxBiometricManager.authenticate sample=missing_or_incomplete")
             finishWithError(
@@ -214,7 +298,6 @@ class SherpaOnnxBiometricManager(
 
         val currentFingerprint = sampleFingerprints.first() ?: return
         val nowMs = SystemClock.elapsedRealtime()
-        val isEnrollment = extra?.getBoolean(IS_ENROLLMENT_KEY, false) == true
         if (!isEnrollment && evaluateVoiceReplay(
                 previousFingerprint = lastProbeFingerprint,
                 currentFingerprint = currentFingerprint,
@@ -234,7 +317,17 @@ class SherpaOnnxBiometricManager(
         lastProbeFingerprint = currentFingerprint
         lastProbeAtMs = nowMs
 
-        val embeddingResults = samples.map { engine.extractEmbedding(it) }
+        val identity = templateIdentity()
+        if (identity.isNullOrBlank()) {
+            finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                localized(R.string.biometriccompat_voice_help_unavailable))
+            return
+        }
+        val embeddingResults = samples.map {
+            if (!session.isActive) return
+            engine.extractEmbedding(it)
+        }
+        if (!session.isActive) return
         val preprocessMetrics = embeddingResults
             .mapNotNull { it?.preprocessMetrics }
             .joinToString(separator = ";") { it.toLogString() }
@@ -246,7 +339,6 @@ class SherpaOnnxBiometricManager(
             .mapNotNull { it?.embedding?.takeIf { embedding -> embedding.isValidEmbedding() } }
         val featureBatches = embeddingResults
             .map { it?.featureFrames.orEmpty() }
-            .filter { it.isNotEmpty() }
         if (embeddings.size != samples.size || embeddingQualityIssue != VoiceQualityIssue.NONE) {
             e("SherpaOnnxBiometricManager.authenticate embedding_quality=$embeddingQualityIssue metrics=$preprocessMetrics")
             finishWithError(
@@ -258,13 +350,18 @@ class SherpaOnnxBiometricManager(
         }
 
         if (isEnrollment) {
-            val tag = store.saveAll(
-                extra.getString(ENROLLMENT_TAG_KEY),
-                sample.phrase,
-                embeddings,
-                featureBatches
-            )
-            resetTemporaryLockoutState(prefs)
+            val normalizedTag = store.sanitizeTag(enrollmentTag) ?: java.util.UUID.randomUUID().toString()
+            val trained = trainVoiceTemplates(normalizedTag, sample.phrase, embeddings, featureBatches)
+            if (trained.isEmpty()) {
+                finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                    qualityMessage(VoiceQualityIssue.EMBEDDING_INVALID))
+                return
+            }
+            val tag = session.runIfActive {
+                val savedTag = store.saveTrained(normalizedTag, trained, identity)
+                resetTemporaryLockoutState(prefs)
+                savedTag
+            } ?: return
             e(
                 "SherpaOnnxBiometricManager.enroll quality=OK samples=${embeddings.size} " +
                     "featureBatches=${featureBatches.size} featureFrames=${featureBatches.sumOf { it.size }} " +
@@ -281,13 +378,14 @@ class SherpaOnnxBiometricManager(
         val embedding = embeddings.first()
         val probeFrames = embeddingResults.firstOrNull()?.featureFrames.orEmpty()
 
-        val templates = store.loadTemplates()
+        val templates = store.loadTemplates(identity)
         if (templates.isEmpty()) {
             e("SherpaOnnxBiometricManager.authenticate templates=0")
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
-                localized(R.string.biometriccompat_voice_help_not_registered)
+                localized(if (store.hasTemplate()) R.string.biometriccompat_voice_help_reenrollment_required
+                    else R.string.biometriccompat_voice_help_not_registered)
             )
             return
         }
@@ -328,14 +426,14 @@ class SherpaOnnxBiometricManager(
                 "gmm=${bestMatch.gmmDetails?.toLogString().orEmpty()}"
         )
         if (bestMatch.score >= MATCH_THRESHOLD) {
-            resetTemporaryLockoutState(prefs)
+            session.runIfActive { resetTemporaryLockoutState(prefs) } ?: return
             finishWithSuccess(
                 callback,
                 crypto,
                 localized(R.string.biometriccompat_voice_help_accepted)
             )
         } else {
-            recordFailedAttempt(prefs, LOCKOUT_POLICY)
+            session.runIfActive { recordFailedAttempt(prefs, LOCKOUT_POLICY) } ?: return
             val updatedLockout = getLockoutError()
             if (updatedLockout != null) {
                 finishWithError(callback, updatedLockout, lockoutMessage(updatedLockout))
@@ -390,7 +488,8 @@ class SherpaOnnxBiometricManager(
         crypto: CryptoObject?,
         helpMessage: CharSequence
     ) {
-        completeVoiceAuthentication(sessionActive, callback, crypto, helpMessage)
+        callback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_GOOD, helpMessage)
+        callback?.onAuthenticationSucceeded(AuthenticationResult(crypto))
     }
 
     private fun finishWithError(
@@ -398,13 +497,7 @@ class SherpaOnnxBiometricManager(
         error: Int,
         message: CharSequence
     ) {
-        if (sessionActive.compareAndSet(true, false)) {
-            callback?.onAuthenticationError(error, message)
-        }
-    }
-
-    private fun cancelActiveSession() {
-        sessionActive.set(false)
+        callback?.onAuthenticationError(error, message)
     }
 
     private fun lockoutMessage(error: Int): CharSequence {
@@ -442,18 +535,5 @@ class SherpaOnnxBiometricManager(
 private fun GmmConfidenceDetails.toLogString(): String {
     return "avgLL=$averageLogLikelihood enrollLL=$enrollmentLogLikelihood " +
         "drop=$likelihoodDrop allowedDrop=$allowedDrop components=$componentCount"
-}
-
-/** Voice matching is already complete; delivering success must not depend on an animation delay. */
-internal fun completeVoiceAuthentication(
-    sessionActive: AtomicBoolean,
-    callback: AbstractSoftwareBiometricManager.AuthenticationCallback?,
-    crypto: AbstractSoftwareBiometricManager.CryptoObject?,
-    helpMessage: CharSequence
-) {
-    if (sessionActive.compareAndSet(true, false)) {
-        callback?.onAuthenticationHelp(AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ACQUIRED_GOOD, helpMessage)
-        callback?.onAuthenticationSucceeded(AbstractSoftwareBiometricManager.AuthenticationResult(crypto))
-    }
 }
 

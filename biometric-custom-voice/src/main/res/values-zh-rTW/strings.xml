@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">已儲存的語音設定檔與此語音引擎不相容。請重新設定語音解鎖。</string>
     <string name="biometriccompat_voice_help_timeout">語音驗證逾時</string>
     <string name="biometriccompat_voice_help_unavailable">語音驗證無法使用</string>
     <string name="biometriccompat_voice_help_permission_required">語音驗證需要麥克風權限</string>

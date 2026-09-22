@@ -9,9 +9,17 @@
 /.idea/assetWizardSettings.xml
 .DS_Store
 /build
+**/build/
+/.gradle-home/
+/.kotlin/
+__pycache__/
 /captures
 .externalNativeBuild
 .cxx
 biometric-zkfinger/vendor-sdk/
 biometric-sherpa-onnx/vendor-sdk/
-local.properties
+
+# Local signing material must never enter the source repository.
+/*.gpg.private
+/*private.asc
+/*.pgp

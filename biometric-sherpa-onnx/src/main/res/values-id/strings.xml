@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">Profil suara tersimpan tidak kompatibel dengan mesin suara ini. Siapkan kembali buka kunci suara.</string>
     <string name="biometriccompat_voice_help_timeout">Waktu autentikasi suara habis</string>
     <string name="biometriccompat_voice_help_unavailable">Autentikasi suara tidak tersedia</string>
     <string name="biometriccompat_voice_help_permission_required">Izin mikrofon diperlukan untuk autentikasi suara</string>

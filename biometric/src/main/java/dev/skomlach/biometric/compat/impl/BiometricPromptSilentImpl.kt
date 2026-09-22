@@ -113,6 +113,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         )
         pendingAuthStart.schedule(500) {
             if (!authSessionState.owns(sessionToken)) return@schedule
+            types.filterNotNull().forEach(builder::trackSoftwareEnrollment)
             LegacyBiometric.authenticate(
                 builder.getCryptographyPurpose(),
                 null,

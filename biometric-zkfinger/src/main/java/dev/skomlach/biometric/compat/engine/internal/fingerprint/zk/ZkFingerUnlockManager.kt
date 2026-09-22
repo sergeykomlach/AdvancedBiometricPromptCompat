@@ -70,6 +70,7 @@ class ZkFingerUnlockManager(
         }
 
         private val activeSessionLock = Any()
+        private val operationOwner = ZkFingerOperationOwner()
 
         @Volatile
         private var currentActiveManager: WeakReference<ZkFingerUnlockManager>? = null
@@ -112,6 +113,7 @@ class ZkFingerUnlockManager(
 
     @Volatile
     private var sessionConfig: ZkFingerConfig? = null
+    @Volatile
     private var captureSession = newCaptureSession()
     private var pendingUsbPermission: AtomicBoolean? = null
 
@@ -120,7 +122,6 @@ class ZkFingerUnlockManager(
     }
     private var callbackHandler: Handler = Handler(Looper.getMainLooper())
     private var authCallback: AuthenticationCallback? = null
-    private var cancellationSignal: CancellationSignal? = null
     @Volatile
     private var fingerprintSensor: ZkFingerSdkBridge.Sensor? = null
     private var usbReceiver: BroadcastReceiver? = null
@@ -236,12 +237,14 @@ class ZkFingerUnlockManager(
 
     override fun remove(extra: Bundle?) {
         val tag = extra?.getString(ENROLLMENT_TAG_KEY)
-        if (tag.isNullOrBlank()) {
-            getEnrolls().forEach { removeTemplate(it) }
-            nativeHandler.post { runCatching { sdkOrNull()?.clear() } }
-        } else {
-            removeTemplate(tag)
-            nativeHandler.post { runCatching { sdkOrNull()?.delete(tag) } }
+        operationOwner.revoke {
+            if (tag.isNullOrBlank()) {
+                getEnrolls().forEach { removeTemplate(it) }
+                nativeHandler.post { runCatching { sdkOrNull()?.clear() } }
+            } else {
+                removeTemplate(tag)
+                nativeHandler.post { runCatching { sdkOrNull()?.delete(tag) } }
+            }
         }
     }
 
@@ -269,16 +272,29 @@ class ZkFingerUnlockManager(
         extra: Bundle?
     ) {
         val extras = extra?.let(::Bundle)
+        val resultHandler = handler ?: Handler(Looper.getMainLooper())
+        // Own the request before posting it. A remove must also revoke a queued start,
+        // and a different manager must not keep using the process-wide template cache.
+        val session = operationOwner.start {
+            ZkFingerCaptureSession(onInvalidated = { retired ->
+                resultHandler.post { callback?.onAuthenticationCancelled() }
+                nativeHandler.post {
+                    if (captureSession === retired) stopAuthentication()
+                }
+                operationOwner.release(retired)
+            }) { action -> nativeHandler.post { action() } }
+        }
+        cancel?.setOnCancelListener { session.invalidate() }
         nativeHandler.post {
+            if (!session.isActive) return@post
             try {
-                authenticateOnWorker(cancel, callback, handler, extras)
+                authenticateOnWorker(session, callback, resultHandler, extras)
             } catch (error: ProtectedStorageUnavailableException) {
                 LogCat.logException(error)
                 onAuthenticationError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                     localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable))
                 stopAuthentication()
                 authCallback = null
-                cancellationSignal = null
                 sessionConfig = null
                 releaseSession(this)
             }
@@ -286,7 +302,7 @@ class ZkFingerUnlockManager(
     }
 
     private fun authenticateOnWorker(
-        cancel: CancellationSignal?,
+        session: ZkFingerCaptureSession,
         callback: AuthenticationCallback?,
         handler: Handler?,
         extra: Bundle?
@@ -294,16 +310,14 @@ class ZkFingerUnlockManager(
         requestActiveSession(this)
         clearPendingUsbPermission()
         captureSession.invalidate()
-        captureSession = newCaptureSession()
+        captureSession = session
         sessionConfig = config
         callbackHandler = handler ?: Handler(Looper.getMainLooper())
         authCallback = callback
-        cancellationSignal = cancel
         val lockoutError = checkLockoutState()
         if (lockoutError != null) {
             onAuthenticationError(lockoutError, lockoutMessage(lockoutError))
             authCallback = null
-            cancellationSignal = null
             sessionConfig = null
             releaseSession(this)
             return
@@ -319,7 +333,6 @@ class ZkFingerUnlockManager(
                 localized(R.string.biometriccompat_zkfinger_help_not_registered)
             )
             authCallback = null
-            cancellationSignal = null
             sessionConfig = null
             releaseSession(this)
             return
@@ -331,26 +344,12 @@ class ZkFingerUnlockManager(
                 localized(R.string.biometriccompat_zkfinger_help_sensor_not_found)
             )
             authCallback = null
-            cancellationSignal = null
             sessionConfig = null
             releaseSession(this)
             return
         }
 
         isSessionActive.set(true)
-        val session = captureSession
-        val resultHandler = callbackHandler
-        cancellationSignal?.setOnCancelListener {
-            if (session.invalidate()) {
-                resultHandler.post { callback?.onAuthenticationCancelled() }
-            }
-            nativeHandler.post {
-                if (captureSession === session && isSessionActive.get()) {
-                    stopAuthentication()
-                }
-            }
-        }
-
         session.post { openWhenUsbPermissionReady() }
     }
 
@@ -374,17 +373,15 @@ class ZkFingerUnlockManager(
 
             requestUsbPermission(
                 device,
-                onGranted = { grantedDevice ->
-                    captureSession.post { openDevice(grantedDevice) }
-                },
-                onDenied = {
+                onGranted = captureSession.bind<UsbDevice>(::openDevice),
+                onDenied = captureSession.bind {
                     onAuthenticationError(
                         CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS,
                         localized(R.string.biometriccompat_zkfinger_help_usb_permission_denied)
                     )
                     stopAuthentication()
                 },
-                onDetached = {
+                onDetached = captureSession.bind {
                     onAuthenticationError(
                         CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                         localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable)
@@ -567,25 +564,19 @@ class ZkFingerUnlockManager(
             sdk.setCaptureListener(
                 sensor = sensor,
                 deviceIndex = effectiveConfig.deviceIndex,
-                onExtracted = { template ->
-                    captureSession.postTemplate(template, ::processTemplate)
-                },
-                onExtractError = { errorCode ->
-                    captureSession.post {
-                        LogCat.logError(TAG, "extractError=$errorCode")
-                        onAuthenticationFailed()
-                    }
+                onExtracted = captureSession.bindTemplate(::processTemplate),
+                onExtractError = captureSession.bind<Int> { errorCode ->
+                    LogCat.logError(TAG, "extractError=$errorCode")
+                    onAuthenticationFailed()
                 }
             )
-            sdk.setExceptionListener(sensor) {
-                captureSession.post {
-                    onAuthenticationError(
-                        CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                        localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable)
-                    )
-                    stopAuthentication()
-                }
-            }
+            sdk.setExceptionListener(sensor, captureSession.bind {
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    localized(R.string.biometriccompat_zkfinger_help_sensor_unavailable)
+                )
+                stopAuthentication()
+            })
             sdk.open(sensor, effectiveConfig.deviceIndex)
             sdk.startCapture(sensor, effectiveConfig.deviceIndex)
             postHelp(initialScanMessage())
@@ -683,9 +674,10 @@ class ZkFingerUnlockManager(
             return
         }
 
-        if (!captureSession.isActive) return
-        saveTemplate(enrollmentTag, merged)
-        resetPermanentLockOut()
+        captureSession.commit {
+            saveTemplate(enrollmentTag, merged)
+            resetPermanentLockOut()
+        } ?: return
         onAuthenticationSucceeded()
         stopAuthentication()
     }
@@ -693,14 +685,18 @@ class ZkFingerUnlockManager(
     private fun processAuthenticationTemplate(template: ByteArray) {
         val match = identify(template)
         if (match != null) {
-            resetPermanentLockOut()
+            captureSession.commit { resetPermanentLockOut() } ?: return
             onAuthenticationSucceeded()
             stopAuthentication()
             return
         }
 
-        handleFailedAttempt()
-        val lockoutError = checkLockoutState()
+        val outcome = captureSession.commit {
+            handleFailedAttempt()
+            // Reading an expired lockout may also persist a reset.
+            checkLockoutState() to Unit
+        } ?: return
+        val lockoutError = outcome.first
         if (lockoutError != null) {
             onAuthenticationError(lockoutError, lockoutMessage(lockoutError))
             stopAuthentication()
@@ -780,17 +776,12 @@ class ZkFingerUnlockManager(
     }
 
     private fun cancelInternal() {
-        if (isSessionActive.get()) {
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_CANCELED,
-                localized(R.string.biometriccompat_zkfinger_help_canceled_by_new_operation)
-            )
-        }
+        captureSession.invalidate()
         stopAuthentication()
     }
 
     private fun stopAuthentication() {
-        captureSession.invalidate()
+        captureSession.stopCapture()
         clearPendingUsbPermission()
         if (!isSessionActive.compareAndSet(true, false)) return
         val sensor = fingerprintSensor
@@ -819,7 +810,6 @@ class ZkFingerUnlockManager(
         }
         runCatching { sdk?.free() }
         authCallback = null
-        cancellationSignal = null
         enrollmentSamples.clear()
         isEnrolling = false
         releaseSession(this)
@@ -879,8 +869,10 @@ class ZkFingerUnlockManager(
 
     private fun onAuthenticationError(code: Int, msg: CharSequence?) {
         if (!captureSession.isActive) return
+        val session = captureSession
         val callback = authCallback
-        callbackHandler.post {
+        session.postCallback({ action -> callbackHandler.post { action() } }, terminal = true) {
+            operationOwner.release(session)
             callback?.onAuthenticationError(code, msg)
         }
     }
@@ -888,26 +880,27 @@ class ZkFingerUnlockManager(
     private fun postHelp(msg: CharSequence?) {
         if (!captureSession.isActive || msg.isNullOrBlank()) return
         val callback = authCallback
-        callbackHandler.post {
+        captureSession.postCallback({ action -> callbackHandler.post { action() } }) {
             callback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL, msg)
         }
     }
 
     private fun onAuthenticationSucceeded() {
         if (!captureSession.isActive) return
+        val session = captureSession
         val callback = authCallback
-        val signal = cancellationSignal
-        callbackHandler.post {
-            if (signal?.isCanceled != true) {
-                callback?.onAuthenticationSucceeded(AuthenticationResult(null))
-            }
+        session.postCallback({ action -> callbackHandler.post { action() } }, terminal = true) {
+            operationOwner.release(session)
+            // The session already arbitrated success versus cancellation. A second
+            // signal check here could drop success after cancellation lost its claim.
+            callback?.onAuthenticationSucceeded(AuthenticationResult(null))
         }
     }
 
     private fun onAuthenticationFailed() {
         if (!captureSession.isActive) return
         val callback = authCallback
-        callbackHandler.post {
+        captureSession.postCallback({ action -> callbackHandler.post { action() } }) {
             callback?.onAuthenticationFailed()
         }
     }

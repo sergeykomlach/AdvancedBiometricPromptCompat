@@ -3,7 +3,8 @@ package dev.skomlach.biometric.compat.engine.internal.voice
 import kotlin.math.abs
 import kotlin.math.sqrt
 
-class BasicVoiceEngine : VoiceEngine {
+class BasicVoiceEngine : VoiceEngine, VoiceTemplateIdentityProvider {
+    override val templateIdentity: String = "basic-frame-features:v1"
     override fun isAvailable(): Boolean = true
 
     override fun extractEmbedding(sample: VoiceSample): VoiceEmbeddingResult? {

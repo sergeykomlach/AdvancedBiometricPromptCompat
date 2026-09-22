@@ -46,6 +46,8 @@ object BiometricManagerCompat {
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
     private val stateCacheLock = Any()
 
+    /** Synchronous discovery/registration; may perform provider SDK and storage initialization. */
+    @androidx.annotation.WorkerThread
     fun loadNonHardwareBiometrics() {
         LegacyBiometric.loadSoftwareModules()
         BiometricPromptCompat.invalidateAvailableAuthRequests()

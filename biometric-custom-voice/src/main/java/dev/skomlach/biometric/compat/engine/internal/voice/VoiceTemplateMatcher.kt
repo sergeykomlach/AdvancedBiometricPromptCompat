@@ -15,8 +15,12 @@ internal fun matchVoiceTemplatesDetailed(
     probeFrames: List<FloatArray>,
     topK: Int
 ): VoiceTemplateMatch {
+    // GMM must not bypass embedding-space compatibility either.
+    val compatibleTemplates = enrolledTemplates.filter {
+        probeEmbedding.isValidEmbedding() && it.embedding.size == probeEmbedding.size && it.embedding.isValidEmbedding()
+    }
     val gmmModels = if (probeFrames.isNotEmpty()) {
-        enrolledTemplates.mapNotNull { it.gmmModel }
+        compatibleTemplates.mapNotNull { it.gmmModel }
     } else {
         emptyList()
     }
@@ -35,7 +39,7 @@ internal fun matchVoiceTemplatesDetailed(
         )
     }
 
-    val scores = enrolledTemplates
+    val scores = compatibleTemplates
         .map { VoiceScorer.score(it.embedding, probeEmbedding) }
         .filter { it > 0f }
         .sortedDescending()

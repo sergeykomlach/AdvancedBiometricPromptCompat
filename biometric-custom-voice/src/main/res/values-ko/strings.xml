@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">저장된 음성 프로필이 이 음성 엔진과 호환되지 않습니다. 음성 잠금 해제를 다시 설정하세요.</string>
     <string name="biometriccompat_voice_help_timeout">음성 인증 시간이 초과되었습니다</string>
     <string name="biometriccompat_voice_help_unavailable">음성 인증을 사용할 수 없습니다</string>
     <string name="biometriccompat_voice_help_permission_required">음성 인증에는 마이크 권한이 필요합니다</string>

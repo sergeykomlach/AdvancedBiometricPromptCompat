@@ -2,6 +2,7 @@ package dev.skomlach.biometric.compat.engine.internal
 
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSessionGuard
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSessionToken
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricTerminalState
 
 /** Shared by software providers; hints are advisory and never suppress terminal results. */
 internal class SoftwareBiometricCallbackGate(
@@ -14,6 +15,19 @@ internal class SoftwareBiometricCallbackGate(
     private var lastHelpAt: Long? = null
 
     fun canDispatch(): Boolean = sessions.isActive(token) && !canceled()
+
+    fun terminate(state: SoftwareBiometricTerminalState, action: () -> Unit): Boolean {
+        if (!canDispatch() || !sessions.tryTerminate(token, state)) return false
+        action()
+        return true
+    }
+
+    /** Check at execution time, not when a callback or delayed retry was queued. */
+    fun dispatch(action: () -> Unit): Boolean {
+        if (!canDispatch()) return false
+        action()
+        return true
+    }
 
     @Synchronized
     fun tryHelp(message: CharSequence?): Boolean {

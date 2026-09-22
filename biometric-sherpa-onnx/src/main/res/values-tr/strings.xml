@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">Kaydedilen ses profili bu ses motoruyla uyumlu değil. Sesle kilit açmayı yeniden ayarlayın.</string>
     <string name="biometriccompat_voice_help_timeout">Sesle kimlik doğrulama zaman aşımına uğradı</string>
     <string name="biometriccompat_voice_help_unavailable">Sesle kimlik doğrulama kullanılamıyor</string>
     <string name="biometriccompat_voice_help_permission_required">Sesle kimlik doğrulama için mikrofon izni gerekiyor</string>

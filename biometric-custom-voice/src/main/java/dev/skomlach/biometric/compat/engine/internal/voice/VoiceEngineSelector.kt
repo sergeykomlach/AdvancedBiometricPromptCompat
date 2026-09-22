@@ -1,5 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricServices
+import java.util.ServiceConfigurationError
 import java.util.ServiceLoader
 
 internal object VoiceEngineSelector {
@@ -8,15 +10,13 @@ internal object VoiceEngineSelector {
     }
 
     fun select(providers: Iterable<VoiceEngineProvider>): VoiceEngine {
-        return providers
-            .mapNotNull { provider ->
-                runCatching {
-                    provider.priority to provider.createEngine()
-                }.getOrNull()
-            }
-            .filter { (_, engine) -> engine.isAvailable() }
-            .maxByOrNull { (priority, _) -> priority }
-            ?.second
-            ?: CepstralVoiceEngine()
+        return try {
+            SoftwareBiometricServices.collect(providers, {}) { provider ->
+                val engine = provider.createEngine()
+                if (engine.isAvailable()) provider.priority to engine else null
+            }.maxByOrNull { (priority, _) -> priority }?.second ?: CepstralVoiceEngine()
+        } catch (_: ServiceConfigurationError) {
+            CepstralVoiceEngine()
+        }
     }
 }

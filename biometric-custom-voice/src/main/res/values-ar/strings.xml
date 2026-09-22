@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">ملف الصوت المحفوظ غير متوافق مع محرك الصوت هذا. أعد إعداد فتح القفل بالصوت.</string>
     <string name="biometriccompat_voice_help_timeout">انتهت مهلة المصادقة الصوتية</string>
     <string name="biometriccompat_voice_help_unavailable">المصادقة الصوتية غير متاحة</string>
     <string name="biometriccompat_voice_help_permission_required">يتطلب استخدام المصادقة الصوتية إذن الميكروفون</string>

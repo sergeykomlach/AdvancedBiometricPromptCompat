@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">Le profil vocal enregistré est incompatible avec ce moteur vocal. Configurez à nouveau le déverrouillage vocal.</string>
     <string name="biometriccompat_voice_help_timeout">Le délai d’authentification vocale est dépassé</string>
     <string name="biometriccompat_voice_help_unavailable">L’authentification vocale n’est pas disponible</string>
     <string name="biometriccompat_voice_help_permission_required">L’autorisation du microphone est requise pour l’authentification vocale</string>

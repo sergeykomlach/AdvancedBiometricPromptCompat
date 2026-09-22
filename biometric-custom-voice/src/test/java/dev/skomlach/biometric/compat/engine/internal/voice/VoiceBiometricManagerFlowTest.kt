@@ -1,34 +1,38 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkSession
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkerCallback
 import org.junit.Assert.*
 import org.junit.Test
-import java.util.concurrent.atomic.AtomicBoolean
 
 class VoiceBiometricManagerFlowTest {
     @Test fun successIsDeliveredImmediatelyAndOnlyOnce() {
-        val active = AtomicBoolean(true)
+        val active = SoftwareBiometricWorkSession()
         val events = mutableListOf<String>()
         val callback = object : AbstractSoftwareBiometricManager.AuthenticationCallback() {
             override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
                 events += "help"
             }
             override fun onAuthenticationSucceeded(result: AbstractSoftwareBiometricManager.AuthenticationResult?) {
-                assertFalse(active.get())
+                assertFalse(active.isActive)
                 events += "success"
             }
         }
-        completeVoiceAuthentication(active, callback, null, "accepted")
+        val delivery = SoftwareBiometricWorkerCallback(active, callback) { it() }
+        delivery.onAuthenticationHelp(0, "accepted")
+        delivery.onAuthenticationSucceeded(null)
         assertEquals(listOf("help", "success"), events)
-        completeVoiceAuthentication(active, callback, null, "duplicate")
+        delivery.onAuthenticationSucceeded(null)
         assertEquals(2, events.size)
     }
 
     @Test fun cancelledSessionCannotDeliverSuccess() {
-        completeVoiceAuthentication(AtomicBoolean(false), object : AbstractSoftwareBiometricManager.AuthenticationCallback() {
+        val active = SoftwareBiometricWorkSession().also { it.cancel() }
+        SoftwareBiometricWorkerCallback(active, object : AbstractSoftwareBiometricManager.AuthenticationCallback() {
             override fun onAuthenticationSucceeded(result: AbstractSoftwareBiometricManager.AuthenticationResult?) {
                 fail("cancelled session succeeded")
             }
-        }, null, "accepted")
+        }) { it() }.onAuthenticationSucceeded(null)
     }
 }

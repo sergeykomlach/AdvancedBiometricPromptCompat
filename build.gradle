@@ -130,15 +130,6 @@ tasks.register('clean', Delete) {
     delete rootProject.buildDir
 }
 
-def releaseExcludedModules = ['app', 'biometric-custom-behavior']
-
-tasks.register('publishRelease') {
-    group = 'publishing'
-    description = 'Publishes all release libraries to Sonatype and closes the staging repository.'
-    dependsOn(subprojects
-            .findAll { project -> !releaseExcludedModules.contains(project.name) }
-            .collect { project -> ":${project.name}:publishReleasePublicationToSonatypeRepository" })
-    finalizedBy(':common:postRelease')
-}
+apply from: "${rootProject.projectDir}/scripts/publish-release.gradle"
 
 apply plugin: 'io.codearte.nexus-staging'

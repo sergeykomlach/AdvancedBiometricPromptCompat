@@ -4,6 +4,20 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class EnrollmentRollbackScopeTest {
+    @Test fun stagedEnrollmentRollbackRemovesOnlyItsExplicitTag() {
+        val templates = mutableSetOf("existing-a", "existing-b")
+        val tag = provisionalEnrollment { name -> name }
+        templates += tag
+        templates.remove(tag)
+        assertEquals(setOf("existing-a", "existing-b"), templates)
+    }
+
+    @Test fun everyEnrollmentIncludingRetriesGetsItsOwnNonBlankTag() {
+        val tags = (1..10).map { provisionalEnrollment { name -> name } }
+        org.junit.Assert.assertTrue(tags.all { it.isNotBlank() })
+        assertEquals(10, tags.toSet().size)
+    }
+
     @Test fun cancelRemovesOnlyThisAttemptsTemplatesIncludingRetries() {
         val templates = mutableSetOf("existing", "first", "retry")
         val scope = EnrollmentRollbackScope()

@@ -1,0 +1,6 @@
+rootProject.name = 'publishing-coordinator-test'
+include 'common', 'alpha', 'app', 'biometric-custom-behavior'
+rootProject.children.each {
+    it.projectDir = file("build/projects/${it.name}")
+    it.projectDir.mkdirs()
+}

@@ -94,7 +94,8 @@ data class TensorFlowFaceConfig(
     @FloatRange(from = 1.0, to = 3.0)
     val livenessCropScale: Float = 1.60f,
     val antiSpoofingEnabled: Boolean = true,
-    val requireAntiSpoofingForAuthentication: Boolean = false,
+    // Explicit false is a compatibility opt-out, not equivalent biometric assurance.
+    val requireAntiSpoofingForAuthentication: Boolean = true,
     @FloatRange(from = 0.0, to = 1.0)
     val antiSpoofingScoreThreshold: Float = 0.28f,
     @IntRange(from = 1)

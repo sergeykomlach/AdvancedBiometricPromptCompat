@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">Збережений голосовий профіль несумісний із цим голосовим рушієм. Налаштуйте розблокування голосом повторно.</string>
     <string name="biometriccompat_voice_help_timeout">Час очікування автентифікації голосом вичерпано</string>
     <string name="biometriccompat_voice_help_unavailable">Автентифікація голосом недоступна</string>
     <string name="biometriccompat_voice_help_permission_required">Для автентифікації голосом потрібен дозвіл на мікрофон</string>

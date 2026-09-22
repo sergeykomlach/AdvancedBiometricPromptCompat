@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat.engine.core.interfaces
 
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
+import dev.skomlach.biometric.compat.custom.SoftwarePromptStatus
 
 /**
  * A listener that is notified of the results of fingerprint authentication.
@@ -54,4 +55,13 @@ interface AuthenticationListener {
         reason: AuthenticationFailureReason?,
         description: CharSequence?
     )
+}
+
+internal interface StatusAuthenticationListener : AuthenticationListener {
+    fun onStatus(moduleTag: Int, status: SoftwarePromptStatus)
+}
+
+internal fun AuthenticationListener.onStatus(moduleTag: Int, status: SoftwarePromptStatus) {
+    if (this is StatusAuthenticationListener) onStatus(moduleTag, status)
+    else onHelp(status.asLegacyHelpMessage())
 }

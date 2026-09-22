@@ -21,6 +21,8 @@ package dev.skomlach.biometric.compat.engine
 
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.custom.SoftwarePromptStatus
 
 interface LegacyBiometricAuthenticationListener {
     //user identity confirmed in module
@@ -36,4 +38,14 @@ interface LegacyBiometricAuthenticationListener {
 
     @WorkerThread
     fun onCanceled(result: AuthenticationResult)
+}
+
+/** Optional extension: existing binary listeners still need only the original four methods. */
+internal interface StatusLegacyBiometricAuthenticationListener : LegacyBiometricAuthenticationListener {
+    fun onStatus(source: BiometricType?, status: SoftwarePromptStatus)
+}
+
+internal fun LegacyBiometricAuthenticationListener.onStatus(source: BiometricType?, status: SoftwarePromptStatus) {
+    if (this is StatusLegacyBiometricAuthenticationListener) onStatus(source, status)
+    else onHelp(status.asLegacyHelpMessage())
 }

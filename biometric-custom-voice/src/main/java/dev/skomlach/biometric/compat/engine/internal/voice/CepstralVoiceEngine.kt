@@ -8,7 +8,8 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class CepstralVoiceEngine : VoiceEngine {
+class CepstralVoiceEngine : VoiceEngine, VoiceTemplateIdentityProvider {
+    override val templateIdentity: String = "cepstral-mfcc-gmm:v1"
     override fun isAvailable(): Boolean = true
 
     override fun extractEmbedding(sample: VoiceSample): VoiceEmbeddingResult? {

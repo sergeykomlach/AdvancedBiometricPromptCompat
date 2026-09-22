@@ -65,6 +65,9 @@ class BiometricPromptCompatDialogImpl(
     var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
     private var softwarePromptDelegate: SoftwareBiometricPromptDelegate? = null
     @Volatile private var feedbackClosed = false
+    @Volatile private var feedbackGeneration = 0L
+    private val foregroundFeedback = compatBuilder.foregroundFeedback
+    private var feedbackDialogView: View? = null
 
 
     init {
@@ -173,10 +176,24 @@ class BiometricPromptCompatDialogImpl(
             if (!dialog.isActive) return@setOnShowListener
             // A recreated view has its own feedback lifetime after onDestroyView cleanup.
             feedbackClosed = false
+            val generation = ++feedbackGeneration
+            val source = primaryBiometricType
+            fun active() = !feedbackClosed && feedbackGeneration == generation && dialog.isActive
+            dialog.rootView?.findViewById<View>(R.id.dialogLayout)?.let { card ->
+                feedbackDialogView = card
+                foregroundFeedback?.attachDialog(card) { status ->
+                    if (active()) {
+                        val text = status?.asLegacyHelpMessage() ?: promptText
+                        if (dialog.status?.text?.toString() != text.toString()) dialog.status?.text = text
+                        dialog.status?.setTextColor(ContextCompat.getColor(card.context,
+                            if (status?.terminal == true) R.color.material_red_500 else R.color.textColor))
+                    }
+                }
+            }
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. started.")
 
             softwarePromptDelegate = SoftwareBiometricPromptRegistry.resolve(
-                primaryBiometricType,
+                source,
                 compatBuilder.getContext()
             )?.createPrompt(
                     SoftwareBiometricPromptHost(
@@ -190,19 +207,23 @@ class BiometricPromptCompatDialogImpl(
                             }
 
                             override fun onStatus(status: SoftwarePromptStatus) {
-                                this@BiometricPromptCompatDialogImpl.onSoftwareStatus(status)
+                                dispatchFeedback(generation) {
+                                    if (active()) this@BiometricPromptCompatDialogImpl.onSoftwareStatus(status, source)
+                                }
                             }
 
                             override fun onReady(extras: android.os.Bundle?) {
-                                extras?.let { compatBuilder.setExtras(it) }
-                                startAuth()
+                                dispatchFeedback(generation) {
+                                    extras?.let { compatBuilder.setExtras(it) }
+                                    startAuth()
+                                }
                             }
 
                             override fun onFailure(result: dev.skomlach.biometric.compat.AuthenticationResult) {
-                                authCallback?.onPreAuthFailure(result)
+                                dispatchFeedback(generation) { authCallback?.onPreAuthFailure(result) }
                             }
 
-                            override fun isPromptActive(): Boolean = dialog.isActive
+                            override fun isPromptActive(): Boolean = active()
                         }
                     )
                 )?.also { delegate ->
@@ -347,6 +368,9 @@ class BiometricPromptCompatDialogImpl(
 
     private fun clearFeedback() {
         feedbackClosed = true
+        feedbackGeneration++
+        foregroundFeedback?.detachDialog(feedbackDialogView)
+        feedbackDialogView = null
         animateHandler.removeCallbacksAndMessages(null)
     }
 
@@ -371,11 +395,27 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun onSoftwareStatus(status: SoftwarePromptStatus) {
-        e("BiometricPromptGenericImpl.onHelp - ${status.asLegacyHelpMessage()}")
+        onSoftwareStatus(status, primaryBiometricType)
+    }
+
+    /** Synchronous main-thread onReady must bind extras before the final startAuth below start(). */
+    private fun dispatchFeedback(generation: Long, action: () -> Unit) {
+        val task = Runnable {
+            if (!feedbackClosed && feedbackGeneration == generation && dialog.isActive) action()
+        }
+        if (Looper.myLooper() == animateHandler.looper) task.run() else animateHandler.post(task)
+    }
+
+    private fun onSoftwareStatus(status: SoftwarePromptStatus, source: BiometricType) {
         if (feedbackClosed) return
-        animateHandler.post {
-            if (feedbackClosed || !dialog.isActive) return@post
+        val generation = feedbackGeneration
+        dispatchFeedback(generation) {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
+
+            if (compatBuilder.getBiometricFeedbackOptions().enabled && foregroundFeedback != null) {
+                foregroundFeedback.show(source, status)
+                return@dispatchFeedback
+            }
 
             dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON, primaryBiometricType)
 
@@ -392,7 +432,7 @@ class BiometricPromptCompatDialogImpl(
                     }
                 )
             )
-            if (!status.terminal) {
+            if (!status.terminal && !status.persistent) {
                 animateHandler.sendEmptyMessageDelayed(
                     WHAT_RESTORE_NORMAL_STATE,
                     2000

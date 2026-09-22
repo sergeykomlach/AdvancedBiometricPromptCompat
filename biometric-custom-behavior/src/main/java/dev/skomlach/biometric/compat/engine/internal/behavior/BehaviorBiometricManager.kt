@@ -11,7 +11,6 @@ import android.os.SystemClock
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
-import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.custom.behavior.R
@@ -26,14 +25,7 @@ class BehaviorBiometricManager(
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_BEHAVIOR
     override val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
     override val securityProfile: SoftwareBiometricSecurityProfile =
-        SoftwareBiometricSecurityProfile(
-            biometricType = BiometricType.BIOMETRIC_BEHAVIOR,
-            assurance = SoftwareBiometricAssuranceLevel.ACTIVE_CHALLENGE,
-            requiresTrustedCapture = false,
-            allowsCompatibilityCapture = true,
-            supportsCryptoObject = false,
-            maxCaptureDurationMs = 30_000L
-        )
+        SoftwareBiometricSecurityProfile.passiveCompatibility(BiometricType.BIOMETRIC_BEHAVIOR)
 
     private var sessionActive = AtomicBoolean(false)
     private var currentHandler: Handler = Handler(Looper.getMainLooper())

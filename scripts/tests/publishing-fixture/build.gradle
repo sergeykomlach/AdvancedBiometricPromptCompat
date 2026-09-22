@@ -1,0 +1,20 @@
+// No publishing plugins, credentials or network calls: only network-boundary stand-ins.
+// Register the coordinator first, as in production (common's transfer task comes later).
+apply from: '../../publish-release.gradle'
+
+subprojects {
+    tasks.register('publishReleasePublicationToSonatypeRepository') {
+        doLast {
+            println "FIXTURE_UPLOAD:${project.name}"
+            if (rootProject.findProperty('failModule') == project.name) {
+                throw new GradleException('Intentional upload failure')
+            }
+        }
+    }
+    tasks.register('publish') {
+        dependsOn('publishReleasePublicationToSonatypeRepository')
+    }
+}
+project(':common').tasks.register('postRelease') {
+    doLast { println 'FIXTURE_TRANSFER' }
+}

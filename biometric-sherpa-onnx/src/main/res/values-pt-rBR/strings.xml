@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">O perfil de voz salvo não é compatível com este mecanismo de voz. Configure novamente o desbloqueio por voz.</string>
     <string name="biometriccompat_voice_help_timeout">Tempo esgotado na autenticação por voz</string>
     <string name="biometriccompat_voice_help_unavailable">A autenticação por voz não está disponível</string>
     <string name="biometriccompat_voice_help_permission_required">A permissão do microfone é obrigatória para a autenticação por voz</string>

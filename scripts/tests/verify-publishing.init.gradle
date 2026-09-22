@@ -1,0 +1,76 @@
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import java.util.zip.ZipFile
+
+// Test the configured publication model and dependency graph, never the source text.
+// This init script refuses ANY remote task before task execution starts.
+gradle.taskGraph.whenReady { graph ->
+    def remote = graph.allTasks.findAll {
+        it instanceof PublishToMavenRepository || it.name == 'postRelease'
+    }
+    if (!remote.isEmpty()) throw new GradleException("Remote tasks forbidden by publishing test: ${remote*.path}")
+}
+
+gradle.projectsEvaluated {
+    def root = gradle.rootProject
+    def published = root.subprojects.findAll { !(it.name in ['app', 'biometric-custom-behavior']) }
+    def closureOf = { Task start ->
+        def visited = [] as Set
+        def pending = [start]
+        while (!pending.isEmpty()) {
+            def task = pending.remove(0)
+            // The publication boundary is sufficient; do not resolve Android compile inputs.
+            if (visited.add(task) && !(task instanceof PublishToMavenRepository)) {
+                pending.addAll(task.taskDependencies.getDependencies(task))
+            }
+        }
+        visited
+    }
+    root.tasks.register('verifyPublishingContract') {
+        dependsOn(published.collectMany { project ->
+            project.tasks.findByName('androidJavadocJar') ? [project.tasks.named('androidJavadocJar')] : []
+        })
+        doLast {
+            def failures = []
+            published.each { project ->
+                def publication = project.publishing.publications.getByName('release')
+                def docs = publication.artifacts.find { it.classifier == 'javadoc' && it.extension == 'jar' }
+                if (docs == null) {
+                    failures += "${project.path}: missing documentation artifact"
+                } else {
+                    new ZipFile(docs.file).withCloseable { zip ->
+                        if (zip.getEntry('README.md') == null) failures += "${project.path}: documentation JAR has no README"
+                    }
+                    def signedFiles = project.tasks.getByName('signReleasePublication').signatures.collect { it.toSign }
+                    if (!signedFiles.contains(docs.file)) failures += "${project.path}: documentation artifact is not signed"
+                }
+            }
+            def transfers = root.allprojects.collect { it.tasks.findByName('postRelease') }.findAll { it != null }
+            if (transfers.size() != 1) failures += "Expected one deployment transfer, found ${transfers.size()}"
+            def expectedUploads = published.collect { "${it.path}:publishReleasePublicationToSonatypeRepository".toString() } as Set
+            transfers.each { transfer ->
+                def dependencies = closureOf(transfer)*.path as Set
+                if (!dependencies.containsAll(expectedUploads)) failures += "${transfer.path}: no successful-upload dependency barrier"
+            }
+            root.allprojects.each { project ->
+                ['publish', 'publishRelease'].collect { project.tasks.findByName(it) }.findAll { it != null }.each { task ->
+                    if (!task.finalizedBy.getDependencies(task).isEmpty()) failures += "${task.path}: deployment uses a finalizer"
+                }
+            }
+            ['publish', 'publishRelease'].each { name ->
+                def task = root.tasks.findByName(name)
+                if (task == null) failures += "Missing root ${name} coordinator"
+                else {
+                    def tasks = closureOf(task)
+                    if ((tasks*.path as Set).intersect(expectedUploads) != expectedUploads) failures += "${name}: missing release upload"
+                    if (tasks.any { it.path.startsWith(':biometric-custom-behavior:') }) failures += "${name}: includes experimental Behavior"
+                }
+            }
+            def behaviorPublish = root.project(':biometric-custom-behavior').tasks.getByName('publish')
+            if (closureOf(behaviorPublish).any { it instanceof PublishToMavenRepository }) {
+                failures += 'Generic publish selector includes Behavior upload'
+            }
+            if (!failures.isEmpty()) throw new GradleException(failures.join('\n'))
+            println "Publishing contract passed for ${published.size()} modules: docs, signing, one success-only transfer, Behavior excluded."
+        }
+    }
+}

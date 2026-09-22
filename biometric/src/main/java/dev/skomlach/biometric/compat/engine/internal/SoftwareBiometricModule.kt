@@ -256,8 +256,13 @@ class SoftwareBiometricModule internal constructor(
                     ?: throw IllegalArgumentException("CancellationSignal can't be null")
 
                 this.originalCancellationSignal = cancellationSignal
+                val sessionGate = SoftwareBiometricCallbackGate(
+                    sessionGuard, sessionToken, { cancellationSignal?.isCanceled != false },
+                    android.os.SystemClock::elapsedRealtime
+                )
+                timeoutHandler.removeCallbacks(timeoutRunnable)
                 timeoutHandler.postDelayed(Runnable {
-                    if (this.originalCancellationSignal?.isCanceled == false) {
+                    sessionGate.dispatch {
                         listener?.onFailure(
                             tag(),
                             AuthenticationFailureReason.TIMEOUT,
@@ -267,7 +272,7 @@ class SoftwareBiometricModule internal constructor(
                             sessionToken,
                             SoftwareBiometricTerminalState.EXPIRED
                         )
-                        this.originalCancellationSignal?.cancel()
+                        cancellationSignal?.cancel()
                     }
                 }.also {
                     timeoutRunnable = it
@@ -305,6 +310,8 @@ class SoftwareBiometricModule internal constructor(
         restartPredicate: RestartPredicate?,
         sessionToken: SoftwareBiometricSessionToken
     ) {
+        // A delayed retry must not rebind the newer session's cancellation signal or SDK.
+        if (!sessionGuard.isActive(sessionToken) || originalCancellationSignal?.isCanceled != false) return
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
@@ -341,13 +348,14 @@ class SoftwareBiometricModule internal constructor(
                     return
                 }
                 val cancellationSignal = CancellationSignal()
+                val sessionTimeout = timeoutRunnable
                 originalCancellationSignal?.setOnCancelListener {
                     sessionGuard.tryTerminate(
                         sessionToken,
                         SoftwareBiometricTerminalState.CANCELLED
                     )
                     if (!cancellationSignal.isCanceled) {
-                        timeoutHandler.removeCallbacks(timeoutRunnable)
+                        timeoutHandler.removeCallbacks(sessionTimeout)
                         cancellationSignal.cancel()
                     }
                 }
@@ -367,6 +375,7 @@ class SoftwareBiometricModule internal constructor(
                 d("$name.authenticate:  Crypto=$crypto")
                 // Recheck after preparation: unavailable templates must never reach the provider.
                 requireReadableEnrollment()
+                if (!sessionGuard.isActive(sessionToken) || cancellationSignal.isCanceled) return
                 authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(
                     crypto,
@@ -414,8 +423,8 @@ class SoftwareBiometricModule internal constructor(
             extras = Bundle(bundle ?: Bundle()).apply {
                 // Provisional enrollment must never replace an existing template or use
                 // a null tag whose rollback means "remove all" in a software manager.
-                val provisionalName = enrollmentRollbackScope?.let { java.util.UUID.randomUUID().toString() }
-                manager?.getEnrollBundle(provisionalName)?.let { putAll(it) }
+                provisionalEnrollment { name -> manager?.getEnrollBundle(name) }
+                    ?.let { putAll(it) }
             }
             enrollBundle = extras
             val enrolledExtras = extras
@@ -432,18 +441,30 @@ class SoftwareBiometricModule internal constructor(
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?,
-        private val sessionToken: SoftwareBiometricSessionToken
-    ) : AbstractSoftwareBiometricManager.AuthenticationCallback() {
-        private val callbackGate = SoftwareBiometricCallbackGate(
+        private val sessionToken: SoftwareBiometricSessionToken,
+        private val sessionTimeout: Runnable = timeoutRunnable
+    ) : SoftwareBiometricSessionCallback(
+        SoftwareBiometricCallbackGate(
             sessionGuard, sessionToken,
             { cancellationSignal?.isCanceled != false || originalCancellationSignal?.isCanceled != false },
             android.os.SystemClock::elapsedRealtime
-        )
+        ),
+        {
+            timeoutHandler.removeCallbacks(sessionTimeout)
+            // Teardown before notification: the listener may immediately start a new flow.
+            Core.cancelAuthentication(this@SoftwareBiometricModule)
+            listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
+        }
+    ) {
         private var errorTs = 0L
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
         private var selfCanceled = false
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
+            callbackGate.dispatch { handleAuthenticationError(errMsgId, errString) }
+        }
+
+        private fun handleAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout)
@@ -492,7 +513,7 @@ class SoftwareBiometricModule internal constructor(
                     if (!selfCanceled) {
                         listener?.onFailure(tag(), failureReason, errString)
                         postCancelTask {
-                            if (cancellationSignal?.isCanceled == false) {
+                            if (callbackGate.canDispatch()) {
                                 selfCanceled = true
                                 listener?.onCanceled(
                                     tag(),
@@ -543,7 +564,7 @@ class SoftwareBiometricModule internal constructor(
                     }
                     listener?.onFailure(tag(), failureReason, errString)
                     postCancelTask {
-                        if (cancellationSignal?.isCanceled == false) {
+                        if (callbackGate.canDispatch()) {
                             selfCanceled = true
                             listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
                             Core.cancelAuthentication(this@SoftwareBiometricModule)
@@ -559,11 +580,8 @@ class SoftwareBiometricModule internal constructor(
         }
 
         override fun onAuthenticationSucceeded(result: AbstractSoftwareBiometricManager.AuthenticationResult?) {
+            if (!callbackGate.canDispatch()) return
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
-            if (cancellationSignal?.isCanceled != false || originalCancellationSignal?.isCanceled != false) {
-                timeoutHandler.removeCallbacks(timeoutRunnable)
-                return
-            }
             try {
                 if (!sessionGuard.tryTerminate(
                         sessionToken,
@@ -591,13 +609,15 @@ class SoftwareBiometricModule internal constructor(
                     )
                 )
             } finally {
-                timeoutHandler.removeCallbacks(timeoutRunnable)
+                timeoutHandler.removeCallbacks(sessionTimeout)
             }
         }
 
         override fun onAuthenticationFailed() {
-            d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
+            callbackGate.dispatch {
+                d("$name.onAuthenticationFailed: ")
+                listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
+            }
         }
     }
 

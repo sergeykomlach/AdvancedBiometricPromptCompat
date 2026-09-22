@@ -1,5 +1,38 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
+/**
+ * Separate interface preserving VoiceEngine's JVM ABI; required for enrollment/authentication.
+ * Custom engines must expose
+ * a stable algorithm + model/preprocessing identity; change it when the embedding space changes.
+ */
+interface VoiceTemplateIdentityProvider {
+    /** Cached identity only. Expensive preparation belongs in [PreparingVoiceEngine.prepare]. */
+    val templateIdentity: String?
+}
+
+/** Optional extension: invoked on the manager worker before capture/authentication. */
+interface PreparingVoiceEngine {
+    fun prepare(): Boolean
+}
+
+internal fun prepareVoiceEngine(engine: VoiceEngine): Boolean = try {
+    val available = (engine as? PreparingVoiceEngine)?.prepare() ?: engine.isAvailable()
+    available && !(engine as? VoiceTemplateIdentityProvider)?.templateIdentity.isNullOrBlank()
+} catch (_: Exception) {
+    false
+} catch (_: LinkageError) {
+    false
+}
+
+internal fun voiceTemplateIdentityMatches(stored: String?, expected: String?): Boolean =
+    !expected.isNullOrBlank() && stored == expected
+
+/** Earlier training could retain outliers; do not merge or authenticate those profiles. */
+internal fun voiceEnrollmentIdentity(engine: VoiceEngine): String? =
+    (engine as? VoiceTemplateIdentityProvider)?.templateIdentity
+        ?.takeIf { it.isNotBlank() }
+        ?.let { "voice-consensus-v2:$it" }
+
 interface VoiceEngine {
     fun isAvailable(): Boolean
     fun extractEmbedding(sample: VoiceSample): VoiceEmbeddingResult?

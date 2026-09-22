@@ -4,8 +4,8 @@ import kotlin.math.sqrt
 
 object VoiceScorer {
     fun score(enrolled: FloatArray, probe: FloatArray): Float {
-        if (!enrolled.isValidEmbedding() || !probe.isValidEmbedding()) return 0f
-        val size = minOf(enrolled.size, probe.size)
+        if (enrolled.size != probe.size || !enrolled.isValidEmbedding() || !probe.isValidEmbedding()) return 0f
+        val size = enrolled.size
         var dot = 0.0
         var enrolledNorm = 0.0
         var probeNorm = 0.0

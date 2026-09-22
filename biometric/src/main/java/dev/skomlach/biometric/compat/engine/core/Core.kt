@@ -28,6 +28,8 @@ import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
 import dev.skomlach.biometric.compat.crypto.CryptoAccessType
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.core.interfaces.StatusAuthenticationListener
+import dev.skomlach.biometric.compat.engine.core.interfaces.onStatus
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
@@ -218,7 +220,7 @@ object Core {
             module.authenticate(
                 biometricCryptoObject,
                 cancellationSignal,
-                listener,
+                listener?.let { ModuleFeedbackListener(it, module.tag()) { !cancellationSignal.isCanceled } },
                 restartPredicate
             )
         } catch (e: Throwable) {
@@ -268,9 +270,13 @@ object Core {
         biometricCryptoObject: BiometricCryptoObject?
     ): AuthenticationListener? {
         val delegate = this ?: return null
-        return object : AuthenticationListener {
+        return object : StatusAuthenticationListener {
             override fun onHelp(msg: CharSequence?) {
                 delegate.onHelp(msg)
+            }
+
+            override fun onStatus(moduleTag: Int, status: dev.skomlach.biometric.compat.custom.SoftwarePromptStatus) {
+                delegate.onStatus(moduleTag, status)
             }
 
             override fun onSuccess(

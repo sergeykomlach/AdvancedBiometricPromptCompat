@@ -32,6 +32,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
+import android.widget.FrameLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
@@ -76,6 +77,7 @@ class WindowForegroundBlurring(
     @Volatile
     private var isBlurViewAttachedToHost = false
     private var biometricsLayout: View? = null
+    private var feedbackView: ForegroundFeedbackView? = null
     private var defaultColor = Color.TRANSPARENT
     private var blurSession: BlurUtil.BlurSession? = null
     private var captureTimeout: Runnable? = null
@@ -142,11 +144,12 @@ class WindowForegroundBlurring(
         }
 
         @SuppressLint("ClickableViewAccessibility")
-        v = LayoutInflater.from(parentView.context)
-            .inflate(R.layout.blurred_screen, null, false).apply {
+        v = FrameLayout(parentView.context).apply {
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 tag = this@WindowForegroundBlurring.javaClass.name
                 alpha = 1f
-                biometricsLayout = findViewById(R.id.biometrics_layout)
+                biometricsLayout = LayoutInflater.from(context).inflate(R.layout.biometrics, this, false)
+                feedbackView = ForegroundFeedbackView(compatBuilder, this, requireNotNull(biometricsLayout), compatBuilder.foregroundFeedback)
                 mapOf(
                     BiometricType.BIOMETRIC_FACE to R.id.face,
                     BiometricType.BIOMETRIC_IRIS to R.id.iris,
@@ -323,6 +326,7 @@ class WindowForegroundBlurring(
         try {
             v?.apply {
                 parentView.addView(this)
+                feedbackView?.start()
                 post(updateIconsRunnable)
             }
 
@@ -344,6 +348,7 @@ class WindowForegroundBlurring(
 
     fun resetListeners() {
         isBlurViewAttachedToHost = false
+        feedbackView?.stop()
         blurCaptureLatch.reset()
         captureRequested = false
         captureScheduled = false

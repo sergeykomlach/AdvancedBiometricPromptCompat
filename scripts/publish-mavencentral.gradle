@@ -3,6 +3,18 @@ tasks.register('androidSourcesJar', Jar) {
     from android.sourceSets.main.java.srcDirs
 }
 
+// Documentation pointers for the mixed Kotlin/Java API; not generated API reference.
+tasks.register('androidJavadocJar', Jar) {
+    archiveClassifier.set('javadoc')
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+    from(rootProject.file('docs/publishing/JAVADOC-README.md')) {
+        rename { 'README.md' }
+    }
+    from(project.file('README.md')) { into 'module' }
+    from(project.file('THIRD_PARTY_NOTICES.md')) { into 'META-INF' }
+}
+
 artifacts {
     archives androidSourcesJar
 }
@@ -26,7 +38,7 @@ File secretPropsFile = project.rootProject.file('local.properties')
 if (secretPropsFile.exists()) {
     println "Found secret props file, loading props"
     Properties p = new Properties()
-    p.load(new FileInputStream(secretPropsFile))
+    secretPropsFile.withInputStream { p.load(it) }
     p.each { name, value ->
         ext[name] = value
     }
@@ -58,6 +70,7 @@ publishing {
             version PUBLISH_VERSION
             artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
             artifact androidSourcesJar
+            artifact androidJavadocJar
 
             pom {
                 name = PUBLISH_ARTIFACT_ID
@@ -90,17 +103,8 @@ publishing {
                     url = 'https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat/tree/main'
                 }
                 withXml {
-                    //Creating additional node for dependencies
+                    // Export implementation dependencies to the manually constructed POM.
                     def dependenciesNode = asNode().appendNode('dependencies')
-
-//                    if (libArtifactId_biometric == artifactId) {
-//                        def dependencyComponent = dependenciesNode.appendNode('dependency')
-//                        dependencyComponent.appendNode('groupId', libsGroupId)
-//                        dependencyComponent.appendNode('artifactId', libArtifactId_common)
-//                        dependencyComponent.appendNode('version', version)
-//                    }
-
-                    //Defining configuration names from which dependencies will be taken (debugCompile or releaseCompile and compile)
                     def configurationNames = ["releaseImplementation", 'implementation']
 
                     configurationNames.each { configurationName ->
@@ -152,9 +156,7 @@ afterEvaluate {
         dependsOn tasks.named('bundleReleaseAar')
     }
 }
-tasks.named('publish') {
-    finalizedBy tasks.named('postRelease')
-}
+// Module publish tasks upload only. The root coordinator owns deployment transfer.
 def getSonatypeCredentials() {
     def username = ossrTokenUsername
     def password = ossrTokenPassword
@@ -204,7 +206,10 @@ def callSonatypeApi(String method, String url, Closure responseHandler = null) {
         throw new GradleException("Failed to call Sonatype API: ${e.message}", e)
     }
 }
-tasks.register('postRelease') {
+// Only one namespace-wide transfer; the root coordinator adds the upload barrier.
+if (project.name == libArtifactId_common) tasks.register('postRelease') {
+    group = 'publishing'
+    description = 'Uploads the complete release batch, then requests Central publication.'
     doLast {
         def url ="/manual/upload/defaultRepository/${project.group}?publishing_type=automatic"
         callSonatypeApi("POST", url) { connection, responseCode, responseMessage ->

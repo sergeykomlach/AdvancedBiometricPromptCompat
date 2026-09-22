@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="biometriccompat_voice_help_reenrollment_required">已保存的语音配置与此语音引擎不兼容。请重新设置语音解锁。</string>
     <string name="biometriccompat_voice_help_timeout">语音认证超时</string>
     <string name="biometriccompat_voice_help_unavailable">语音认证不可用</string>
     <string name="biometriccompat_voice_help_permission_required">语音认证需要麦克风权限</string>

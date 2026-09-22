@@ -1,0 +1,37 @@
+// Root-only coordinator. Dependencies prevent transfer after any failed upload.
+def releaseExcludedModules = ['app', 'biometric-custom-behavior']
+def releaseProjects = subprojects.findAll { !releaseExcludedModules.contains(it.name) }
+
+def uploadReleaseArtifacts = tasks.register('uploadReleaseArtifacts') {
+    group = 'publishing'
+    description = 'Uploads release artifacts without transferring the staging repository.'
+    dependsOn(releaseProjects.collect { "${it.path}:publishReleasePublicationToSonatypeRepository" })
+}
+
+// Also works before the common module's publication script has been evaluated.
+project(':common').tasks.matching { it.name == 'postRelease' }.configureEach {
+    dependsOn(uploadReleaseArtifacts)
+}
+
+tasks.register('publishRelease') {
+    group = 'publishing'
+    description = 'Uploads the non-experimental release batch and requests Central publication.'
+    dependsOn(':common:postRelease')
+}
+
+tasks.register('publish') {
+    group = 'publishing'
+    description = 'Alias for the coordinated publishRelease batch.'
+    dependsOn('publishRelease')
+}
+
+// An unqualified task selector can include subproject publish tasks too.
+// Disabling an aggregate alone does NOT prevent its dependencies from uploading.
+subprojects.findAll { releaseExcludedModules.contains(it.name) }.each { excluded ->
+    excluded.afterEvaluate {
+        excluded.tasks.matching { it.name == 'publish' }.configureEach {
+            setDependsOn([])
+            enabled = false
+        }
+    }
+}

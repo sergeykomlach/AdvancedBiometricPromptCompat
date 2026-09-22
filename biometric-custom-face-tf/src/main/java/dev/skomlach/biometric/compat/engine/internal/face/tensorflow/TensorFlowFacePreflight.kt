@@ -35,7 +35,7 @@ internal fun resolveTensorFlowFacePreflightIssue(
     if (!isEnrolling && requireRealCameraProvider && !usesRealCameraProvider) {
         return TensorFlowFacePreflightIssue.UNTRUSTED_CAPTURE_PROVIDER
     }
-    if (!isEnrolling && requireAntiSpoofing && !antiSpoofingAvailable) {
+    if (requireAntiSpoofing && !antiSpoofingAvailable) {
         return TensorFlowFacePreflightIssue.ANTI_SPOOFING_UNAVAILABLE
     }
     return null

@@ -57,4 +57,27 @@ class SoftwareBiometricCallbackGateTest {
         assertFalse(gate.canDispatch())
         assertFalse(gate.tryHelp("Look at the camera"))
     }
+
+    @Test fun lateErrorCannotMutateLockoutAfterReplacement() {
+        var lockoutWrites = 0
+        val lateError = { gate.dispatch { lockoutWrites++ } }
+        sessions.start()
+        assertFalse(lateError())
+        assertEquals(0, lockoutWrites)
+    }
+
+    @Test fun canceledAttemptCannotRestartCapture() {
+        var starts = 0
+        val retry = { gate.dispatch { starts++ } }
+        canceled = true
+        assertFalse(retry())
+        assertEquals(0, starts)
+    }
+
+    @Test fun acceptedCallbackIsNotThrottledByHelp() {
+        var failures = 0
+        gate.tryHelp("Try again")
+        assertTrue(gate.dispatch { failures++ })
+        assertEquals(1, failures)
+    }
 }

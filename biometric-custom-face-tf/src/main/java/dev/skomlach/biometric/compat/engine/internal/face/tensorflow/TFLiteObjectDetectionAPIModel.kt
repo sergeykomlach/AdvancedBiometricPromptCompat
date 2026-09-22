@@ -57,6 +57,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         private const val MAX_EXTRA_ARRAYS = 4
         private const val MAX_DEBUG_CROP_BASE64_CHARS = 512 * 1024
         private const val MAX_TEMPLATE_NAME_LENGTH = 80
+        private val templateStorageLock = Any()
 
         @Throws(IOException::class)
         private fun loadModelFile(assets: AssetManager, modelFilename: String): MappedByteBuffer {
@@ -97,12 +98,16 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         }
     }
 
-    private val registered: HashMap<String?, SimilarityClassifier.Recognition?> by lazy {
+    private val templateCache = FaceTemplateCache(
+        { getProtectedPreferences(STORAGE_NAME).getString(REGISTERED_TEMPLATES_PREF_KEY, null) },
+        ::decodeTemplates
+    )
+    private val registered: HashMap<String?, SimilarityClassifier.Recognition?>
+        get() = templateCache.snapshot()
+
+    private fun decodeTemplates(jsonString: String?): HashMap<String?, SimilarityClassifier.Recognition?> {
         val map = HashMap<String?, SimilarityClassifier.Recognition?>()
         try {
-            val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
-            val jsonString =
-                sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
             val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
             val keys = jsonObjectRoot.keys()
             while (keys.hasNext() && map.size < MAX_REGISTERED_TEMPLATES) {
@@ -121,7 +126,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
             LogCat.logException(e)
         }
         LogCat.log(javaClass.simpleName, "registered: size ${map.size}")
-        map
+        return map
     }
 
     private var isModelQuantized = false
@@ -249,44 +254,44 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         return jsonObject
     }
 
-    override fun registeredCount(): Int = registered.size
-    override fun hasRegistered(): Boolean = registered.isNotEmpty()
-    override fun getEnrolls(): Set<String> = registered.keys.filterNotNull().toSet()
+    @Synchronized override fun registeredCount(): Int = registered.size
+    @Synchronized override fun hasRegistered(): Boolean = registered.isNotEmpty()
+    @Synchronized override fun getEnrolls(): Set<String> = registered.keys.filterNotNull().toSet()
 
-    override fun delete(name: String?) {
-        val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
-        if (name == null) {
+    @Synchronized override fun delete(name: String?) {
+        synchronized(templateStorageLock) {
+            val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
             val templates = registered
-            sharedPreferences.editProtected { clear() }
-            if (BuildConfig.DEBUG) templates.values.toList().filterNotNull().forEach { rec ->
-                ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
+            if (name == null) {
+                sharedPreferences.editProtected { clear() }
+                if (BuildConfig.DEBUG) templates.values.filterNotNull().forEach { rec ->
+                    ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
+                }
+                return
             }
-            templates.clear()
-            return
-        }
-        val jsonString = sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
-        val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
-        jsonObjectRoot.remove(name)
-        sharedPreferences.editProtected {
-            putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
-        }
-        registered.remove(name)?.let { rec ->
-            if (BuildConfig.DEBUG) ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
+            val jsonString = sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
+            val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
+            jsonObjectRoot.remove(name)
+            sharedPreferences.editProtected {
+                putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
+            }
+            templates[name]?.let { rec ->
+                if (BuildConfig.DEBUG) ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
+            }
         }
     }
 
-    override fun register(name: String, rec: SimilarityClassifier.Recognition) {
-        val safeName = sanitizeName(name)
-        // Resolve existing enrollment before changing either the disk or in-memory map.
-        val templates = registered
-        val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
-        val jsonString = sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
-        val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
-        jsonObjectRoot.put(safeName, recognition2json(rec))
-        sharedPreferences.editProtected {
-            putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
+    @Synchronized override fun register(name: String, rec: SimilarityClassifier.Recognition) {
+        synchronized(templateStorageLock) {
+            val safeName = sanitizeName(name)
+            val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
+            val jsonString = sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
+            val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
+            jsonObjectRoot.put(safeName, recognition2json(rec))
+            sharedPreferences.editProtected {
+                putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
+            }
         }
-        templates[safeName] = rec
     }
 
     private fun sanitizeName(name: String): String {
@@ -297,7 +302,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
             .ifBlank { "face${registered.size + 1}" }
     }
 
-    private fun findNearest(emb: FloatArray): Pair<String, Float>? {
+    @Synchronized private fun findNearest(emb: FloatArray): Pair<String, Float>? {
         var ret: Pair<String, Float>? = null
         for ((name, recognition) in registered.entries) {
             val knownEmb = (recognition?.extra as? Array<FloatArray>)?.firstOrNull()
@@ -361,7 +366,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         var recognitionId = "unknown"
         var label: String? = "face"
 
-        if (registered.isNotEmpty()) {
+        if (hasRegistered()) {
             val nearest = findNearest(embeddings[0])
             if (nearest != null) {
                 recognitionId = nearest.first
