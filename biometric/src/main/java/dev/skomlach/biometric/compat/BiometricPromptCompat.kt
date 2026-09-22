@@ -529,11 +529,18 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             rollbackEligibleTypes = builder.getRollbackEligibleEnrollTypes(),
             terminal = true
         )
+        // Decide before releasing this flow; the external callback only forwards the result.
+        val hookFailure = if (outcome.status == EnrollTerminalStatus.SUCCEEDED) {
+            callback.hookFailureOrNull(outcome.results)
+        } else null
         dispatchAfterFlowFinished(
             finishFlow = { finishAuthFlow(authFlowId) },
             dispatch = {
                 when (outcome.status) {
-                    EnrollTerminalStatus.SUCCEEDED -> callback.onSucceeded(outcome.results)
+                    EnrollTerminalStatus.SUCCEEDED -> {
+                        if (hookFailure != null) callback.onFailed(hookFailure)
+                        else callback.onSucceeded(outcome.results)
+                    }
                     EnrollTerminalStatus.FAILED -> callback.onFailed(outcome.results)
                     EnrollTerminalStatus.CONTINUE -> callback.onFailed(canceledResults)
                 }
@@ -804,10 +811,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val delegate = this
         return object : AuthenticationCallback() {
             override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
-                hookFailureOrNull(confirmed)?.let {
-                    delegate.onFailed(it)
-                    return
-                }
+                // The flow owner has already decided before crypto/enrollment and cleanup.
+                // Do not reevaluate a mutable detector after committing that decision.
                 delegate.onSucceeded(confirmed)
             }
 
