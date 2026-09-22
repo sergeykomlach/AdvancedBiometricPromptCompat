@@ -1,13 +1,16 @@
+apply plugin: 'org.jetbrains.dokka'
+
 tasks.register('androidSourcesJar', Jar) {
     archiveClassifier.set('sources')
     from android.sourceSets.main.java.srcDirs
 }
 
-// Documentation pointers for the mixed Kotlin/Java API; not generated API reference.
+// Real Kotlin/Java API reference; README and notices supplement the generated pages.
 tasks.register('androidJavadocJar', Jar) {
     archiveClassifier.set('javadoc')
     preserveFileTimestamps = false
     reproducibleFileOrder = true
+    from(tasks.named('dokkaGeneratePublicationHtml').flatMap { it.outputDirectory })
     from(rootProject.file('docs/publishing/JAVADOC-README.md')) {
         rename { 'README.md' }
     }
@@ -103,17 +106,20 @@ publishing {
                     url = 'https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat/tree/main'
                 }
                 withXml {
-                    // Export implementation dependencies to the manually constructed POM.
+                    // Include API dependencies; preserve the existing compile scope for consumers.
                     def dependenciesNode = asNode().appendNode('dependencies')
-                    def configurationNames = ["releaseImplementation", 'implementation']
+                    def configurationNames = ['api', 'releaseApi', 'implementation', 'releaseImplementation']
+                    def exported = [] as Set
 
                     configurationNames.each { configurationName ->
                         configurations[configurationName].allDependencies.each {
-                            if (it.version != null && it.version != 'unspecified') {
+                            if (it.version != null && it.version != 'unspecified' &&
+                                exported.add("${it.group}:${it.name}:${it.version}")) {
                                 def dependencyNode = dependenciesNode.appendNode('dependency')
                                 dependencyNode.appendNode('groupId', it.group)
                                 dependencyNode.appendNode('artifactId', it.name)
                                 dependencyNode.appendNode('version', it.version)
+                                dependencyNode.appendNode('scope', 'compile')
 
                                 //If there are any exclusions in dependency
                                 if (it.excludeRules.size() > 0) {

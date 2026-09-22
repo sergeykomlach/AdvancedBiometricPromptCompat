@@ -76,6 +76,17 @@ internal interface ZkFingerSdkBridge {
  * native runtime, the factory catches the linkage failure before it can escape provider loading.
  */
 private class DirectZkFingerSdkBridge : ZkFingerSdkBridge {
+    // JVM/ART may defer resolving method-body references. Resolve required API types while
+    // still inside loadOrNull's LinkageError boundary, without starting USB/JNI work or using
+    // reflective class lookup/invocation. Consumer rules retain this optional-linkage boundary.
+    @Suppress("unused")
+    private val requiredApiTypes = arrayOf(
+        ParameterHelper::class.java,
+        FingprintFactory::class.java,
+        FingerprintSensor::class.java,
+        ZKFingerService::class.java
+    )
+
     private class DirectSensor(val value: FingerprintSensor) : ZkFingerSdkBridge.Sensor
 
     override fun createSensor(context: Context, device: UsbDevice): ZkFingerSdkBridge.Sensor {

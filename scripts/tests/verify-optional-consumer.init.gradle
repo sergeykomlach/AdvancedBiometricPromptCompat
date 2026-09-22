@@ -1,0 +1,46 @@
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+import java.util.zip.ZipFile
+
+// Build/inspect only. This gate must never publish or use release signing credentials.
+gradle.taskGraph.whenReady { graph ->
+    if (graph.allTasks.any { it instanceof PublishToMavenRepository || it.name == 'postRelease' }) {
+        throw new GradleException('Remote publication forbidden by consumer verification')
+    }
+}
+gradle.projectsEvaluated {
+    def root = gradle.rootProject
+    root.tasks.register('verifyOptionalConsumerContract') {
+        dependsOn ':app:assembleSdkAbsent', ':biometric-ktx:generatePomFileForReleasePublication'
+        doLast {
+            def app = root.project(':app')
+            // AGP publishes multiple artifact types per variant; select the class artifact
+            // and inspect its original component identity, not transformed classes.jar names.
+            def artifacts = app.configurations.sdkAbsentRuntimeClasspath.incoming.artifactView {
+                attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'android-classes-jar')
+            }.artifacts.artifacts
+            def forbidden = artifacts.findAll {
+                def identity = it.id.componentIdentifier.displayName
+                ['zkandroidcore.jar', 'zkandroidfingerservice.jar', 'zkandroidfpreader.jar',
+                    'sherpa-onnx-1.13.8.aar'].any { identity.contains(it) }
+            }
+            assert forbidden.empty : "Vendor runtime leaked into consumer: ${forbidden}"
+            def ktx = root.project(':biometric-ktx')
+            def pom = new XmlSlurper().parse(ktx.layout.buildDirectory.file('publications/release/pom-default.xml').get().asFile)
+            def core = pom.dependencies.dependency.findAll { it.artifactId.text() == 'biometric' }
+            assert core.size() == 1 && core[0].scope.text() == 'compile' : 'KTX must export core exactly once'
+            println 'Consumer contract passed: SDK-absent APK built, vendor runtimes absent, KTX core dependency present.'
+        }
+    }
+    root.tasks.register('verifyKtxDocumentationContract') {
+        dependsOn ':biometric-ktx:androidJavadocJar'
+        doLast {
+            def ktx = root.project(':biometric-ktx')
+            new ZipFile(ktx.tasks.androidJavadocJar.archiveFile.get().asFile).withCloseable { zip ->
+                assert zip.getEntry('index.html') != null : 'Missing generated Dokka API index'
+                assert zip.entries().find { it.name.contains('start-biometric-authentication') } != null : 'Missing KTX API pages'
+            }
+            println 'Documentation contract passed: generated KTX API index and extension pages present.'
+        }
+    }
+}

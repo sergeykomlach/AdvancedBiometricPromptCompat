@@ -804,7 +804,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val delegate = this
         return object : AuthenticationCallback() {
             override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
-                super.onSucceeded(confirmed)
+                hookFailureOrNull(confirmed)?.let {
+                    delegate.onFailed(it)
+                    return
+                }
                 delegate.onSucceeded(confirmed)
             }
 
@@ -1015,7 +1018,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                     override fun onSucceeded(result: Set<AuthenticationResult>) {
                         if (!isCurrentAuthFlow(authFlowId) || completion.isFinishing()) return
-                        super.onSucceeded(result)
+                        hookFailureOrNull(result)?.let { failure ->
+                            // Terminal rejection, before enrollment commit or crypto use. Do not
+                            // route through onFailed's device-credential restart heuristic.
+                            completion.finish { callbackOuter.onFailed(failure) }
+                            return
+                        }
                         if (builder.isDeviceCredentialFallbackAllowed() && builder.forceDeviceCredential() &&
                             checkHardware() == AuthenticationFailureReason.UNKNOWN
                         ) {
@@ -1922,19 +1930,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         //See https://fi5t.xyz/posts/biometric-underauthentication/
         private val skipTimeout =
             AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
-        private val authCallTimeStamp = AtomicLong(System.currentTimeMillis())
+        private val authCallTimeStamp = AtomicLong(SystemClock.uptimeMillis())
         internal fun updateTimestamp() {
-            authCallTimeStamp.set(System.currentTimeMillis())
+            authCallTimeStamp.set(SystemClock.uptimeMillis())
         }
+
+        internal fun hookFailureOrNull(results: Set<AuthenticationResult>): Set<AuthenticationResult>? =
+            hookDetectionFailure(results, reference.get(),
+                SystemClock.uptimeMillis() - authCallTimeStamp.get(), skipTimeout)
 
         @MainThread
         @CallSuper
-        @Throws(BiometricAuthException::class)
+        @Throws(BiometricAuthException::class) // Retained for Java source compatibility; no longer thrown here.
         open fun onSucceeded(confirmed: Set<AuthenticationResult>) {
-            val tmp = System.currentTimeMillis()
-            if (reference.get() && tmp - authCallTimeStamp.get() <= skipTimeout) throw BiometricAuthException(
-                "Biometric flow hooking detected"
-            )
+            // Rejection happens before dispatch, even when a consumer does not call super.
         }
 
         @MainThread

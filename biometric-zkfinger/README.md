@@ -15,11 +15,15 @@ licences directly from ZKTeco. They must add the vendor JARs and ABI-matched nat
 their own application package according to ZKTeco's terms. Do not commit those artifacts to this
 repository or publish them through this module.
 
-For local Debug development only, private vendor artifacts may be kept under
+For local adapter compilation, private vendor artifacts must be kept under
 `biometric-zkfinger/vendor-sdk/`. Its three JARs are required to compile this direct adapter; its
-ABI-matched native libraries are consumed only in the Debug variant. This directory is Git-ignored
+ABI-matched native libraries are consumed only by the sample app's Debug variant, never by the
+library (including its Debug AAR). This directory is Git-ignored
 and never becomes a release or published Maven dependency. A consumer APK that omits the runtime
 fails closed: the provider is unavailable and does not crash the process.
+
+`:app:assembleSdkAbsent` builds a consumer with both optional wrappers but without their vendor
+runtimes. Building these wrappers from source still requires the official compile-only SDKs.
 
 The manager stores enrolled templates in protected encrypted preferences and reloads them into
 `ZKFingerService` for each active capture session. USB device permission is requested at runtime.

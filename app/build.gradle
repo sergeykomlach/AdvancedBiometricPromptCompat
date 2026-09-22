@@ -56,7 +56,16 @@ android {
             proguardFile "proguard-rules.pro"
             proguardFile getDefaultProguardFile("proguard-android-optimize.txt")
         }
+
+        // Consumer integration gate: wrappers present, neither vendor runtime packaged.
+        sdkAbsent {
+            initWith debug
+            matchingFallbacks = ['debug']
+            minifyEnabled false
+            shrinkResources false
+        }
     }
+    sourceSets.debug.jniLibs.srcDir rootProject.file('biometric-zkfinger/vendor-sdk/jniLibs')
     buildFeatures {
         viewBinding true
     }
@@ -91,6 +100,8 @@ dependencies {
     if (localSherpaOnnxAar.isFile()) {
         debugImplementation files(localSherpaOnnxAar)
     }
+    // Only the sample Debug app opts into vendor runtimes. Libraries never redistribute them.
+    debugRuntimeOnly fileTree(dir: rootProject.file('biometric-zkfinger/vendor-sdk/libs'), include: ['*.jar'])
 
 //"dev.skomlach:biometric:${libsMajorVersion + "." + libsMinorVersion}"
     implementation libs.conscrypt.android

@@ -60,6 +60,7 @@ buildscript {
         classpath libs.google.services
         classpath libs.gradle.download.task
         classpath libs.detekt.gradle.plugin
+        classpath 'org.jetbrains.dokka:dokka-gradle-plugin:2.2.0'
     }
 }
 

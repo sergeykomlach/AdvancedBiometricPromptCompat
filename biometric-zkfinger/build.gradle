@@ -33,11 +33,6 @@ android {
     kotlinOptions {
         jvmTarget = javaVersion.toString()
     }
-    sourceSets {
-        debug {
-            jniLibs.srcDir "vendor-sdk/jniLibs"
-        }
-    }
 }
 
 dependencies {
@@ -47,9 +42,7 @@ dependencies {
     // Compile against the official SDK without bundling its classes or native libraries.
     compileOnly files(localZkFingerSdkJars)
     testImplementation libs.junit
-    // The consuming application must hold the ZKTeco licence. These ignored local JARs are
-    // deliberately available only to debug builds and never become a published dependency.
-    debugRuntimeOnly files(localZkFingerSdkJars)
+    // Runtime belongs to the consuming app, in every variant (including Debug).
 }
 
 // Publishing

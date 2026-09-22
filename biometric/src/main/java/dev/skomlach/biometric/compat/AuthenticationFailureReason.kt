@@ -94,5 +94,8 @@ enum class AuthenticationFailureReason {
     CRYPTO_ERROR,
 
     /** The selected API cannot prove which individual biometric sensor was used. */
-    UNSUPPORTED_AUTHENTICATION_TYPE
+    UNSUPPORTED_AUTHENTICATION_TYPE,
+
+    /** Debugger/hook detection rejected the authentication result; no success is delivered. */
+    HOOK_DETECTED
 }

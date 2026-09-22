@@ -38,7 +38,7 @@ gradle.projectsEvaluated {
                     failures += "${project.path}: missing documentation artifact"
                 } else {
                     new ZipFile(docs.file).withCloseable { zip ->
-                        if (zip.getEntry('README.md') == null) failures += "${project.path}: documentation JAR has no README"
+                        if (zip.getEntry('index.html') == null) failures += "${project.path}: documentation JAR has no generated API index"
                     }
                     def signedFiles = project.tasks.getByName('signReleasePublication').signatures.collect { it.toSign }
                     if (!signedFiles.contains(docs.file)) failures += "${project.path}: documentation artifact is not signed"

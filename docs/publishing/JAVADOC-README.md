@@ -1,6 +1,6 @@
 # AdvancedBiometricPromptCompat documentation
 
-This documentation JAR contains documentation pointers, not generated Java/Kotlin API reference.
+This documentation JAR contains generated Dokka Java/Kotlin API reference. Open `index.html`.
 
 - Project documentation and integration examples:
   https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat

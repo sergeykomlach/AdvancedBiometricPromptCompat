@@ -5,6 +5,11 @@ import org.junit.Test
 
 class ZkFingerSdkBridgeTest {
     @Test
+    fun realFactoryIsUnavailableWithoutVendorClasses() {
+        assertNull(ZkFingerSdkBridge.loadOrNull())
+    }
+
+    @Test
     fun degradesToUnavailableWhenConsumerDidNotPackageZkRuntime() {
         val bridge = safelyCreateZkFingerSdkBridge {
             throw NoClassDefFoundError(

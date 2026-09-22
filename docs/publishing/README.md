@@ -19,12 +19,24 @@ staging state for operator inspection; there is no automatic cleanup or rollback
   Confirm the deployment status and resulting artifacts in Central separately.
 
 Every library publication attaches sources and a `javadoc`-classified documentation JAR before
-signing. The latter contains a README with documentation/source pointers (not generated API
-reference), plus module README and existing third-party notices where available.
+signing. The latter contains generated Dokka HTML API reference, documentation/source pointers,
+module README and existing third-party notices where available.
 
 ## Local regression checks (no upload)
 
 From the repository root:
+
+```powershell
+.\gradlew.bat -I scripts/tests/verify-optional-consumer.init.gradle verifyOptionalConsumerContract --no-configure-on-demand --offline --console=plain
+.\gradlew.bat -I scripts/tests/verify-optional-consumer.init.gradle verifyKtxDocumentationContract --no-configure-on-demand --console=plain
+```
+
+These focused gates independently verify the non-minified SDK-absent sample/POM and generated
+KTX API pages. Adapter compilation still requires official local vendor SDKs. The documentation
+gate may download large Dokka dependencies on its first run and compile release classpath
+dependencies; it does not assemble a release APK or sign/upload Maven artifacts.
+
+For the complete publishing contract (broader than normal local verification):
 
 ```powershell
 .\gradlew.bat -I scripts/tests/verify-publishing.init.gradle verifyPublishingContract --no-configure-on-demand --offline --console=plain
