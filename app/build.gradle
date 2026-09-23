@@ -88,9 +88,8 @@ dependencies {
     implementation project(":" + libArtifactId_biometric_ktx)
     implementation project(":" + libArtifactId_biometric_custom_face_tf)
     implementation project(":" + libArtifactId_biometric_zkfinger)
-//    implementation project(":" + libArtifactId_biometric_custom_behavior)
+    implementation project(":" + libArtifactId_biometric_sherpa_onnx)
     implementation project(":" + libArtifactId_biometric_custom_voice)
-    implementation project(":biometric-sherpa-onnx")
 
     // Local-only runtime downloaded from the official sherpa-onnx release. It is intentionally
     // absent from source control and release builds; production consumers add their own copy.

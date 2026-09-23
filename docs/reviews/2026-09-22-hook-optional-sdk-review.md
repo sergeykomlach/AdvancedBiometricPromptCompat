@@ -112,3 +112,46 @@ https://kotlinlang.org/docs/dokka-gradle.html . These do not establish blanket c
 
 Full suites, release/R8 APKs, actual Android debugger attach, absent-ABI JNI, USB/camera/microphone
 device tests, credential validity, remote history and publication are not verified by this task.
+
+## Staging and strict follow-up review
+
+The follow-up request authorized staging the task files and fixing review findings, but not
+committing or publishing. The initial index was empty. Exactly 20 task paths were staged;
+unrelated APKs, vendor artifacts, keys, IDE files and pre-existing reports were excluded.
+During review, external commits `30b931b3` and `3663e661` consumed the staged changes and the
+subsequent fixes. The assistant did not create those commits or change their history.
+
+Reviewed the task diff and direct dependencies: success/failure callback routing, enrollment
+completion and cleanup, optional SDK factories and consumer rules, KTX API/source moves,
+POM dependency export, sample variant isolation, documentation packaging and verification scripts.
+
+Fixed findings:
+
+- **P2, inconsistent terminal result:** the permission-description wrapper rechecked the mutable
+  hook flag after the flow owner had accepted success and cleanup could have committed enrollment.
+  It could report failure after committed enrollment. The owner now decides exactly once before
+  completion; the outer wrapper only forwards. The separate system-enrollment terminal path
+  snapshots its decision before releasing the flow. Detection policy and crypto rejection remain.
+- **Verification gap:** the SDK-absent gate inspected dependency artifacts but could miss vendor
+  SOs copied through `jniLibs`. It now inspects the actual APK using SO names from the official local
+  SDKs. Artifact checks no longer depend on one exact Sherpa version. No actual SO leak was found.
+- **Verification safety:** the no-signing promise is now enforced by rejecting Gradle `Sign` tasks
+  as well as upload/transfer tasks. This does not prohibit Debug signing of the sample APK.
+
+Verification commands executed after the logical edit batch:
+
+```powershell
+.\gradlew.bat :biometric:testDebugUnitTest --tests '*HookDetectionResultTest' --tests '*AuthFlowCompletionTest' -I scripts/tests/verify-optional-consumer.init.gradle verifyOptionalConsumerContract --no-configure-on-demand --offline --console=plain
+.\gradlew.bat -I scripts/tests/verify-optional-consumer.init.gradle :biometric-ktx:signReleasePublication --dry-run --offline --console=plain
+git -c safe.directory=C:/Users/skoml/StudioProjects_5/AdvancedBiometricPromptCompat diff --check
+```
+
+The first passed: 10 focused tests (5 hook-decision/completion-composition tests and 5 completion
+tests), rebuilt SDK-absent APK, vendor dependency/native absence and KTX POM checks. The composition
+tests exercise decision snapshots and cleanup ordering, not Android callback wiring on a device.
+The second intentionally exited 1 with `Maven signing and remote publication forbidden by consumer
+verification` before any task execution: successful negative-control evidence, not a signing run.
+The diff check passed. No new blocking code defect remained in the reviewed scope after fixes.
+
+Dokka, full suites, R8/minification, actual debugger attach and hardware/JNI device QA were not
+rerun. Existing Dokka verification and MobileFaceNet provenance publication gates remain open.
