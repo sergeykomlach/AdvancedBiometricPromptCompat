@@ -92,6 +92,9 @@ class SoftwareBiometricModule internal constructor(
     private val listener: LegacyBiometricInitListener?
 ) :
     AbstractBiometricModule(method) {
+    // Never derive a software provider's namespace from the shared CUSTOM_* enum descriptor.
+    override fun tag(): Int = runtime?.moduleId ?: super.tag()
+
     internal val manager: AbstractSoftwareBiometricManager?
         get() = runtime?.manager
     private val timeoutHandler = Handler(ExecutorHelper.handler.looper)

@@ -39,9 +39,9 @@ class LegacyBiometricCancellationTest {
             Core.cleanModules()
             synchronized(modules) {
                 modules.clear()
-                modules[BiometricMethod.FINGERPRINT_API23] = finger
-                modules[BiometricMethod.FACE_MIUI] = face
-                modules[BiometricMethod.IRIS_SAMSUNG] = iris
+                modules[BiometricModuleKey.hardware(BiometricMethod.FINGERPRINT_API23)] = finger
+                modules[BiometricModuleKey.hardware(BiometricMethod.FACE_MIUI)] = face
+                modules[BiometricModuleKey.hardware(BiometricMethod.IRIS_SAMSUNG)] = iris
             }
             join(BiometricType.BIOMETRIC_FINGERPRINT)
             assertEquals(1, finger.starts)
@@ -83,7 +83,7 @@ class LegacyBiometricCancellationTest {
             Core.cleanModules()
             synchronized(modules) {
                 modules.clear()
-                modules[BiometricMethod.FACE_MIUI] = CancelingModule
+                modules[BiometricModuleKey.hardware(BiometricMethod.FACE_MIUI)] = CancelingModule
             }
             authInProgress.set(false)
 
@@ -199,10 +199,10 @@ class LegacyBiometricCancellationTest {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun moduleMap(): MutableMap<BiometricMethod, BiometricModule> {
+    private fun moduleMap(): MutableMap<BiometricModuleKey, BiometricModule> {
         val field = LegacyBiometric::class.java.getDeclaredField("moduleHashMap")
         field.isAccessible = true
-        return field.get(LegacyBiometric) as MutableMap<BiometricMethod, BiometricModule>
+        return field.get(LegacyBiometric) as MutableMap<BiometricModuleKey, BiometricModule>
     }
 
     private fun authInProgress(): AtomicBoolean {

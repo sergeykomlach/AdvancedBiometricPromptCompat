@@ -7,6 +7,34 @@ import org.junit.Test
 
 class EnrollOutcomeResolverTest {
 
+    @Test fun `explicit cancellation is distinct from enrollment failure for any modality`() {
+        for (type in BiometricType.entries) {
+            val canceled = setOf(AuthenticationResult(type, reason = AuthenticationFailureReason.CANCELED_BY_USER))
+            val outcome = resolveEnrollSessionOutcome(
+                confirmation = BiometricConfirmation.ANY,
+                scopeTypes = listOf(type), successResults = emptySet(), confirmedTypes = emptySet(),
+                canceledResults = canceled, terminal = true
+            )
+            assertEquals("CANCELED", outcome.status.name)
+            assertEquals(canceled, outcome.results)
+            assertFalse(outcome.rollbackSuccessfulEnrolls)
+        }
+    }
+
+    @Test fun `real failure is not hidden by cancellation`() {
+        val failure = setOf(AuthenticationResult(BiometricType.BIOMETRIC_VOICE,
+            reason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE))
+        val outcome = resolveEnrollSessionOutcome(
+            confirmation = BiometricConfirmation.ALL,
+            scopeTypes = listOf(BiometricType.BIOMETRIC_VOICE),
+            successResults = emptySet(), confirmedTypes = emptySet(), failureResults = failure,
+            canceledResults = setOf(AuthenticationResult(BiometricType.BIOMETRIC_VOICE,
+                reason = AuthenticationFailureReason.CANCELED_BY_USER)), terminal = true
+        )
+        assertEquals(EnrollTerminalStatus.FAILED, outcome.status)
+        assertEquals(failure, outcome.results)
+    }
+
     @Test
     fun `pre satisfied enroll results keep already enrolled types outside pending scope`() {
         val results = resolvePreSatisfiedEnrollResults(
@@ -166,7 +194,7 @@ class EnrollOutcomeResolverTest {
             terminal = true
         )
 
-        assertEquals(EnrollTerminalStatus.FAILED, outcome.status)
+        assertEquals("CANCELED", outcome.status.name)
         assertTrue(outcome.rollbackSuccessfulEnrolls)
     }
 }

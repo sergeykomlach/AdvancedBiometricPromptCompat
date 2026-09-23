@@ -20,11 +20,37 @@ class BiometricMethodTest {
                 assertSame(method, BiometricMethod.createCustomModule(providerId, type))
                 repeat(3) {
                     assertSame(method, BiometricMethod.createCustomModule(providerId, type))
-                    assertEquals(providerId, method.id)
+                    assertEquals(originalId, method.id)
                 }
             } finally {
                 BiometricMethod.createCustomModule(originalId, type)
             }
+        }
+    }
+
+    @Test fun registeringProvidersNeverMutatesSharedModalityIds() {
+        for (type in BiometricType.entries) {
+            val before = BiometricMethod.entries.associateWith { it.id }
+            BiometricMethod.createCustomModule(-20000 - type.ordinal, type)
+            BiometricMethod.createCustomModule(-30000 - type.ordinal, type)
+            assertEquals(before, BiometricMethod.entries.associateWith { it.id })
+        }
+    }
+
+    @Test fun sameTypeProvidersHaveIndependentRegistryAndStorageKeys() {
+        for (type in BiometricType.entries) {
+            val first = BiometricModuleKey.software(-20000 - type.ordinal, type)
+            val second = BiometricModuleKey.software(-30000 - type.ordinal, type)
+            val registry = linkedMapOf(first to "preferred", second to "fallback")
+            assertEquals(2, registry.size)
+            assertEquals("preferred", registry[first])
+            assertEquals("fallback", registry[second])
+            assertEquals(-20000 - type.ordinal, first.id)
+            assertEquals(type, first.biometricType)
+            // Recreating a provider must address its original entry after reload.
+            assertEquals(first, BiometricModuleKey.software(first.id, type))
+            registry.remove(first)
+            assertEquals("fallback", registry[second])
         }
     }
 

@@ -542,6 +542,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         else callback.onSucceeded(outcome.results)
                     }
                     EnrollTerminalStatus.FAILED -> callback.onFailed(outcome.results)
+                    EnrollTerminalStatus.CANCELED -> callback.onCanceled(outcome.results)
                     EnrollTerminalStatus.CONTINUE -> callback.onFailed(canceledResults)
                 }
             }

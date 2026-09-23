@@ -12,6 +12,30 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SoftwareBiometricPromptRegistryTest {
+    @Test fun initialFailureKeepsRegisteredFallbackForEveryModality() {
+        for (type in BiometricType.entries) {
+            val fallback = fakeRuntime(FakeFactory(type), -100, moduleId = -20001)
+            val preferred = fakeRuntime(FakeFactory(type), -99, moduleId = -20002)
+            val manager = preferred.manager as FakeManager
+            manager.initializationState = SoftwareBiometricInitializationState.NEW
+            manager.prepare = { callback ->
+                manager.initializationState = SoftwareBiometricInitializationState.FAILED
+                manager.hardwareDetected = false
+                callback.onPreparationError(AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE, null)
+            }
+            val selection = SoftwareBiometricRuntimeSelection(listOf(fallback, preferred))
+            val registered = selection.runtimes.associateBy {
+                dev.skomlach.biometric.compat.engine.BiometricModuleKey.software(it.moduleId, it.manager.biometricType)
+            }
+            assertEquals(2, registered.size)
+            assertTrue(preferred.isSelected)
+            assertFalse(fallback.isSelected)
+            selection.prepareInitial(type, { true }) {}
+            assertSame(fallback, selection.resolve(type))
+            assertEquals(listOf(fallback), registered.values.filter { it.isSelected })
+        }
+    }
+
     @Test fun unreadableEnrollmentDoesNotStartPreparationEvenWhenLockoutStoreIsReadable() {
         val sherpa = fakeRuntime(FakeFactory(BiometricType.BIOMETRIC_VOICE))
         val manager = sherpa.manager as FakeManager

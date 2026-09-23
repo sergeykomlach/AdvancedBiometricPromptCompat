@@ -232,7 +232,9 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                     successResults = successfulResults(),
                     confirmedTypes = builder.getConfirmedEnrollTypes(),
                     failureResults = fatalErrorResults(),
-                    canceledResults = canceledResults(),
+                    canceledResults = canceledResults().ifEmpty {
+                        dev.skomlach.biometric.compat.emptyEffectiveBiometricCancellationResults(completionTypes())
+                    },
                     rollbackEligibleTypes = builder.getRollbackEligibleEnrollTypes(),
                     terminal = true
                 )
@@ -242,6 +244,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                     )
 
                     EnrollTerminalStatus.FAILED -> callback?.onFailed(outcome.results)
+                    EnrollTerminalStatus.CANCELED -> callback?.onCanceled(outcome.results)
                     EnrollTerminalStatus.CONTINUE -> callback?.onFailed(canceledResults())
                 }
                 return
@@ -375,6 +378,10 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
                 EnrollTerminalStatus.FAILED -> {
                     callback?.onFailed(outcome.results)
+                    cancelAuthentication()
+                }
+                EnrollTerminalStatus.CANCELED -> {
+                    callback?.onCanceled(outcome.results)
                     cancelAuthentication()
                 }
             }

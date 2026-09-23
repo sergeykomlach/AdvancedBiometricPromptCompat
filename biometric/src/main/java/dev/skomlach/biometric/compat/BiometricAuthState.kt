@@ -373,7 +373,8 @@ internal fun resolveBiometricSetupContinuation(
 internal enum class EnrollTerminalStatus {
     CONTINUE,
     SUCCEEDED,
-    FAILED
+    FAILED,
+    CANCELED
 }
 
 internal data class EnrollTerminalOutcome(
@@ -479,7 +480,13 @@ internal fun resolveEnrollSessionOutcome(
         .filter { type -> confirmedSet.contains(type) && successTypes.contains(type) }
         .toSet()
     return EnrollSessionOutcome(
-        status = EnrollTerminalStatus.FAILED,
+        // Only explicit cancellation results authorize onCanceled. Missing outcomes remain
+        // failures, and any real error takes precedence over cancellation.
+        status = if ((failureResults.isNotEmpty() || canceledResults.isNotEmpty()) &&
+            failureSet.all { it.reason == AuthenticationFailureReason.CANCELED ||
+                it.reason == AuthenticationFailureReason.CANCELED_BY_USER }) {
+            EnrollTerminalStatus.CANCELED
+        } else EnrollTerminalStatus.FAILED,
         results = failureSet,
         confirmedThisRun = confirmedThisRun,
         rollbackSuccessfulEnrolls = confirmation == BiometricConfirmation.ALL &&

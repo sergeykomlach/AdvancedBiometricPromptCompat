@@ -73,9 +73,9 @@ object LegacyBiometric {
     private const val INIT_AUTH_RETRY_DELAY_MS = 50L
     private const val INIT_AUTH_TIMEOUT_MS = 5000L
     private val moduleHashMap =
-        Collections.synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
+        Collections.synchronizedMap(HashMap<BiometricModuleKey, BiometricModule>())
     private val customModuleHashMap =
-        Collections.synchronizedMap(HashMap<BiometricMethod, AbstractSoftwareBiometricManager>())
+        Collections.synchronizedMap(HashMap<BiometricModuleKey, AbstractSoftwareBiometricManager>())
 
     private val initInProgress = AtomicBoolean(false)
     private val authInProgress = AtomicBoolean(false)
@@ -202,28 +202,28 @@ object LegacyBiometric {
         d("BiometricAuthentication", "loadSoftwareModules called")
         try {
             customLoading = true
-            val newSoftwareModules = HashMap<BiometricMethod, BiometricModule>()
+            val newSoftwareModules = HashMap<BiometricModuleKey, BiometricModule>()
             val runtimesToRegister = SoftwareBiometricPromptRegistry.registeredRuntimes(AndroidContext.appContext)
             for (runtime in runtimesToRegister) {
                 try {
                     val customManager = runtime.manager
                     val targetType = customManager.biometricType
-                    val biometricMethod = BiometricMethod.createCustomModule(
+                    val key = BiometricModuleKey.software(
                         runtime.moduleId,
                         targetType
                     )
 
-                    if (customModuleHashMap.containsKey(biometricMethod) ||
-                        newSoftwareModules.containsKey(biometricMethod)
+                    if (customModuleHashMap.keys.any { it.id == key.id } ||
+                        newSoftwareModules.keys.any { it.id == key.id }
                     ) {
                         e(
                             "BiometricAuthentication",
-                            "Rejected duplicate software biometric module: $biometricMethod"
+                            "Rejected duplicate software biometric module ID: ${key.id} (${key.method})"
                         )
                     } else {
-                        customModuleHashMap[biometricMethod] = customManager
-                        newSoftwareModules[biometricMethod] =
-                            SoftwareBiometricModule(biometricMethod, runtime, null)
+                        val module = SoftwareBiometricModule(key.method, runtime, null)
+                        customModuleHashMap[key] = customManager
+                        newSoftwareModules[key] = module
                         d(
                             "BiometricAuthentication",
                             "Registered custom module: ${customManager.javaClass.simpleName} " +
@@ -299,7 +299,7 @@ object LegacyBiometric {
         synchronized(moduleHashMap) {
             // A caller may have registered software while the hardware probes were running.
             moduleHashMap.entries.removeAll { it.value !is SoftwareBiometricModule }
-            moduleHashMap.putAll(modules)
+            moduleHashMap.putAll(modules.mapKeys { BiometricModuleKey.hardware(it.key) })
         }
         initInProgress.set(false)
         e("BiometricAuthentication.init() - done; ts=${System.currentTimeMillis() - ts} ms")
@@ -358,7 +358,7 @@ object LegacyBiometric {
 
     val availableBiometricMethods: List<BiometricMethod>
         get() = synchronized(moduleHashMap) {
-            moduleHashMap.filterValues(::isSelectedRuntime).keys.toList()
+            moduleHashMap.filterValues(::isSelectedRuntime).keys.map { it.method }.distinct()
         }
 
     val isLockOut: Boolean
@@ -600,8 +600,7 @@ object LegacyBiometric {
         // modules still own live cancellation signals and must always be stopped.
         authInProgress.set(false)
         d("BiometricAuthentication.cancelAuthentication")
-        availableBiometricMethods.forEach { method ->
-            val module = moduleHashMap[method]
+        selectedModules().forEach { module ->
             if (module is FacelockOldModule) module.stopAuth()
             if (module is FaceunlockLavaModule) module.stopAuth()
         }
@@ -693,7 +692,7 @@ object LegacyBiometric {
                 .filter { isSelectedRuntime(it.value) }
                 .filter { providerMatches(it.value, provider) }
                 .sortedWith(
-                    compareBy<Map.Entry<BiometricMethod, BiometricModule>> {
+                    compareBy<Map.Entry<BiometricModuleKey, BiometricModule>> {
                         -it.value.priority
                     }.thenBy {
                         it.value is SoftwareBiometricModule

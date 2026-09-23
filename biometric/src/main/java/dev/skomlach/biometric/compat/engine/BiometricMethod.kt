@@ -71,13 +71,11 @@ enum class BiometricMethod(id: Int, biometricType: BiometricType) {
     ),  //https://github.com/fonix232/SCoverRE/blob/2374565740e4c7bfc653b3f05bd9be519e722e32/Reversed/framework/com/samsung/android/camera/iris/SemIrisManager.java
     DUMMY_BIOMETRIC(9999, BiometricType.BIOMETRIC_ANY);
 
-    var id: Int = id
-        private set
-    var biometricType: BiometricType = biometricType
-        private set
+    val id: Int = id
+    val biometricType: BiometricType = biometricType
 
     companion object {
-        @Synchronized
+        /** Returns a modality descriptor, not a provider identity. Use the provider ID as its tag. */
         fun createCustomModule(id: Int, biometricType: BiometricType): BiometricMethod =
             when (biometricType) {
                 BiometricType.BIOMETRIC_FINGERPRINT -> CUSTOM_FINGERPRINT
@@ -92,8 +90,18 @@ enum class BiometricMethod(id: Int, biometricType: BiometricType) {
                 if (entries.any {
                         it !== this && it.id == id
                     }) throw IllegalArgumentException("This ID already used")
-                this.id = id
-                this.biometricType = biometricType
             }
+    }
+}
+
+/** Immutable registry identity. Multiple providers may share the same modality descriptor. */
+internal data class BiometricModuleKey(val id: Int, val method: BiometricMethod) {
+    val biometricType: BiometricType get() = method.biometricType
+
+    companion object {
+        fun hardware(method: BiometricMethod) = BiometricModuleKey(method.id, method)
+
+        fun software(id: Int, type: BiometricType) =
+            BiometricModuleKey(id, BiometricMethod.createCustomModule(id, type))
     }
 }
