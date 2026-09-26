@@ -1,0 +1,89 @@
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+
+def libraryVersion = providers.gradleProperty('biometricVersion').get()
+def sherpaDirectory = rootProject.file(providers.gradleProperty('sherpaOnnxSdkDir')
+        .getOrElse('../../../biometric-sherpa-onnx/vendor-sdk'))
+def zkDirectory = rootProject.file(providers.gradleProperty('zkFingerSdkDir')
+        .getOrElse('../../../biometric-zkfinger/vendor-sdk'))
+
+android {
+    namespace 'dev.skomlach.biometric.mavenconsumer'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'dev.skomlach.biometric.mavenconsumer'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName libraryVersion
+    }
+    buildFeatures { buildConfig true }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+    buildTypes {
+        debug { minifyEnabled false }
+        minified {
+            initWith debug
+            debuggable false
+            signingConfig signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
+            // Only published consumer rules protect library code; no blanket keep rules here.
+            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
+        }
+    }
+    flavorDimensions 'providers'
+    productFlavors {
+        ktxOnly { dimension 'providers'; buildConfigField 'int', 'EXPECTED_PROVIDERS', '0' }
+        sdkAbsent { dimension 'providers'; buildConfigField 'int', 'EXPECTED_PROVIDERS', '4' }
+        sherpaOnly { dimension 'providers'; buildConfigField 'int', 'EXPECTED_PROVIDERS', '1' }
+        sdkPresent { dimension 'providers'; buildConfigField 'int', 'EXPECTED_PROVIDERS', '4' }
+    }
+    sourceSets.sherpaOnly.assets.srcDir new File(sherpaDirectory, 'assets')
+    sourceSets.sdkPresent.assets.srcDir new File(sherpaDirectory, 'assets')
+    sourceSets.sdkPresent.jniLibs.srcDir new File(zkDirectory, 'jniLibs')
+}
+
+dependencies {
+    // MainActivity uses core types and a KTX extension, proving KTX's transitive API contract.
+    implementation "dev.skomlach:biometric-ktx:$libraryVersion"
+    ['sdkAbsent', 'sdkPresent'].each { flavor ->
+        ['biometric-custom-face-tf', 'biometric-custom-voice', 'biometric-sherpa-onnx', 'biometric-zkfinger'].each { artifact ->
+            add("${flavor}Implementation", "dev.skomlach:$artifact:$libraryVersion")
+        }
+    }
+    sherpaOnlyImplementation "dev.skomlach:biometric-sherpa-onnx:$libraryVersion"
+    ['sherpaOnly', 'sdkPresent'].each { flavor ->
+        add("${flavor}Implementation", files(new File(sherpaDirectory, 'libs/sherpa-onnx-1.13.8.aar')))
+    }
+    sdkPresentRuntimeOnly files(['zkandroidcore.jar', 'zkandroidfingerservice.jar', 'zkandroidfpreader.jar']
+            .collect { new File(zkDirectory, "libs/$it") })
+}
+
+['ktxOnly', 'sdkAbsent', 'sherpaOnly', 'sdkPresent'].each { flavor ->
+    ['Debug', 'Minified'].each { buildType ->
+        def variant = flavor + buildType
+        tasks.register("verify${variant.capitalize()}") {
+            group = 'verification'
+            dependsOn "assemble${variant.capitalize()}"
+            doLast {
+                def components = configurations.getByName("${flavor}${buildType}RuntimeClasspath")
+                        .incoming.resolutionResult.allComponents*.id
+                def modules = components.findAll { it instanceof ModuleComponentIdentifier && it.group == 'dev.skomlach' }
+                def expected = ['common', 'biometric', 'biometric-ktx'] as Set
+                if (flavor == 'sherpaOnly') expected.add('biometric-sherpa-onnx')
+                if (flavor in ['sdkAbsent', 'sdkPresent']) {
+                    expected.addAll(['biometric-custom-face-tf', 'biometric-custom-voice', 'biometric-sherpa-onnx', 'biometric-zkfinger'])
+                }
+                assert modules*.module.toSet() == expected : "Unexpected Maven module set: $modules"
+                assert modules.every { it.version == libraryVersion }
+                println "Maven consumer $variant assembled with ${modules.size()} exact-version library artifacts. Run on device to verify discovery/authentication."
+            }
+        }
+    }
+}

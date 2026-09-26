@@ -26,10 +26,10 @@ gradle.projectsEvaluated {
             }
             assert forbidden.empty : "Vendor runtime leaked into consumer: ${forbidden}"
             // JNI source directories bypass Gradle's dependency graph. Inspect the APK too.
-            def vendorNativeNames = root.fileTree('biometric-zkfinger/vendor-sdk/jniLibs') {
+            def vendorNativeNames = root.fileTree(new File(root.ext.zkFingerSdkDirectory, 'jniLibs')) {
                 include '**/*.so'
             }.files.collect { it.name } as Set
-            root.fileTree('biometric-sherpa-onnx/vendor-sdk/libs') {
+            root.fileTree(new File(root.ext.sherpaOnnxSdkDirectory, 'libs')) {
                 include 'sherpa-onnx*.aar'
             }.files.each { aar ->
                 new ZipFile(aar).withCloseable { zip ->

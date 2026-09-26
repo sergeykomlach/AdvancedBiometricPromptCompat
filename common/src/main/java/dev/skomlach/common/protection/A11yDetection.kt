@@ -20,7 +20,6 @@
 package dev.skomlach.common.protection
 
 import android.accessibilityservice.AccessibilityServiceInfo
-import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Resources
@@ -136,7 +135,8 @@ object A11yDetection {
             return enabledServices.any { service ->
                 val serviceInfo = service.resolveInfo.serviceInfo
                 val packageName = serviceInfo.packageName
-                val componentName = ComponentName(packageName, serviceInfo.name)
+                val componentName = AccessibilityServiceIdentity.from(packageName, serviceInfo.name)
+                    ?: return@any false
                 trustedA11yPackages.contains(packageName) &&
                         isSystemApp(cnt, packageName) &&
                         isAccessibilityTool(cnt, componentName)
@@ -173,15 +173,13 @@ object A11yDetection {
             val enabledServices =
                 am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
             val list = enabledServices.map { service ->
-                ComponentName.unflattenFromString("${service.resolveInfo.serviceInfo.packageName}/${service.resolveInfo.serviceInfo.name}")
+                val info = service.resolveInfo.serviceInfo
+                AccessibilityServiceIdentity.from(info.packageName, info.name)
             }
-            return list.filterNotNull().none {
+            return areAllAccessibilityServicesTrusted(list) {
                 val trustedSource = isSystemApp(cnt, it.packageName) ||
                         trustedA11yPackages.contains(it.packageName)
-                !(trustedSource && isAccessibilityTool(
-                    cnt,
-                    it
-                ))
+                trustedSource && isAccessibilityTool(cnt, it)
             }.also {
                 trustedListCache = Pair(now, it)
             }
@@ -196,14 +194,16 @@ object A11yDetection {
         }
     }
 
-    private fun isAccessibilityTool(context: Context, componentName: ComponentName): Boolean {
+    private fun isAccessibilityTool(context: Context, componentName: AccessibilityServiceIdentity): Boolean {
         try {
             val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
             val list =
                 am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
 
             list.forEach {
-                if ("${it.resolveInfo.serviceInfo.packageName}/${it.resolveInfo.serviceInfo.name}" == componentName.flattenToString()) {
+                if (AccessibilityServiceIdentity.from(
+                        it.resolveInfo.serviceInfo.packageName, it.resolveInfo.serviceInfo.name
+                    ) == componentName) {
                     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         it.isAccessibilityTool
                     } else isAccessibilityToolMethod?.invoke(it) as? Boolean == true
@@ -222,7 +222,7 @@ object A11yDetection {
                 PackageManager.GET_SERVICES or PackageManager.GET_META_DATA
             )
             pi.services?.forEach {
-                if ("${it.packageName}/${it.name}" == componentName.flattenToString()) {
+                if (AccessibilityServiceIdentity.from(it.packageName, it.name) == componentName) {
                     val res = it.metaData.getInt("android.accessibilityservice")
                         .also { i -> if (i == 0) throw IllegalAccessException() }
                     return AssetsChecker(resources).isAccessibilityTool(res)

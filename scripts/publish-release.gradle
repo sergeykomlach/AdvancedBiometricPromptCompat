@@ -15,7 +15,7 @@ project(':common').tasks.matching { it.name == 'postRelease' }.configureEach {
 
 tasks.register('publishRelease') {
     group = 'publishing'
-    description = 'Uploads the non-experimental release batch and requests Central publication.'
+    description = 'Uploads the selected release batch (excluding Behavior) and requests Central publication.'
     dependsOn(':common:postRelease')
 }
 

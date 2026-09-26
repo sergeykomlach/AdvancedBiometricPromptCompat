@@ -25,6 +25,10 @@ fails closed: the provider is unavailable and does not crash the process.
 `:app:assembleSdkAbsent` builds a consumer with both optional wrappers but without their vendor
 runtimes. Building these wrappers from source still requires the official compile-only SDKs.
 
+Override the SDK root with `-PzkFingerSdkDir=<directory>` containing `libs/` and optionally
+`jniLibs/`. Compilation and Dokka check all three JARs against the pinned SHA-256 inputs;
+unrelated project configuration does not require them. See [build preparation](../docs/publishing/README.md).
+
 The manager stores enrolled templates in protected encrypted preferences and reloads them into
 `ZKFingerService` for each active capture session. USB device permission is requested at runtime.
 

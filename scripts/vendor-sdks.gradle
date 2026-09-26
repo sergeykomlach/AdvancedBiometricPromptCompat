@@ -1,0 +1,48 @@
+import java.security.MessageDigest
+
+// One location contract for adapters, the sample and artifact-consumer checks.
+ext.sherpaOnnxSdkDirectory = file(providers.gradleProperty('sherpaOnnxSdkDir')
+        .getOrElse('biometric-sherpa-onnx/vendor-sdk'))
+ext.zkFingerSdkDirectory = file(providers.gradleProperty('zkFingerSdkDir')
+        .getOrElse('biometric-zkfinger/vendor-sdk'))
+ext.sherpaOnnxSdkAar = new File(sherpaOnnxSdkDirectory, 'libs/sherpa-onnx-1.13.8.aar')
+ext.zkFingerSdkJars = ['zkandroidcore.jar', 'zkandroidfingerservice.jar', 'zkandroidfpreader.jar']
+        .collect { new File(zkFingerSdkDirectory, "libs/$it") }
+
+def checksumsFile = file('scripts/vendor-sdk-checksums.properties')
+ext.registerVendorSdkVerification = { Project adapter, List<File> sdkFiles ->
+    def verification = adapter.tasks.register('verifyVendorSdk') {
+        group = 'verification'
+        description = 'Checks the separately supplied compile-only SDK against the pinned SHA-256 inputs.'
+        inputs.files(sdkFiles)
+        inputs.file(checksumsFile)
+        doLast {
+            def checksums = new Properties()
+            checksumsFile.withInputStream { checksums.load(it) }
+            sdkFiles.each { sdk ->
+                if (!sdk.isFile()) {
+                    throw new GradleException("${adapter.path}: missing vendor SDK $sdk. See docs/publishing/README.md.")
+                }
+                def expected = checksums.getProperty(sdk.name)
+                if (!(expected ==~ /[0-9a-f]{64}/)) {
+                    throw new GradleException("Missing or invalid SHA-256 pin for ${sdk.name}")
+                }
+                def digest = MessageDigest.getInstance('SHA-256')
+                sdk.withInputStream { input ->
+                    byte[] buffer = new byte[65536]
+                    int count
+                    while ((count = input.read(buffer)) != -1) digest.update(buffer, 0, count)
+                }
+                def actual = digest.digest().encodeHex().toString()
+                if (actual != expected) {
+                    throw new GradleException("${adapter.path}: SHA-256 mismatch for ${sdk.name}; expected $expected, got $actual")
+                }
+            }
+        }
+    }
+    // No SDK reads during project configuration, source packaging or unrelated module work.
+    adapter.tasks.matching {
+        it.name == 'preBuild' || it.name.startsWith('compile') || it.name.startsWith('dokkaGenerate')
+    }.configureEach { dependsOn(verification) }
+    verification
+}

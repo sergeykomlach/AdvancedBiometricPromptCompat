@@ -64,8 +64,15 @@ android {
             minifyEnabled false
             shrinkResources false
         }
+        // Isolated Sherpa runtime test: no VoiceAuth fallback, no R8 during device iteration.
+        sherpaOnly {
+            initWith sdkAbsent
+            matchingFallbacks = ['debug']
+        }
     }
-    sourceSets.debug.jniLibs.srcDir rootProject.file('biometric-zkfinger/vendor-sdk/jniLibs')
+    sourceSets.debug.jniLibs.srcDir new File(rootProject.ext.zkFingerSdkDirectory, 'jniLibs')
+    sourceSets.debug.assets.srcDir new File(rootProject.ext.sherpaOnnxSdkDirectory, 'assets')
+    sourceSets.sherpaOnly.assets.srcDir new File(rootProject.ext.sherpaOnnxSdkDirectory, 'assets')
     buildFeatures {
         viewBinding true
     }
@@ -89,18 +96,17 @@ dependencies {
     implementation project(":" + libArtifactId_biometric_custom_face_tf)
     implementation project(":" + libArtifactId_biometric_zkfinger)
     implementation project(":" + libArtifactId_biometric_sherpa_onnx)
-    implementation project(":" + libArtifactId_biometric_custom_voice)
+    debugImplementation project(":" + libArtifactId_biometric_custom_voice)
+    releaseImplementation project(":" + libArtifactId_biometric_custom_voice)
+    sdkAbsentImplementation project(":" + libArtifactId_biometric_custom_voice)
 
     // Local-only runtime downloaded from the official sherpa-onnx release. It is intentionally
     // absent from source control and release builds; production consumers add their own copy.
-    def localSherpaOnnxAar = rootProject.file(
-        "biometric-sherpa-onnx/vendor-sdk/libs/sherpa-onnx-1.13.8.aar"
-    )
-    if (localSherpaOnnxAar.isFile()) {
-        debugImplementation files(localSherpaOnnxAar)
-    }
-    // Only the sample Debug app opts into vendor runtimes. Libraries never redistribute them.
-    debugRuntimeOnly fileTree(dir: rootProject.file('biometric-zkfinger/vendor-sdk/libs'), include: ['*.jar'])
+    def localSherpaOnnxAar = rootProject.ext.sherpaOnnxSdkAar
+    debugImplementation files(localSherpaOnnxAar)
+    sherpaOnlyImplementation files(localSherpaOnnxAar)
+    // Sample runtime opt-ins never become dependencies of a library publication.
+    debugRuntimeOnly files(rootProject.ext.zkFingerSdkJars)
 
 //"dev.skomlach:biometric:${libsMajorVersion + "." + libsMinorVersion}"
     implementation libs.conscrypt.android
@@ -125,4 +131,23 @@ dependencies {
     implementation libs.okhttp
     implementation libs.okhttp.urlconnection
     implementation libs.gson
+}
+
+tasks.register('verifySherpaOnlyApk') {
+    dependsOn 'assembleSherpaOnly'
+    doLast {
+        def apk = file('build/outputs/apk/sherpaOnly/app-sherpaOnly.apk')
+        new java.util.zip.ZipFile(apk).withCloseable { zip ->
+            ['assets/sherpa-onnx/speaker-embedding.onnx',
+             'lib/arm64-v8a/libsherpa-onnx-jni.so',
+             'lib/arm64-v8a/libonnxruntime.so'].each { path ->
+                if (!(zip.getEntry(path)?.size > 0)) throw new GradleException("Missing Sherpa test artifact: $path")
+            }
+            def descriptor = zip.getEntry('META-INF/services/dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider')
+            def providers = descriptor == null ? '' : zip.getInputStream(descriptor).withCloseable { it.getText('UTF-8') }
+            if (!providers.contains('.sherpaonnx.SherpaOnnxProvider') || providers.contains('.voice.VoiceProvider')) {
+                throw new GradleException('Sherpa-only APK must register Sherpa and must not register VoiceAuth')
+            }
+        }
+    }
 }

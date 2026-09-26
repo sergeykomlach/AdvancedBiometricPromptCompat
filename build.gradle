@@ -26,8 +26,8 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.4'
-    ext.libsMinorVersion = "rc-48"
-    ext.libsVersionCode = 285
+    ext.libsMinorVersion = "rc-49"
+    ext.libsVersionCode = 286
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -131,6 +131,7 @@ tasks.register('clean', Delete) {
     delete rootProject.buildDir
 }
 
+apply from: "${rootProject.projectDir}/scripts/vendor-sdks.gradle"
 apply from: "${rootProject.projectDir}/scripts/publish-release.gradle"
 
 apply plugin: 'io.codearte.nexus-staging'

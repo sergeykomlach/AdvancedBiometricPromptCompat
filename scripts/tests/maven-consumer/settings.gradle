@@ -1,0 +1,30 @@
+pluginManagement {
+    repositories { google(); mavenCentral(); gradlePluginPortal() }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        // Never fall back to an older Central/mavenLocal artifact for the library under test.
+        exclusiveContent {
+            forRepository {
+                maven {
+                    url = uri(providers.gradleProperty('mavenConsumerRepository').get())
+                    metadataSources { mavenPom(); artifact() }
+                }
+            }
+            filter { includeGroup 'dev.skomlach' }
+        }
+        google()
+        mavenCentral()
+        exclusiveContent {
+            forRepository { maven { url = uri('https://jitpack.io') } }
+            filter { includeGroup 'com.github.tozny' }
+        }
+    }
+    versionCatalogs {
+        libs { from(files('../../../gradle/libs.versions.toml')) }
+    }
+}
+rootProject.name = 'biometric-maven-consumer'
+include ':app'

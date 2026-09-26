@@ -1,15 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
-def localSherpaOnnxAar = rootProject.file(
-    "biometric-sherpa-onnx/vendor-sdk/libs/sherpa-onnx-1.13.8.aar"
-)
-if (!localSherpaOnnxAar.isFile()) {
-    throw new GradleException(
-        "biometric-sherpa-onnx requires the official sherpa-onnx-1.13.8.aar at " +
-            localSherpaOnnxAar + " to compile its direct integration"
-    )
-}
+def localSherpaOnnxAar = rootProject.ext.sherpaOnnxSdkAar
+rootProject.ext.registerVendorSdkVerification(project, [localSherpaOnnxAar])
 
 android {
     compileSdk compileSDK

@@ -1,0 +1,87 @@
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
+import org.gradle.plugins.signing.Sign
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
+
+// Explicit release-validation step. Exports unsigned publication inputs into build/ only.
+gradle.taskGraph.whenReady { graph ->
+    if (graph.allTasks.any {
+        it instanceof PublishToMavenRepository || it instanceof PublishToMavenLocal ||
+                it instanceof Sign || it.name == 'postRelease'
+    }) throw new GradleException('Signing and Maven publication tasks forbidden by artifact-consumer staging')
+}
+
+gradle.projectsEvaluated {
+    def root = gradle.rootProject
+    def expectedDependencies = [
+        'common': [], 'biometric-api': [], 'biometric': ['common'], 'biometric-ktx': ['biometric'],
+        'biometric-custom-face-tf': ['common', 'biometric'],
+        'biometric-custom-voice': ['common', 'biometric'],
+        'biometric-sherpa-onnx': ['common', 'biometric'],
+        'biometric-zkfinger': ['common', 'biometric']
+    ]
+    assert root.subprojects.findAll { !(it.name in ['app', 'biometric-custom-behavior']) }*.name.toSet() == expectedDependencies.keySet() :
+            'Update the Maven consumer contract for the selected release module set'
+    root.tasks.register('stageMavenConsumerRepository') {
+        group = 'verification'
+        description = 'Builds release publication inputs and stages an unsigned local Maven repository for consumer QA.'
+        dependsOn(expectedDependencies.keySet().collectMany { name ->
+            ['bundleReleaseAar', 'androidSourcesJar', 'androidJavadocJar', 'generatePomFileForReleasePublication']
+                    .collect { ":${name}:$it" }
+        })
+        doLast {
+            def repository = root.layout.buildDirectory.dir("maven-consumer/${root.ext.libVersion}").get().asFile
+            expectedDependencies.each { name, expected ->
+                def library = root.project(":$name")
+                def publication = library.publishing.publications.getByName('release')
+                def pomFile = library.layout.buildDirectory.file('publications/release/pom-default.xml').get().asFile
+                def pom = new XmlSlurper().parse(pomFile)
+                assert pom.groupId.text() == root.ext.libsGroupId
+                assert pom.artifactId.text() == name && pom.version.text() == root.ext.libVersion
+                def dependencies = pom.dependencies.dependency
+                def coordinates = dependencies.collect { "${it.groupId}:${it.artifactId}".toString() }
+                assert coordinates.toSet().size() == coordinates.size() : "Duplicate POM dependency in $name"
+                def internal = dependencies.findAll { it.groupId.text() == root.ext.libsGroupId }
+                assert internal.collect { it.artifactId.text() }.toSet() == expected.toSet() : "Wrong internal dependencies in $name"
+                assert internal.every { it.version.text() == root.ext.libVersion && it.scope.text() == 'compile' }
+                assert !coordinates.any { it =~ /(?i)(sherpa-onnx|zkandroid|zkteco)/ } : "Vendor SDK leaked into $name POM"
+
+                def artifacts = publication.artifacts
+                assert artifacts.any { it.extension == 'aar' && !it.classifier }
+                ['sources', 'javadoc'].each { classifier ->
+                    def artifact = artifacts.find { it.classifier == classifier && it.extension == 'jar' }
+                    assert artifact != null && artifact.file.length() > 0 : "Missing $classifier for $name"
+                    new ZipFile(artifact.file).withCloseable { zip ->
+                        if (classifier == 'javadoc') assert zip.getEntry('index.html') != null
+                        else assert zip.entries().find { it.name.endsWith('.kt') || it.name.endsWith('.java') } != null
+                    }
+                }
+                if (name in ['biometric-sherpa-onnx', 'biometric-zkfinger']) {
+                    new ZipFile(artifacts.find { it.extension == 'aar' }.file).withCloseable { aar ->
+                        assert !aar.entries().any { it.name.startsWith('jni/') || it.name.startsWith('assets/') || it.name.startsWith('libs/') } : "Vendor payload in $name"
+                        def classes = aar.getEntry('classes.jar')
+                        assert classes != null
+                        new ZipInputStream(aar.getInputStream(classes)).withCloseable { jar ->
+                            def entry
+                            while ((entry = jar.nextEntry) != null) {
+                                assert !entry.name.startsWith('com/k2fsa/') && !entry.name.startsWith('com/zkteco/') : "Vendor class in $name"
+                            }
+                        }
+                    }
+                }
+                def destination = new File(repository, "${publication.groupId.replace('.', '/')}/$name/${publication.version}")
+                root.copy { from(pomFile); into(destination); rename { "$name-${publication.version}.pom" } }
+                artifacts.each { artifact ->
+                    def suffix = artifact.classifier ? "-${artifact.classifier}" : ''
+                    root.copy {
+                        from(artifact.file)
+                        into(destination)
+                        rename { "$name-${publication.version}$suffix.${artifact.extension}" }
+                    }
+                }
+            }
+            println "Staged ${expectedDependencies.size()} release publications without signing/upload: $repository"
+        }
+    }
+}

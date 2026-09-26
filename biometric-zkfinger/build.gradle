@@ -1,18 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
-def localZkFingerSdkJars = [
-    rootProject.file("biometric-zkfinger/vendor-sdk/libs/zkandroidcore.jar"),
-    rootProject.file("biometric-zkfinger/vendor-sdk/libs/zkandroidfingerservice.jar"),
-    rootProject.file("biometric-zkfinger/vendor-sdk/libs/zkandroidfpreader.jar")
-]
-def missingZkFingerSdkJars = localZkFingerSdkJars.findAll { !it.isFile() }
-if (!missingZkFingerSdkJars.isEmpty()) {
-    throw new GradleException(
-        "biometric-zkfinger requires official ZKTeco JARs for its direct integration: " +
-            missingZkFingerSdkJars.join(', ')
-    )
-}
+def localZkFingerSdkJars = rootProject.ext.zkFingerSdkJars
+rootProject.ext.registerVendorSdkVerification(project, localZkFingerSdkJars)
 
 android {
     lint {

@@ -1,13 +1,15 @@
 # Biometric Custom Voice
 
-Experimental software voice biometric provider for `BIOMETRIC_VOICE`.
+Experimental software voice biometric provider for `BIOMETRIC_VOICE`, included in the current
+release-candidate batch. Inclusion does not establish production recognition accuracy or spoof resistance.
 
 The module follows the same `SoftwareBiometricProvider` contract as the TF face,
-ZK fingerprint, and behavior providers. It does not inject a dedicated voice
-capture UI. Consumer apps are expected to provide recorded PCM audio or a
-precomputed embedding through request extras, while the provider handles quality
-checks, enrollment, scoring, lockout, hints, and errors. It currently exposes a
-small Kotlin engine boundary:
+ZK fingerprint, and behavior providers. Its `VoicePromptFactory` supplies built-in microphone
+capture through the normal prompt lifecycle, bound to the selected `VoiceBiometricManager`.
+Capture requires granted microphone permission. Callers can also supply
+recorded PCM audio or a precomputed embedding through the typed builder helpers below.
+The provider handles quality checks, enrollment, scoring, lockout, hints, and errors through
+a small Kotlin engine boundary:
 
 - `VoiceSample` accepts either caller-provided PCM float audio or a precomputed
   speaker embedding through the request `Bundle`.
