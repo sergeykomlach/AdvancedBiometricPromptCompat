@@ -1,7 +1,6 @@
 # Biometric Custom Voice
 
-Experimental software voice biometric provider for `BIOMETRIC_VOICE`, included in the current
-release-candidate batch. Inclusion does not establish production recognition accuracy or spoof resistance.
+Software voice biometric provider for `BIOMETRIC_VOICE`, included in the standard release batch.
 
 The module follows the same `SoftwareBiometricProvider` contract as the TF face,
 ZK fingerprint, and behavior providers. Its `VoicePromptFactory` supplies built-in microphone

@@ -36,6 +36,8 @@ kotlin {
 dependencies {
     implementation project(":" + libArtifactId_common)
     compileOnly project(":" + libArtifactId_biometric_api)
+    // Export the runtime used by BiometricAuthRequest's @Parcelize in the Maven POM.
+    implementation libs.kotlin.parcelize.runtime
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation libs.androidx.lifecycle.process
     implementation libs.androidx.biometric.ktx

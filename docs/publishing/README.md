@@ -13,8 +13,7 @@ staging state for operator inspection; there is no automatic cleanup or rollback
 - `:common:postRelease` also depends on the complete upload batch; it is not a transfer-only shortcut.
 - Generic `publish` excludes experimental `biometric-custom-behavior` and `app`. Explicit low-level
   publishing tasks are not a supported release workflow and can bypass the coordinator.
-- The current RC batch includes experimental `biometric-custom-voice`. Its presence in the batch
-  does not change the maturity or recognition-quality claims in its module README.
+- `biometric-custom-voice` is part of the standard release module set.
 - Do not run concurrent releases for the same Sonatype namespace. The staging API operates on
   remote namespace state, not a transaction isolated by this local task graph.
 - A successful transfer request is not proof that Central validation/publication has completed.
@@ -99,7 +98,7 @@ sources and Dokka JARs without signing or uploading:
 ```
 
 This verifies the eight POM dependency sets, matching versions, documentation/source JAR contents,
-and absence of vendor classes/native payloads in the two adapter AARs. It writes only to
+the core Parcelize runtime dependency, and absence of vendor classes/native payloads in the two adapter AARs. It writes only to
 `build/maven-consumer/<version>`. Signing, remote publication and Maven Local publication tasks are
 rejected before execution. This gate does build release libraries and generate their documentation;
 it is not part of ordinary local iteration and does not validate signatures.
@@ -126,3 +125,5 @@ providers survive packaging/minification; the activity fails explicitly if the p
 Its button exercises the public KTX prompt entry point. Assembly alone does not prove runtime discovery,
 SDK-absent behavior, native ABI compatibility, authentication quality or cancellation. Check those device
 scenarios separately, including a supplied runtime with a missing device ABI and denied permissions.
+
+Recorded local release and Maven/R8 artifact validation: [2026-09-26 report](2026-09-26-release-validation.md).

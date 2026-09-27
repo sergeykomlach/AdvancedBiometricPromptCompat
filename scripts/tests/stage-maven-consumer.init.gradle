@@ -46,6 +46,14 @@ gradle.projectsEvaluated {
                 assert internal.collect { it.artifactId.text() }.toSet() == expected.toSet() : "Wrong internal dependencies in $name"
                 assert internal.every { it.version.text() == root.ext.libVersion && it.scope.text() == 'compile' }
                 assert !coordinates.any { it =~ /(?i)(sherpa-onnx|zkandroid|zkteco)/ } : "Vendor SDK leaked into $name POM"
+                if (name == 'biometric') {
+                    def parcelize = dependencies.findAll {
+                        it.groupId.text() == 'org.jetbrains.kotlin' && it.artifactId.text() == 'kotlin-parcelize-runtime'
+                    }
+                    assert parcelize.size() == 1 && parcelize[0].scope.text() == 'compile' &&
+                            parcelize[0].version.text() == root.libs.versions.kotlinGradlePlugin.get() :
+                            'The biometric POM must export the matching Parcelize runtime for R8 consumers'
+                }
 
                 def artifacts = publication.artifacts
                 assert artifacts.any { it.extension == 'aar' && !it.classifier }
