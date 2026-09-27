@@ -9,6 +9,7 @@ constraintlayout = "2.2.1"
 coreKtx = "1.18.0"
 detektGradlePlugin = "1.23.8"
 dexlib2 = "2.5.2"
+dokkaGradlePlugin = "2.2.0"
 faceDetection = "16.1.7"
 firebaseCrashlyticsGradle = "3.0.7"
 googleServices = "4.4.4"
@@ -60,6 +61,7 @@ androidx-window = { module = "androidx.window:window", version.ref = "window" }
 anrwatchdog = { module = "com.github.anrwatchdog:anrwatchdog", version.ref = "anrwatchdog" }
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detektGradlePlugin" }
 dexlib2 = { module = "org.smali:dexlib2", version.ref = "dexlib2" }
+dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokkaGradlePlugin" }
 face-detection = { module = "com.google.mlkit:face-detection", version.ref = "faceDetection" }
 firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
