@@ -1,0 +1,53 @@
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+def libraryVersion = providers.gradleProperty('commonVersion').get()
+android {
+    namespace 'dev.skomlach.common.releasecheck'
+    compileSdk 36
+    useLibrary 'android.test.runner'
+    useLibrary 'android.test.base'
+    useLibrary 'android.test.mock'
+    defaultConfig {
+        applicationId 'dev.skomlach.common.releasecheck'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName libraryVersion
+        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    kotlinOptions { jvmTarget = '17' }
+    buildTypes {
+        debug { minifyEnabled false }
+        minified {
+            initWith debug
+            debuggable false
+            signingConfig signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
+            proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
+        }
+    }
+    def fixtures = providers.gradleProperty('probeTlsFixtures')
+    if (fixtures.present) {
+        sourceSets.debug.res.srcDir new File(fixtures.get(), 'res')
+        sourceSets.androidTest.assets.srcDir new File(fixtures.get(), 'assets')
+    }
+}
+dependencies { implementation "dev.skomlach:common:$libraryVersion" }
+['Debug', 'Minified'].each { variant ->
+    tasks.register("verifyCommon$variant") {
+        group = 'verification'
+        dependsOn "assemble$variant"
+        doLast {
+            def modules = configurations.getByName("${variant.toLowerCase()}RuntimeClasspath")
+                    .incoming.resolutionResult.allComponents*.id.findAll { it instanceof ModuleComponentIdentifier }
+            def libraries = modules.findAll { it.group == 'dev.skomlach' }
+            assert libraries*.module == ['common'] && libraries.every { it.version == libraryVersion }
+            assert !modules.any { it.group in ['com.squareup.okhttp3', 'com.squareup.okio'] }
+            println "Common Maven $variant consumer verified: $libraries; no OkHttp/Okio dependency."
+        }
+    }
+}

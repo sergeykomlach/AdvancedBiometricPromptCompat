@@ -20,6 +20,9 @@
 package dev.skomlach.common.network
 
 import android.net.TrafficStats
+import android.net.Network
+import dev.skomlach.common.misc.ExecutorHelper
+import kotlinx.coroutines.flow.StateFlow
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
@@ -46,14 +49,88 @@ object NetworkApi {
         ).matches()
     }
 
+    /** Shared automatically checked Internet state, also used by hasInternet/listeners. */
+    val networkState: StateFlow<NetworkState>
+        get() = Connection.networkState
+
+    /** Fast read/OS refresh; Internet checks run automatically in the background. */
+    fun refreshNetworkState(): NetworkState = Connection.refreshAndGetState()
+
+    /** Raw Android route metadata, independent of the active Internet verdict. */
+    val osNetworkState: StateFlow<NetworkState> get() = Connection.osNetworkState
+
+    /** Optional app-wide override for networks restricting the default public check hosts. */
+    fun setInternetCheckEndpoints(endpoints: List<String>) {
+        InternetProbeConfiguration.setEndpoints(endpoints)
+        Connection.internetCheckConfigurationChanged()
+    }
+
+    /** Raw OS state for a selected Network, e.g. a bound socket or local-only LAN. */
+    fun networkStateFor(network: Network): StateFlow<NetworkState> = Connection.stateForNetwork(network)
+
+    private data class RoutedCheck(val states: StateFlow<NetworkState>, val checker: NetworkReachability)
+    private val networkChecks = LinkedHashMap<Network, RoutedCheck>()
+
+    private fun checkerFor(network: Network): NetworkReachability {
+        val states = Connection.stateForNetwork(network)
+        return synchronized(networkChecks) {
+            val current = networkChecks[network]?.takeIf { it.states === states }
+            val routed = current ?: RoutedCheck(states, NetworkReachability(states, {
+                val refreshed = Connection.stateForNetwork(network)
+                if (refreshed === states) refreshed.value else states.value
+            }, ExecutorHelper.scope)).also { networkChecks[network] = it }
+            if (networkChecks.size > 16) networkChecks.remove(networkChecks.keys.first())
+            routed.checker
+        }
+    }
+
+    private val reachability by lazy {
+        NetworkReachability(Connection.osNetworkState, Connection::refreshAndGetOsState, ExecutorHelper.scope)
+    }
+
+    /**
+     * Opt-in endpoint check, separate from OS connectivity and authentication policy.
+     * Reuse a probe instance for request deduplication/cache reuse. The application's probe
+     * must provide non-blocking start/cancel methods and use its normal HTTP/TLS policy.
+     * HTTP 401/403/5xx remain REACHABLE with their status code; callers handle authorization.
+     * Cancelling the last waiter, a timeout, or a route change cancels the underlying probe.
+     */
+    suspend fun probeReachability(
+        endpoint: String,
+        probe: EndpointProbe,
+        timeoutMillis: Long = 5_000L,
+        cacheMillis: Long = 10_000L
+    ): ReachabilityResult = reachability.check(endpoint, probe, timeoutMillis, cacheMillis)
+
+    /**
+     * Check an explicitly routed request. The probe must use this same Network for sockets
+     * and DNS; the library neither binds the process nor bypasses its VPN automatically.
+     * A Network obtained from Android is unusable after its onLost event.
+     */
+    suspend fun probeReachability(
+        endpoint: String,
+        probe: EndpointProbe,
+        network: Network,
+        timeoutMillis: Long = 5_000L,
+        cacheMillis: Long = 10_000L
+    ): ReachabilityResult = checkerFor(network).check(endpoint, probe, timeoutMillis, cacheMillis)
+
+    /**
+     * Cached measured Internet availability. After shared monitor initialization, repeated
+     * reads perform no Android service/DNS/socket I/O. Callbacks and watchdogs update it.
+     * Wake, route changes and ongoing checks retain the last confirmed result.
+     * Two failed/stalled checks confirm offline; one successful check confirms online.
+     * Before the first conclusive verdict the Boolean result is false (CHECKING).
+     */
     fun hasInternet(): Boolean {
-        return Connection.refreshAndGetConnection()
+        return Connection.isConnection
     }
 
     fun refreshConnectionState(): Boolean {
         return Connection.refreshAndGetConnection()
     }
 
+    /** A route exists, including local-only/captive/blocked networks. Not an Internet signal. */
     fun hasNetworkTransport(): Boolean {
         return Connection.hasNetworkTransport()
     }

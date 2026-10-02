@@ -1,0 +1,21 @@
+pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        exclusiveContent {
+            forRepository { maven {
+                url = uri(providers.gradleProperty('mavenConsumerRepository').get())
+                metadataSources { mavenPom(); artifact() }
+            } }
+            filter { includeGroup 'dev.skomlach' }
+        }
+        google(); mavenCentral()
+        exclusiveContent {
+            forRepository { maven { url = uri('https://jitpack.io') } }
+            filter { includeGroup 'com.github.tozny' }
+        }
+    }
+    versionCatalogs { libs { from(files('../../../gradle/libs.versions.toml')) } }
+}
+rootProject.name = 'common-maven-consumer'
+include ':app'

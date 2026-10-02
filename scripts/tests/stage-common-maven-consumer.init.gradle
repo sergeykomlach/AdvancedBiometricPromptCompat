@@ -1,0 +1,73 @@
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
+import org.gradle.plugins.signing.Sign
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
+
+// Release validation for common only. Never signs, uploads or uses Maven Local.
+gradle.taskGraph.whenReady { graph ->
+    if (graph.allTasks.any { it instanceof PublishToMavenRepository || it instanceof PublishToMavenLocal ||
+            it instanceof Sign || it.name == 'postRelease' }) {
+        throw new GradleException('Signing and publication forbidden by common consumer staging')
+    }
+}
+gradle.projectsEvaluated {
+    def root = gradle.rootProject
+    def library = root.project(':common')
+    root.tasks.register('stageCommonMavenConsumerRepository') {
+        group = 'verification'
+        dependsOn(':common:bundleReleaseAar', ':common:androidSourcesJar', ':common:androidJavadocJar',
+                ':common:generatePomFileForReleasePublication')
+        doLast {
+            def publication = library.publishing.publications.getByName('release')
+            def pomFile = library.layout.buildDirectory.file('publications/release/pom-default.xml').get().asFile
+            def pom = new XmlSlurper().parse(pomFile)
+            assert pom.groupId.text() == 'dev.skomlach' && pom.artifactId.text() == 'common'
+            assert pom.version.text() == root.ext.libVersion
+            assert !pom.dependencies.dependency.any { it.groupId.text() == 'com.squareup.okhttp3' ||
+                    it.groupId.text() == 'com.squareup.okio' }
+            def aarFile = publication.artifacts.find { it.extension == 'aar' && !it.classifier }.file
+            new ZipFile(aarFile).withCloseable { aar ->
+                def entries = []
+                new ZipInputStream(aar.getInputStream(aar.getEntry('classes.jar'))).withCloseable { jar ->
+                    def entry
+                    while ((entry = jar.nextEntry) != null) {
+                        entries.add(entry.name)
+                        if (!entry.directory) {
+                            def bytes = jar.readAllBytes()
+                            assert !new String(bytes, 'ISO-8859-1').contains('okhttp3/') : "OkHttp reference in ${entry.name}"
+                        }
+                    }
+                }
+                ['NativeHttpsRequest', 'AndroidInternetProbe', 'LegacyDnsResolver',
+                 'InternetConnectivityMonitor', 'InternetRequestExecutorKt'].each {
+                    assert entries.contains("dev/skomlach/common/network/${it}.class".toString()) : "Missing $it"
+                }
+                assert entries.contains('dev/skomlach/common/device/DeviceCacheRefresh.class')
+            }
+            ['sources', 'javadoc'].each { classifier ->
+                def artifact = publication.artifacts.find { it.classifier == classifier }
+                assert artifact != null && artifact.file.length() > 0
+                new ZipFile(artifact.file).withCloseable { zip ->
+                    if (classifier == 'sources') {
+                        assert zip.getEntry('dev/skomlach/common/network/NativeHttpsRequest.kt') != null
+                        assert zip.getEntry('dev/skomlach/common/network/InternetRequestExecutor.kt') != null
+                        assert zip.getEntry('dev/skomlach/common/device/DeviceCacheRefresh.kt') != null
+                    } else {
+                        assert zip.getEntry('index.html') != null
+                        assert zip.getEntry('module/README.md') != null
+                    }
+                }
+            }
+            def repository = root.layout.buildDirectory.dir("common-maven-consumer/${root.ext.libVersion}").get().asFile
+            def destination = new File(repository, "dev/skomlach/common/${root.ext.libVersion}")
+            root.copy { from(pomFile); into(destination); rename { "common-${root.ext.libVersion}.pom" } }
+            publication.artifacts.each { artifact ->
+                def suffix = artifact.classifier ? "-${artifact.classifier}" : ''
+                root.copy { from(artifact.file); into(destination);
+                    rename { "common-${root.ext.libVersion}${suffix}.${artifact.extension}" } }
+            }
+            println "Verified and staged common release inputs without signing/upload: $repository"
+        }
+    }
+}

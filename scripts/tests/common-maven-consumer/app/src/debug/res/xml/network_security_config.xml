@@ -1,0 +1,4 @@
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false"><trust-anchors><certificates src="system" /></trust-anchors></base-config>
+    <debug-overrides><trust-anchors><certificates src="@raw/probe_ca" /></trust-anchors></debug-overrides>
+</network-security-config>

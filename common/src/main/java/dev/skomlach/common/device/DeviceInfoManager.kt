@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 
 object DeviceInfoManager {
+    private val cacheRefresh = DeviceCacheRefresh()
     val PREF_NAME = "BiometricCompat_DeviceInfo"
     const val OUTDATE_TIME_DAYS = 30L
     const val OUTDATE_TIME_CACHE_DAYS = 7L
@@ -105,17 +106,15 @@ object DeviceInfoManager {
         if (Date().time - checked <= TimeUnit.DAYS.toMillis(OUTDATE_TIME_CACHE_DAYS)) {
             return
         }
-        ExecutorHelper.startOnBackground {
-            DataProviders.checkCache("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")
-        }
-        ExecutorHelper.startOnBackground {
-            DataProviders.checkCache("https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true")
-        }
-        ExecutorHelper.startOnBackground {
-            DataProviders.checkCache("https://github.com/nowrom/devices/blob/main/devices.json?raw=true")
-        }
-        sharedPreferences.edit {
-            putLong("timestampCache", Date().time)
+        val urls = listOf(
+            "https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true",
+            "https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true",
+            "https://github.com/nowrom/devices/blob/main/devices.json?raw=true"
+        )
+        cacheRefresh.start(ExecutorHelper.scope, urls.map { url ->
+            suspend { DataProviders.checkCacheAwaited(url) }
+        }) {
+            sharedPreferences.edit { putLong("timestampCache", Date().time) }
         }
     }
 

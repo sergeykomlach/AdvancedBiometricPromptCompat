@@ -22,37 +22,83 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Network
+import android.os.PowerManager
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
+import dev.skomlach.common.misc.ExecutorHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.util.Collections
 
 object Connection {
 
     private val connectionStateListener = ConnectionStateListener()
+    private val internetScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val transportDelegate = lazy { AndroidInternetProbe(connectionStateListener::currentNetwork) }
+    private val transport by transportDelegate
+    private val internetProbe = InternetProbe(NetworkReachability(connectionStateListener.networkState,
+        connectionStateListener::refreshState, internetScope), EndpointProbe { endpoint, network, complete ->
+        transport.start(endpoint, network, complete)
+    }, InternetProbeConfiguration.endpoints)
+    private val internetMonitor = InternetConnectivityMonitor(connectionStateListener.networkState,
+        connectionStateListener::refreshState, { state -> internetProbe.check(state) }, internetScope)
 
     private val netlistLis: MutableList<NetworkListener> =
         Collections.synchronizedList(ArrayList<NetworkListener>())
+    private var notifications: Job? = null
+    private val processObserver = object : DefaultLifecycleObserver {
+        override fun onStart(owner: LifecycleOwner) { updateProbeActivity() }
+        override fun onStop(owner: LifecycleOwner) { updateProbeActivity() }
+    }
     private val screenLockReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            updateProbeActivity()
             connectionStateListener.onScreenStateChanged()
+            if (intent.action == Intent.ACTION_SCREEN_ON) internetMonitor.invalidate()
         }
     }
 
     init {
+        internetMonitor.start()
         initConnectionReceivers()
+        ExecutorHelper.post {
+            ProcessLifecycleOwner.get().lifecycle.addObserver(processObserver)
+            updateProbeActivity()
+        }
+        // One collector serializes legacy notifications. Client code never runs in an Android
+        // callback or while the route registry is locked.
+        notifications = internetScope.launch {
+            internetMonitor.connectionChanges.collect { connected ->
+                notifyConnectionChanged(connected)
+            }
+        }
+    }
+
+    private fun updateProbeActivity() {
+        val visible = ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+        val interactive = (appContext.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isInteractive != false
+        internetMonitor.setForeground(visible && interactive)
     }
 
     fun notifyConnectionChanged(lastKnownConnection: Boolean) {
-        synchronized(netlistLis) {
+        val listeners = synchronized(netlistLis) { netlistLis.toList() }
+        LogCat.log("Connection new connection state - $lastKnownConnection")
+        for (listener in listeners) {
             try {
-                val netlistList = netlistLis.toMutableList()
-                LogCat.logError("Connection new connection state - $lastKnownConnection")
-                for (i in netlistList.indices) {
-                    netlistList[i].networkChanged(lastKnownConnection)
-                }
-            } catch (_: ThreadDeath) {
-
+                listener.networkChanged(lastKnownConnection)
+            } catch (e: Exception) {
+                LogCat.log("Connection listener failed:${e.javaClass.simpleName}")
             }
         }
     }
@@ -68,15 +114,39 @@ object Connection {
 
     @Throws(Throwable::class)
     fun finalize() {
+        notifications?.cancel()
+        ExecutorHelper.post { ProcessLifecycleOwner.get().lifecycle.removeObserver(processObserver) }
         BroadcastTools.unregisterGlobalBroadcastIntent(appContext, screenLockReceiver)
+        internetMonitor.stop()
         connectionStateListener.stopListeners()
+        if (transportDelegate.isInitialized()) transport.close()
+        internetScope.coroutineContext[Job]?.cancel()
     }
 
+    internal val networkState: StateFlow<NetworkState>
+        get() { internetMonitor.read(); return internetMonitor.states }
+
+    internal val osNetworkState: StateFlow<NetworkState> get() = connectionStateListener.networkState
+
+    internal fun refreshAndGetOsState(): NetworkState = connectionStateListener.refreshState()
+
+    internal fun internetCheckConfigurationChanged() {
+        if (internetProbe.configure(InternetProbeConfiguration.endpoints)) internetMonitor.invalidate()
+    }
+
+    internal fun refreshAndGetState(): NetworkState {
+        connectionStateListener.refreshState()
+        return internetMonitor.read()
+    }
+
+    internal fun stateForNetwork(network: Network): StateFlow<NetworkState> =
+        connectionStateListener.stateFor(network)
+
     internal val isConnection: Boolean
-        get() = connectionStateListener.isConnected
+        get() = internetMonitor.read().isConnected
 
     internal fun refreshAndGetConnection(): Boolean {
-        return connectionStateListener.refreshConnectionState()
+        return refreshAndGetState().isConnected
     }
 
     internal fun hasNetworkTransport(): Boolean {
@@ -97,6 +167,7 @@ object Connection {
     }
 
     interface NetworkListener {
+        /** Called only when confirmed Internet availability changes. */
         fun networkChanged(isConnected: Boolean)
     }
 }

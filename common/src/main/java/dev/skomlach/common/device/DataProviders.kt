@@ -19,12 +19,16 @@
 
 package dev.skomlach.common.device
 
-import androidx.collection.LruCache
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.translate.LocalizationHelper
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -98,43 +102,46 @@ object DataProviders {
         return "cache_${Integer.toHexString(fallbackSeed.hashCode())}.json"
     }
 
-    private val loadingInProgress = LruCache<String, Boolean>(50)
+    private val cacheLoads = HashMap<String, Deferred<Boolean>>()
+
     fun checkCache(url: String) {
-        val fileName = extractFileNameFromUrl(url)
-        var reload = false
-        try {
-            val file = File(AndroidContext.appContext.cacheDir, fileName)
-            if (file.exists()) {
-                file.also {
-                    if (kotlin.math.abs(System.currentTimeMillis() - it.lastModified()) >= TimeUnit.DAYS.toMillis(
-                            DeviceInfoManager.OUTDATE_TIME_DAYS_FILES
-                        )
-                    ) {
-                        reload = true
+        ExecutorHelper.scope.launch { checkCacheAwaited(url) }
+    }
+
+    internal suspend fun checkCacheAwaited(url: String): Boolean {
+        val pending = synchronized(cacheLoads) {
+            cacheLoads[url] ?: ExecutorHelper.scope.async(start = CoroutineStart.LAZY) {
+                refreshCache(url)
+            }.also { request ->
+                cacheLoads[url] = request
+                request.invokeOnCompletion {
+                    synchronized(cacheLoads) {
+                        if (cacheLoads[url] === request) cacheLoads.remove(url)
                     }
                 }
-            } else {
-                reload = true
+                request.start()
             }
-        } catch (e: Throwable) {
-            LogCat.logException(e)
         }
-        if (reload && loadingInProgress[url] != true) {
-            loadingInProgress.put(url, true)
-            ExecutorHelper.startOnBackground {
-                if (NetworkApi.hasInternet()) {
-                    try {
-                        val data =
-                            LocalizationHelper.fetchFromWeb(url)
-                        saveToCache(data ?: return@startOnBackground, fileName)
-                    } catch (e: Throwable) {
-                        LogCat.logException(e)
-                    } finally {
-                        loadingInProgress.put(url, false)
-                    }
-                } else
-                    loadingInProgress.put(url, false)
-            }
+        return pending.await()
+    }
+
+    private suspend fun refreshCache(url: String): Boolean {
+        val fileName = extractFileNameFromUrl(url)
+        try {
+            val file = File(AndroidContext.appContext.cacheDir, fileName)
+            val fresh = file.exists() && kotlin.math.abs(System.currentTimeMillis() - file.lastModified()) <
+                TimeUnit.DAYS.toMillis(DeviceInfoManager.OUTDATE_TIME_DAYS_FILES)
+            if (fresh) return true
+            // CHECKING is unknown, not a confirmed offline result. Suspend without blocking
+            // a worker until the first verdict; no success timestamp is written on a skip.
+            if (!DeviceCacheRefresh.awaitInternet(NetworkApi.networkState)) return false
+            val data = LocalizationHelper.fetchFromWeb(url) ?: return false
+            return saveToCache(data, fileName)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            LogCat.logException(e)
+            return false
         }
     }
 
@@ -164,7 +171,7 @@ object DataProviders {
         return null
     }
 
-    private fun saveToCache(data: String, name: String) {
+    private fun saveToCache(data: String, name: String): Boolean {
         try {
             validateJson(data)
             val cacheDir = AndroidContext.appContext.cacheDir
@@ -193,8 +200,10 @@ object DataProviders {
                 tmpFile.delete()
                 throw IllegalStateException("Failed to rename ${tmpFile.absolutePath} to ${file.absolutePath}")
             }
+            return true
         } catch (e: Throwable) {
             LogCat.logException(e)
+            return false
         }
     }
 
