@@ -38,6 +38,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.Collections
 
@@ -57,6 +59,7 @@ object Connection {
     private val netlistLis: MutableList<NetworkListener> =
         Collections.synchronizedList(ArrayList<NetworkListener>())
     private var notifications: Job? = null
+    private var policyUpdates: Job? = null
     private val processObserver = object : DefaultLifecycleObserver {
         override fun onStart(owner: LifecycleOwner) { updateProbeActivity() }
         override fun onStop(owner: LifecycleOwner) { updateProbeActivity() }
@@ -70,7 +73,13 @@ object Connection {
     }
 
     init {
-        internetMonitor.start()
+        if (LibraryNetworkPolicy.networkEnabled) internetMonitor.start() else internetMonitor.stop()
+        policyUpdates = internetScope.launch {
+            // A later successful lookup can come from any library HTTP entry point.
+            LibraryNetworkPolicy.resolvedPolicy.filterNotNull().collect { policy ->
+                if (internetScope.isActive && policy.networkEnabled) internetMonitor.start()
+            }
+        }
         initConnectionReceivers()
         ExecutorHelper.post {
             ProcessLifecycleOwner.get().lifecycle.addObserver(processObserver)
@@ -89,6 +98,12 @@ object Connection {
         val visible = ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
         val interactive = (appContext.getSystemService(Context.POWER_SERVICE) as? PowerManager)?.isInteractive != false
         internetMonitor.setForeground(visible && interactive)
+        ensureMonitorStarted()
+    }
+
+    private fun ensureMonitorStarted() {
+        // start() is idempotent. Never stop here: an unresolved lookup is retryable.
+        if (internetScope.isActive && LibraryNetworkPolicy.networkEnabled) internetMonitor.start()
     }
 
     fun notifyConnectionChanged(lastKnownConnection: Boolean) {
@@ -114,17 +129,22 @@ object Connection {
 
     @Throws(Throwable::class)
     fun finalize() {
+        internetScope.coroutineContext[Job]?.cancel()
+        policyUpdates?.cancel()
         notifications?.cancel()
         ExecutorHelper.post { ProcessLifecycleOwner.get().lifecycle.removeObserver(processObserver) }
         BroadcastTools.unregisterGlobalBroadcastIntent(appContext, screenLockReceiver)
         internetMonitor.stop()
         connectionStateListener.stopListeners()
         if (transportDelegate.isInitialized()) transport.close()
-        internetScope.coroutineContext[Job]?.cancel()
     }
 
     internal val networkState: StateFlow<NetworkState>
-        get() { internetMonitor.read(); return internetMonitor.states }
+        get() {
+            ensureMonitorStarted()
+            internetMonitor.read()
+            return internetMonitor.states
+        }
 
     internal val osNetworkState: StateFlow<NetworkState> get() = connectionStateListener.networkState
 
@@ -132,10 +152,12 @@ object Connection {
 
     internal fun internetCheckConfigurationChanged() {
         if (internetProbe.configure(InternetProbeConfiguration.endpoints)) internetMonitor.invalidate()
+        ensureMonitorStarted()
     }
 
     internal fun refreshAndGetState(): NetworkState {
         connectionStateListener.refreshState()
+        ensureMonitorStarted()
         return internetMonitor.read()
     }
 
@@ -143,7 +165,10 @@ object Connection {
         connectionStateListener.stateFor(network)
 
     internal val isConnection: Boolean
-        get() = internetMonitor.read().isConnected
+        get() {
+            ensureMonitorStarted()
+            return internetMonitor.read().isConnected
+        }
 
     internal fun refreshAndGetConnection(): Boolean {
         return refreshAndGetState().isConnected
@@ -157,6 +182,7 @@ object Connection {
         synchronized(netlistLis) {
             netlistLis.add(listener)
         }
+        ensureMonitorStarted()
     }
 
 

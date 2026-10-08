@@ -22,6 +22,7 @@ package dev.skomlach.common.device
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.network.LibraryNetworkPolicy
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.CancellationException
@@ -109,6 +110,7 @@ object DataProviders {
     }
 
     internal suspend fun checkCacheAwaited(url: String): Boolean {
+        if (!LibraryNetworkPolicy.deviceDatasetRefreshEnabled) return false
         val pending = synchronized(cacheLoads) {
             cacheLoads[url] ?: ExecutorHelper.scope.async(start = CoroutineStart.LAZY) {
                 refreshCache(url)
@@ -140,7 +142,7 @@ object DataProviders {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            LogCat.logException(e)
+            LogCat.logError("Device dataset refresh failed: ${e.javaClass.simpleName}")
             return false
         }
     }
@@ -202,7 +204,8 @@ object DataProviders {
             }
             return true
         } catch (e: Throwable) {
-            LogCat.logException(e)
+            // JSON exceptions may contain the downloaded response, not just an error code.
+            LogCat.logError("Device dataset cache write failed: ${e.javaClass.simpleName}")
             return false
         }
     }

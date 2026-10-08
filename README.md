@@ -138,6 +138,11 @@ dependencies {
 
 Optional providers are discovered as part of the library lifecycle. Verify each selected provider and its required Android permissions on real target devices before releasing your app.
 
+Device dataset downloads now require explicit opt-in. Localization remains resource-first with
+an online fallback for missing translations. See [network policy](common/README.md#localization-and-network-policy)
+and [consumer manifest overrides](docs/consumer-manifest.md) for offline configuration and
+removing declarations for unused features.
+
 ## Platform coverage and expectations
 
 The current project build baseline is **Android 6.0 (API 23)**. Behavior ultimately depends on the Android version, hardware, enrolled biometrics, and vendor implementation present on a user’s device.

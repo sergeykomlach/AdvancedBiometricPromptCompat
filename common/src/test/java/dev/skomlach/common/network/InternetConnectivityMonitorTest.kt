@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.take
 import org.junit.Assert.*
 import org.junit.Test
@@ -17,6 +18,70 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.resume
 
 class InternetConnectivityMonitorTest {
+    @Test(timeout = 5_000)
+    fun policyRecoveryStartsStoppedMonitorWithoutAnotherMonitorRead() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        val raw = MutableStateFlow(online())
+        val probe = FakeCheck()
+        val monitor = InternetConnectivityMonitor(raw, { raw.value }, probe::check, scope,
+            clockMillis = { 0L })
+        var attempts = 0
+        val cache = NetworkAccessPolicyCache {
+            if (++attempts == 1) throw IOException("metadata unavailable")
+            NetworkAccessPolicy.read { _, default -> default }
+        }
+        try {
+            assertFalse(cache.read().networkEnabled)
+            monitor.stop()
+            // Compose the same policy subscription used by Connection without Android services.
+            scope.launch {
+                cache.states.filterNotNull().collect { policy ->
+                    if (policy.networkEnabled) monitor.start()
+                }
+            }
+            raw.value = online().copy(networkId = 2L, generation = 2L)
+            monitor.invalidate()
+            monitor.setForeground(false)
+            monitor.setForeground(true)
+            assertEquals(InternetAccess.UNAVAILABLE, monitor.states.value.internetAccess)
+            assertTrue(probe.requests.isEmpty())
+
+            assertTrue(cache.read().networkEnabled)
+            probe.awaitRequests(1)
+            assertFalse(monitor.states.value.isConnected)
+            assertEquals(2L, probe.requests.single().state.networkId)
+            probe.complete(true)
+            assertEquals(InternetAccess.AVAILABLE, monitor.states.value.internetAccess)
+            cache.read()
+            assertTrue(monitor.read().isConnected)
+            assertEquals(1, probe.requests.size)
+            assertEquals(2, attempts)
+        } finally { monitor.stop(); scope.cancel() }
+    }
+
+    @Test
+    fun disabledMonitorDoesNotProbeOnReadsRouteChangesOrWake() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        val raw = MutableStateFlow(online())
+        val calls = AtomicInteger()
+        val monitor = InternetConnectivityMonitor(raw, { raw.value }, {
+            calls.incrementAndGet()
+            true
+        }, scope, clockMillis = { 0L })
+        try {
+            // Connection uses stop instead of start when the application disables networking.
+            monitor.stop()
+            assertFalse(monitor.read().isConnected)
+            raw.value = online().copy(networkId = 2L, generation = 2L)
+            monitor.invalidate()
+            monitor.setForeground(false)
+            monitor.setForeground(true)
+            assertEquals(InternetAccess.UNAVAILABLE, monitor.read().internetAccess)
+            yield()
+            assertEquals(0, calls.get())
+        } finally { monitor.stop(); scope.cancel() }
+    }
+
     @Test(timeout = 5_000)
     fun initialCheckingDoesNotNotifyAConfirmedOfflineState() = withHarness {
         val observed = observe()

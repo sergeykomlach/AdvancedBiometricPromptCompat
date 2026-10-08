@@ -86,11 +86,60 @@ replace a newer route/configuration's preference. All four configured endpoints 
 concurrently, so two stalled hosts cannot starve a healthy third or fourth. The request
 pool/queue are bounded, and idle request workers are released after thirty seconds.
 
-Device dataset refreshes asynchronously wait for the initial confirmed Internet verdict
+Device datasets use the existing cache and bundled assets by default. Automatic refresh and
+`DataProviders.checkCache()` require explicit application manifest opt-in:
+
+```xml
+<application>
+    <meta-data
+        android:name="dev.skomlach.common.DEVICE_DATASET_REFRESH_ENABLED"
+        android:value="true" />
+</application>
+```
+
+When enabled, refreshes asynchronously wait for the initial confirmed Internet verdict
 (up to ten seconds) instead of treating `CHECKING` as a confirmed offline result. Concurrent
 refreshes are shared; the seven-day check timestamp advances only after every dataset is
 already fresh or its download and cache write succeed. A skipped or failed batch may retry
 on the next device-info request; bundled assets remain available during refresh.
+
+## Localization and network policy
+
+Localization remains resource-first. UI reads use local resources, then cached translations,
+then the English source. Background prefetch uses the Google translation fallback only when
+a local resource translation and cached translation are missing. The existing resource check
+compares localized and English text; an identical translation can also trigger fallback.
+Download responses are limited to **10 MiB (10,485,760 bytes)**, including the boundary;
+larger responses are rejected without returning partial content. Translation text, request
+URLs and server response bodies are not written to the download/translation logs.
+
+To disable HTTP downloads, online translation and connectivity probes before automatic biometric initialization,
+put this setting in the application's manifest:
+
+```xml
+<application>
+    <meta-data
+        android:name="dev.skomlach.common.NETWORK_ENABLED"
+        android:value="false" />
+</application>
+```
+
+The default is `true`, preserving the existing Internet utilities and translation fallback.
+`false` overrides dataset opt-in, disables automatic connectivity probes and online translation,
+and blocks `NetworkApi.createConnection()` and explicit `probeReachability()` calls. The measured
+state reports `UNAVAILABLE`/`hasInternet() == false`; explicit probes return `BLOCKED`. These
+results describe library policy, not measured Internet reachability. Raw OS network metadata
+and local resource/cache/asset reads remain available. Successfully loaded manifest settings
+are cached for the process. If the Application is not yet available or the metadata lookup
+fails, that access blocks library networking and a later access retries the lookup. Malformed
+flag values keep library networking disabled for the process. Use literal Boolean
+`android:value` settings. Setting a flag in `Application.onCreate()` would be too late for
+automatic ContentProvider initialization.
+
+Localhost socket checks used for hook detection remain active; this setting does not disable
+that security heuristic. The policy does not change another SDK's or the application's own network traffic. Library
+permissions remain declared for compatibility; see [consumer manifest overrides](../docs/consumer-manifest.md)
+to remove declarations for unused features.
 
 ### Older Android DNS
 

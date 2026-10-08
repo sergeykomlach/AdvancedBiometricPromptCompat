@@ -24,6 +24,7 @@ import androidx.core.content.edit
 import dev.skomlach.common.device.DeviceSpecManager.getSensors
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.network.LibraryNetworkPolicy
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.util.Collections
 import java.util.Date
@@ -101,6 +102,7 @@ object DeviceInfoManager {
     }
 
     private fun checkCache() {
+        if (!LibraryNetworkPolicy.deviceDatasetRefreshEnabled) return
         val sharedPreferences = getPreferences(PREF_NAME)
         val checked = sharedPreferences.getLong("timestampCache", 0)
         if (Date().time - checked <= TimeUnit.DAYS.toMillis(OUTDATE_TIME_CACHE_DAYS)) {

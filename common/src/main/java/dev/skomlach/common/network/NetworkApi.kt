@@ -100,7 +100,10 @@ object NetworkApi {
         probe: EndpointProbe,
         timeoutMillis: Long = 5_000L,
         cacheMillis: Long = 10_000L
-    ): ReachabilityResult = reachability.check(endpoint, probe, timeoutMillis, cacheMillis)
+    ): ReachabilityResult {
+        if (!LibraryNetworkPolicy.networkEnabled) return ReachabilityResult(ReachabilityStatus.BLOCKED, NetworkState())
+        return reachability.check(endpoint, probe, timeoutMillis, cacheMillis)
+    }
 
     /**
      * Check an explicitly routed request. The probe must use this same Network for sockets
@@ -113,11 +116,15 @@ object NetworkApi {
         network: Network,
         timeoutMillis: Long = 5_000L,
         cacheMillis: Long = 10_000L
-    ): ReachabilityResult = checkerFor(network).check(endpoint, probe, timeoutMillis, cacheMillis)
+    ): ReachabilityResult {
+        if (!LibraryNetworkPolicy.networkEnabled) return ReachabilityResult(ReachabilityStatus.BLOCKED, NetworkState())
+        return checkerFor(network).check(endpoint, probe, timeoutMillis, cacheMillis)
+    }
 
     /**
-     * Cached measured Internet availability. After shared monitor initialization, repeated
-     * reads perform no Android service/DNS/socket I/O. Callbacks and watchdogs update it.
+     * Cached measured Internet availability. Once manifest policy is resolved and the shared
+     * monitor is initialized, repeated reads perform no Android service/DNS/socket I/O.
+     * A failed policy lookup is retried on later reads. Callbacks and watchdogs update the verdict.
      * Wake, route changes and ongoing checks retain the last confirmed result.
      * Two failed/stalled checks confirm offline; one successful check confirms online.
      * Before the first conclusive verdict the Boolean result is false (CHECKING).
@@ -144,6 +151,7 @@ object NetworkApi {
         ) {
             "Only HTTP(S) URLs are supported"
         }
+        if (!LibraryNetworkPolicy.networkEnabled) throw IOException("Library network access is disabled")
         val conn = if (url.protocol.equals(
                 "https",
                 ignoreCase = true

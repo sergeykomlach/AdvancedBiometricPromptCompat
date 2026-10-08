@@ -28,11 +28,11 @@ import androidx.core.os.LocaleListCompat
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.network.LibraryNetworkPolicy
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.security.SecureRandom
@@ -53,7 +53,6 @@ object LocalizationHelper {
 
     private const val PREF_NAME = "LocalizationHelperV3"
     private const val AUTHOR_LOCALE_TAG = "en-US"
-    private const val MAX_WEB_RESPONSE_BYTES = 2 * 1024 * 1024
 
     @Volatile
     private var lastKnownAppLocaleTag: String = AndroidContext.appLocale.toLanguageTag()
@@ -132,6 +131,7 @@ object LocalizationHelper {
     }
 
     fun fetchFromWeb(url: String): String? {
+        if (!LibraryNetworkPolicy.networkEnabled) return null
         return fetchFromWebWithRedirects(url, 0)
     }
 
@@ -141,7 +141,7 @@ object LocalizationHelper {
         retryCount: Int = 0
     ): String? {
         if (redirectCount > 5) {
-            LogCat.logError("Too many redirects for URL: $url")
+            LogCat.logError("Too many web redirects")
             return null
         }
         val maxRetries = 3
@@ -190,7 +190,7 @@ object LocalizationHelper {
                 }
 
                 if (!NetworkApi.isWebUrl(target)) {
-                    LogCat.logError("Blocked non-web redirect for URL: $url")
+                    LogCat.logError("Blocked non-web redirect")
                     return null
                 }
                 if (urlConnection.url.protocol.equals("https", ignoreCase = true) &&
@@ -200,34 +200,22 @@ object LocalizationHelper {
                     return null
                 }
 
-                LogCat.log("Redirecting to: $target")
+                LogCat.log("Following web redirect")
                 urlConnection.disconnect()
                 return fetchFromWebWithRedirects(target, redirectCount + 1)
             }
 
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 urlConnection.inputStream.use { inputStream ->
-                    ByteArrayOutputStream().use { result ->
-                        val buffer = ByteArray(1024)
-                        var length: Int
-                        var totalBytes = 0
-                        while (inputStream.read(buffer).also { length = it } != -1) {
-                            totalBytes += length
-                            if (totalBytes > MAX_WEB_RESPONSE_BYTES) {
-                                LogCat.logError("Blocked oversized web response")
-                                return null
-                            }
-                            result.write(buffer, 0, length)
-                        }
-                        return result.toString("UTF-8")
+                    return BoundedWebResponse.readUtf8(inputStream).also {
+                        if (it == null) LogCat.logError("Blocked oversized web response")
                     }
                 }
             } else {
-                val errorMsg = urlConnection.errorStream?.bufferedReader()?.use { it.readText() }
-                LogCat.logError("Server returned code: $responseCode for URL: $url. Error: $errorMsg")
+                LogCat.logError("Web request returned HTTP $responseCode")
             }
         } catch (e: Throwable) {
-            LogCat.logException(e)
+            logFailure(e)
         } finally {
             urlConnection?.disconnect()
         }
@@ -238,12 +226,6 @@ object LocalizationHelper {
         ensureLocaleState()
         try {
             formatArgs.toList().forEach { resId ->
-                val name = try {
-                    context.resources.getResourceEntryName(resId as Int)
-                } catch (_: Exception) {
-                    resId.toString()
-                }
-
                 try {
                     val translated = getTranslatedStringFromResources(context, resId as Int)
                     if (translated.isNullOrEmpty()) {
@@ -251,11 +233,11 @@ object LocalizationHelper {
                         invoke(source, Locale.US, AndroidContext.appLocale)
                     }
                 } catch (e: Throwable) {
-                    LogCat.logException(e, "LocalizationHelper $name")
+                    logFailure(e)
                 }
             }
         } catch (e: Throwable) {
-            LogCat.logException(e, "LocalizationHelper")
+            logFailure(e)
         }
     }
 
@@ -268,7 +250,7 @@ object LocalizationHelper {
             }
             getLocalizedString(source).ifBlank { source }
         } catch (e: Throwable) {
-            LogCat.logException(e, "LocalizationHelper")
+            logFailure(e)
             context.getString(resId)
         }
     }
@@ -287,7 +269,7 @@ object LocalizationHelper {
             }
             getLocalizedString(source, *formatArgs)
         } catch (e: Throwable) {
-            LogCat.logException(e, "LocalizationHelper")
+            logFailure(e)
             context.getString(resId, *formatArgs)
         }
     }
@@ -305,7 +287,7 @@ object LocalizationHelper {
                 *formatArgs
             )
         } catch (e: Throwable) {
-            LogCat.logException(e, "LocalizationHelper")
+            logFailure(e)
             String.format(raw, *formatArgs )
         }
     }
@@ -364,7 +346,7 @@ object LocalizationHelper {
                         result[key] = json.optString(key)
                     }
                 } catch (e: Throwable) {
-                    LogCat.logException(e, "LocalizationHelper")
+                    logFailure(e)
                 }
             }
             result
@@ -418,7 +400,7 @@ object LocalizationHelper {
 
                 pref.edit().putStringSet(pairKey, set).apply()
             } catch (e: Throwable) {
-                LogCat.logException(e, "LocalizationHelper")
+                logFailure(e)
             }
         }
     }
@@ -461,7 +443,7 @@ object LocalizationHelper {
             }
             if (result.isNotEmpty()) return result
         } catch (e: Throwable) {
-            LogCat.logException(e, "LocalizationHelper")
+            logFailure(e)
         }
         return text
     }
@@ -469,8 +451,7 @@ object LocalizationHelper {
     //https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=father&ie=UTF-8&oe=UTF-8
     //https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=fr&dt=t&q=father
     private fun translateUseGoogleApi(t: String, fromLang: Locale, toLang: Locale): String? {
-        LogCat.logError("translateUseGoogleApi: from=$fromLang to=$toLang text=$t")
-        if (NetworkApi.hasInternet() && t.isNotEmpty()) {
+        if (t.isNotEmpty() && LibraryNetworkPolicy.networkEnabled && NetworkApi.hasInternet()) {
             try {
                 var text = t
                 for (i in 1..Int.MAX_VALUE) {
@@ -515,15 +496,14 @@ object LocalizationHelper {
                     .trim()
                     .ifEmpty { null }
             } catch (e: Throwable) {
-                LogCat.logException(e, "LocalizationHelper")
+                logFailure(e)
             }
         }
         return null
     }
 
     private fun translateUseFallbackApi(t: String, fromLang: Locale, toLang: Locale): String? {
-        LogCat.logError("translateUseFallbackApi: from=$fromLang to=$toLang text=$t")
-        if (NetworkApi.hasInternet() && t.isNotEmpty()) {
+        if (t.isNotEmpty() && LibraryNetworkPolicy.networkEnabled && NetworkApi.hasInternet()) {
             try {
                 var text = t
                 for (i in 1..Int.MAX_VALUE) {
@@ -565,10 +545,15 @@ object LocalizationHelper {
                     .trim()
                     .ifEmpty { null }
             } catch (e: Throwable) {
-                LogCat.logException(e, "LocalizationHelper")
+                logFailure(e)
             }
         }
         return null
+    }
+
+    private fun logFailure(error: Throwable) {
+        // Throwable messages can include source text, a query URL, or a server response.
+        LogCat.logError("LocalizationHelper failed: ${error.javaClass.simpleName}")
     }
 
     private fun getTranslatedStringFromResources(currentContext: Context, id: Int): String? {
