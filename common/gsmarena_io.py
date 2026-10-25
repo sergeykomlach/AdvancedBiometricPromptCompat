@@ -8,11 +8,12 @@ from pathlib import Path
 from gsmarena_http import ScrapeError
 
 
-def atomic_write(filename, write):
+def atomic_write(filename, write, mode="w"):
     target = Path(filename)
     temp = None
     try:
-        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", newline="", dir=target.parent,
+        with tempfile.NamedTemporaryFile(mode=mode, encoding=None if "b" in mode else "utf-8",
+                                         newline=None if "b" in mode else "", dir=target.parent,
                                          prefix=target.name + ".", suffix=".tmp", delete=False) as stream:
             temp = Path(stream.name)
             write(stream)

@@ -32,6 +32,8 @@ data class BehaviorSample(
     val keyUpTimesMs: List<Long>,
     val strokePoints: List<BehaviorPoint>
 ) {
+    override fun toString(): String = "BehaviorSample(mode=$mode, input=REDACTED)"
+
     companion object {
         const val EXTRA_BEHAVIOR_MODE = "behavior.mode"
         const val EXTRA_BEHAVIOR_PHRASE = "behavior.phrase"
@@ -60,16 +62,30 @@ data class BehaviorSample(
         private const val MAX_SIGNATURE_DUPLICATE_RATIO = 0.28
 
         fun fromBundle(extra: Bundle?): BehaviorSample? {
+            return try { readBundle(extra) } catch (_: RuntimeException) { null }
+        }
+
+        private fun readBundle(extra: Bundle?): BehaviorSample? {
             if (extra == null) return null
+            @Suppress("DEPRECATION")
+            if (extra.containsKey(EXTRA_BEHAVIOR_MODE) && extra.get(EXTRA_BEHAVIOR_MODE) !is String) return null
+            @Suppress("DEPRECATION")
+            if (extra.containsKey(EXTRA_BEHAVIOR_POINTS_STRIDE) && extra.get(EXTRA_BEHAVIOR_POINTS_STRIDE) !is Int) return null
             val modeName = extra.getString(EXTRA_BEHAVIOR_MODE)
             val mode = runCatching {
                 BehaviorMode.valueOf(modeName ?: BehaviorMode.COMBINED.name)
-            }.getOrDefault(BehaviorMode.COMBINED)
-            val keyDowns = extra.getLongArray(EXTRA_BEHAVIOR_KEY_DOWNS)
+            }.getOrNull() ?: return null
+            val rawPhrase = extra.getString(EXTRA_BEHAVIOR_PHRASE)
+            if (mode != BehaviorMode.SIGNATURE && (rawPhrase?.length ?: 0) > MAX_PHRASE_LENGTH) return null
+            val rawDowns = extra.getLongArray(EXTRA_BEHAVIOR_KEY_DOWNS)
+            val rawUps = extra.getLongArray(EXTRA_BEHAVIOR_KEY_UPS)
+            if (mode != BehaviorMode.SIGNATURE &&
+                ((rawDowns?.size ?: 0) > MAX_TYPING_EVENTS || (rawUps?.size ?: 0) > MAX_TYPING_EVENTS)) return null
+            val keyDowns = rawDowns
                 ?.takeIf { it.size <= MAX_TYPING_EVENTS }
                 ?.toList()
                 .orEmpty()
-            val keyUps = extra.getLongArray(EXTRA_BEHAVIOR_KEY_UPS)
+            val keyUps = rawUps
                 ?.takeIf { it.size <= MAX_TYPING_EVENTS }
                 ?.toList()
                 .orEmpty()
@@ -79,21 +95,20 @@ data class BehaviorSample(
             )
             return BehaviorSample(
                 mode = mode,
-                phrase = extra.getString(EXTRA_BEHAVIOR_PHRASE)
+                phrase = rawPhrase
                     ?.trim()
-                    ?.take(MAX_PHRASE_LENGTH)
                     ?.takeIf { it.isNotEmpty() },
                 keyDownTimesMs = keyDowns,
                 keyUpTimesMs = keyUps,
                 strokePoints = points
-            ).takeIf { it.hasRequiredDataForMode() }
+            ).normalizedForMode().takeIf { it.hasValidStructure() && it.hasRequiredDataForMode() }
         }
 
         private fun parsePoints(raw: FloatArray?, requestedStride: Int): List<BehaviorPoint> {
             if (raw == null || raw.size < LEGACY_POINT_STRIDE) return emptyList()
+            if (requestedStride != POINT_STRIDE && requestedStride != LEGACY_POINT_STRIDE) return emptyList()
             val stride = requestedStride
-                .takeIf { it == POINT_STRIDE && raw.size % POINT_STRIDE == 0 }
-                ?: LEGACY_POINT_STRIDE
+            if (raw.size % stride != 0) return emptyList()
             if (raw.size / stride > MAX_SIGNATURE_POINTS) return emptyList()
             val result = ArrayList<BehaviorPoint>(raw.size / stride)
             var index = 0
@@ -112,7 +127,7 @@ data class BehaviorSample(
                     !stroke.isFinite() ||
                     kotlin.math.abs(x) > MAX_COORDINATE_ABS ||
                     kotlin.math.abs(y) > MAX_COORDINATE_ABS ||
-                    timestamp < 0f
+                    timestamp < 0f || stroke < 0f || stroke >= Int.MAX_VALUE.toFloat() || stroke % 1f != 0f
                 ) {
                     return emptyList()
                 }
@@ -131,6 +146,17 @@ data class BehaviorSample(
             return result
         }
     }
+
+    internal fun hasValidStructure(): Boolean =
+        (phrase?.length ?: 0) <= MAX_PHRASE_LENGTH &&
+            keyDownTimesMs.size <= MAX_TYPING_EVENTS && keyUpTimesMs.size <= MAX_TYPING_EVENTS &&
+            keyDownTimesMs.all { it >= 0L } && keyUpTimesMs.all { it >= 0L } &&
+            strokePoints.size <= MAX_SIGNATURE_POINTS && strokePoints.all {
+                it.x.isFinite() && it.y.isFinite() && kotlin.math.abs(it.x) <= MAX_COORDINATE_ABS &&
+                    kotlin.math.abs(it.y) <= MAX_COORDINATE_ABS && it.timestampMs >= 0L && it.strokeId >= 0 &&
+                    (it.pressure == null || (it.pressure.isFinite() && it.pressure >= 0f)) &&
+                    (it.size == null || (it.size.isFinite() && it.size >= 0f))
+            }
 
     fun hasRequiredDataForMode(): Boolean {
         val hasTyping = phrase?.isNotBlank() == true &&
@@ -281,6 +307,13 @@ data class BehaviorSample(
         }
     }
 
+}
+
+/** Ignore channels which do not participate in this mode's matching or replay identity. */
+internal fun BehaviorSample.normalizedForMode(): BehaviorSample = when (mode) {
+    BehaviorMode.TYPING -> copy(strokePoints = emptyList())
+    BehaviorMode.SIGNATURE -> copy(phrase = null, keyDownTimesMs = emptyList(), keyUpTimesMs = emptyList())
+    BehaviorMode.COMBINED -> this
 }
 
 data class BehaviorSampleMetrics(

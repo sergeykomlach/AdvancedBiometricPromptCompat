@@ -3,7 +3,10 @@ package dev.skomlach.biometric.compat.engine.internal.behavior
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
+import android.content.res.ColorStateList
+import android.util.TypedValue
 import android.os.Build
 import android.os.SystemClock
 import android.text.Editable
@@ -20,19 +23,35 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.R as BiometricR
 import dev.skomlach.biometric.custom.behavior.R
 import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.common.protection.A11yDetection
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlin.math.max
 
+/** Exclusive input ownership also prevents restoring another capture's privacy settings. */
+private object CaptureInputOwnership {
+    private val owners = java.util.WeakHashMap<Any, Any>()
+    @Synchronized fun acquire(keys: List<Any>, owner: Any): Boolean {
+        if (keys.any { owners.containsKey(it) && owners[it] !== owner }) return false
+        keys.forEach { owners[it] = owner }
+        return true
+    }
+    @Synchronized fun release(keys: List<Any>, owner: Any) {
+        keys.forEach { if (owners[it] === owner) owners.remove(it) }
+    }
+}
+
 internal class BehaviorCaptureController(
     private val rootView: View,
     private val builder: BiometricPromptCompat.Builder,
     private val enroll: Boolean,
+    private val onInputError: ((CharSequence) -> Unit)? = null,
     private val onReady: () -> Unit
 ) {
     private var prepared = false
@@ -50,48 +69,93 @@ internal class BehaviorCaptureController(
     private var externalSignatureContainer: ViewGroup? = null
     private var textWatcher: TextWatcher? = null
     private var overlayView: View? = null
-    private var behaviorButton: View? = null
+    private var typingPolicy: BehaviorTypingInputPolicy? = null
     private var sessionToken: BehaviorCaptureSessionToken? = null
     private var captureInvalidated = false
     private val protectedOverlayViews = ArrayList<View>()
+    private val inputProtection = ArrayList<InputProtection>()
+    private var disposed = false
+    private var consumerMode: BehaviorMode? = null
+    private val inputOwner = Any()
+    private var ownedInputKeys = emptyList<Any>()
+
+    internal fun installConsumer(mode: BehaviorMode) {
+        check(!disposed && consumerMode == null)
+        require(mode == BehaviorMode.SIGNATURE || builder.getBehaviorTypingView() != null)
+        require(mode == BehaviorMode.TYPING || builder.getBehaviorSignatureContainer() != null)
+        consumerMode = mode
+        prepareInputs(rootView.context)
+        startCaptureSession()
+    }
+
+    internal fun submitConsumer(): Boolean {
+        if (!disposed && consumerMode != null) prepareExtras()
+        return prepared
+    }
+
+    internal fun restartConsumer() {
+        if (!disposed && consumerMode != null) startCaptureSession()
+    }
 
     fun install() {
         val container = rootView.findViewById<FrameLayout>(R.id.auth_content_container) ?: return
+        installIn(container)
+    }
+
+    internal fun installIn(container: FrameLayout) {
+        if (overlayView != null || disposed || prepared) return
         prepareInputs(container.context)
-        behaviorButton = createBehaviorButton(container).also { container.addView(it) }
+        resetCapturedSample()
+        overlayView = createContent(container).also { container.addView(it) }
+        startCaptureSession()
     }
 
     fun consumePrepared(): Boolean = prepared
 
     fun dispose() {
+        if (disposed) return
+        disposed = true
+        try { disposeCapture() } finally {
+            CaptureInputOwnership.release(ownedInputKeys, inputOwner)
+            ownedInputKeys = emptyList()
+        }
+    }
+
+    private fun disposeCapture() {
         textWatcher?.let { phraseInput.removeTextChangedListener(it) }
         textWatcher = null
         if (ownsTypingView) {
             phraseInput.setOnKeyListener(null)
         }
-        if (::phraseInput.isInitialized) {
-            ScreenProtection.applyProtectionInView(phraseInput, false)
+        hideOverlay()
+        inputProtection.forEach { state ->
+            state.view.filterTouchesWhenObscured = state.originalFilter
+            if (state.acquiredProtection) ScreenProtection.applyProtectionInView(state.view, false)
         }
+        inputProtection.clear()
+        typingPolicy?.close()
+        typingPolicy = null
         if (::signaturePad.isInitialized) {
             ScreenProtection.applyProtectionInView(signaturePad, false)
         }
-        protectedOverlayViews.forEach { ScreenProtection.applyProtectionInView(it, false) }
-        protectedOverlayViews.clear()
-        externalSignatureContainer?.let {
-            ScreenProtection.applyProtectionInView(it, false)
-        }
-        externalSignatureContainer?.removeView(signaturePad)
+        if (::signaturePad.isInitialized) externalSignatureContainer?.removeView(signaturePad)
         externalSignatureContainer = null
-        overlayView?.let { (it.parent as? ViewGroup)?.removeView(it) }
-        behaviorButton?.let { (it.parent as? ViewGroup)?.removeView(it) }
         BehaviorCaptureSessionRegistry.invalidate(sessionToken)
         sessionToken = null
         captureInvalidated = true
         overlayView = null
-        behaviorButton = null
+        builder.getExtras()?.let { extras ->
+            if (extras.getLong(EXTRA_BEHAVIOR_SESSION_NONCE, Long.MIN_VALUE) == submittedNonce) {
+                builder.setExtras(android.os.Bundle(extras).apply { clearBehaviorInput(this) })
+            }
+        }
     }
 
     private fun prepareInputs(context: android.content.Context) {
+        val keys = (listOf<Any>(builder) + listOfNotNull(
+            builder.getBehaviorTypingView(), builder.getBehaviorSignatureContainer())).distinct()
+        check(CaptureInputOwnership.acquire(keys, inputOwner)) { "Behavior input is already being captured" }
+        ownedInputKeys = keys
         phraseInput = builder.getBehaviorTypingView() ?: EditText(context).apply {
             hint = localized(R.string.biometriccompat_behavior_phrase_hint)
             isSingleLine = true
@@ -99,31 +163,30 @@ internal class BehaviorCaptureController(
             isFocusable = false
             ownsTypingView = true
         }
-        phraseInput.filterTouchesWhenObscured = true
-        ScreenProtection.applyProtectionInView(phraseInput)
+        typingPolicy = BehaviorTypingInputPolicy(phraseInput)
+        protectInput(phraseInput)
         attachTypingCapture(phraseInput)
 
         externalSignatureContainer = builder.getBehaviorSignatureContainer()
         externalSignatureContainer?.let {
-            it.filterTouchesWhenObscured = true
-            ScreenProtection.applyProtectionInView(it)
+            protectInput(it)
         }
         signaturePad = SignaturePad(
             context = externalSignatureContainer?.context ?: context,
             lineColor = ContextCompat.getColor(context, R.color.material_deep_teal_500),
+            acceptsTouch = { acceptCaptureTouch(it) },
             onPoint = { x, y, timestamp, pressure, size, strokeId ->
-                if (points.size + BehaviorSample.POINT_STRIDE <= MAX_CAPTURED_POINT_FLOATS) {
+                val token = sessionToken
+                if (token != null && points.size + BehaviorSample.POINT_STRIDE <= MAX_CAPTURED_POINT_FLOATS) {
                     points.add(x)
                     points.add(y)
-                    points.add(timestamp.toFloat())
+                    points.add(token.relativeUptime(timestamp).toFloat())
                     points.add(pressure)
                     points.add(size)
                     points.add(strokeId.toFloat())
                 }
             },
-            onInvalidated = {
-                invalidateCapture()
-            }
+            onInvalidated = ::interruptCapture
         )
         externalSignatureContainer?.addView(
             signaturePad,
@@ -134,54 +197,29 @@ internal class BehaviorCaptureController(
         )
     }
 
-    private fun createBehaviorButton(container: FrameLayout): View {
-        val context = container.context
-        val size = (48 * context.resources.displayMetrics.density).toInt()
-        return TextView(context).apply {
-            text = localized(R.string.biometriccompat_behavior_button_label)
-            textSize = 18f
-            gravity = Gravity.CENTER
-            contentDescription = localized(R.string.biometriccompat_behavior_button_content_description)
-            setTextColor(ContextCompat.getColor(context, android.R.color.white))
-            background = rounded(
-                color = ContextCompat.getColor(context, R.color.material_deep_teal_500),
-                radius = size / 2f
-            )
-            elevation = 8f * context.resources.displayMetrics.density
-            setOnClickListener {
-                showOverlay(container)
-            }
-            filterTouchesWhenObscured = true
-            layoutParams = FrameLayout.LayoutParams(size, size, Gravity.END or Gravity.BOTTOM).apply {
-                rightMargin = (12 * context.resources.displayMetrics.density).toInt()
-                bottomMargin = (12 * context.resources.displayMetrics.density).toInt()
-            }
-        }
-    }
-
-    private fun showOverlay(container: FrameLayout) {
-        if (overlayView != null) return
+    private fun startCaptureSession() {
+        BehaviorCaptureSessionRegistry.invalidate(sessionToken)
         resetCapturedSample()
-        sessionToken = BehaviorCaptureSessionRegistry.start(SystemClock.elapsedRealtime())
-        captureInvalidated = false
-        overlayView = createOverlay(container).also { overlay ->
-            container.addView(overlay)
-            if (isStrictBuiltInCapture() &&
-                evaluateBehaviorAccessibility(
-                    strict = true,
-                    hasWhitelistedService = A11yDetection.hasWhiteListedService(container.context),
-                    hasUntrustedService = !A11yDetection.shouldWeTrustA11y(container.context)
-                ) == BehaviorAccessibilityDecision.REJECT_UNTRUSTED_SERVICE
-            ) {
-                captureInvalidated = true
-                showInputError(localized(R.string.biometriccompat_behavior_error_accessibility))
-            }
+        clearInputError()
+        sessionToken = BehaviorCaptureSessionRegistry.start(SystemClock.elapsedRealtime(), SystemClock.uptimeMillis())
+        if (!runtimeCaptureAllowed()) return
+        if (isStrictBuiltInCapture() && evaluateBehaviorAccessibility(
+                strict = true,
+                hasWhitelistedService = A11yDetection.hasWhiteListedService(rootView.context),
+                hasUntrustedService = !A11yDetection.shouldWeTrustA11y(rootView.context)
+            ) == BehaviorAccessibilityDecision.REJECT_UNTRUSTED_SERVICE) {
+            invalidateCapture()
+            showInputError(localized(R.string.biometriccompat_behavior_error_accessibility))
         }
     }
 
-    private fun createOverlay(container: FrameLayout): View {
+    private fun createContent(container: FrameLayout): View {
         val context = container.context
         val density = context.resources.displayMetrics.density
+        val accent = TypedValue().let {
+            context.theme.resolveAttribute(android.R.attr.colorAccent, it, true)
+            if (it.resourceId != 0) ContextCompat.getColor(context, it.resourceId) else it.data
+        }
         modeGroup = RadioGroup(context).apply {
             orientation = RadioGroup.HORIZONTAL
             gravity = Gravity.CENTER
@@ -200,6 +238,22 @@ internal class BehaviorCaptureController(
             check(MODE_COMBINED_ID)
             setOnCheckedChangeListener { _, _ -> updateModeVisibility() }
         }
+        val checked = intArrayOf(android.R.attr.state_checked)
+        for (index in 0 until modeGroup.childCount) {
+            (modeGroup.getChildAt(index) as RadioButton).apply {
+                buttonDrawable = null
+                gravity = Gravity.CENTER
+                textSize = 12f
+                minHeight = (48 * density).toInt()
+                setPadding((4 * density).toInt(), (8 * density).toInt(), (4 * density).toInt(), (8 * density).toInt())
+                background = rounded(0xFFFFFFFF.toInt(), 12f * density)
+                backgroundTintList = ColorStateList(arrayOf(checked, intArrayOf()),
+                    intArrayOf((accent and 0x00FFFFFF) or 0x30000000, 0x00000000))
+                setTextColor(ColorStateList(arrayOf(checked, intArrayOf()),
+                    intArrayOf(accent, ContextCompat.getColor(context, R.color.textColor))))
+                layoutParams = RadioGroup.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            }
+        }
 
         actionButton = Button(context).apply {
             text = if (enroll) {
@@ -208,6 +262,8 @@ internal class BehaviorCaptureController(
                 localized(R.string.biometriccompat_behavior_action_verify)
             }
             contentDescription = text
+            backgroundTintList = ColorStateList.valueOf(accent)
+            setTextColor(android.graphics.Color.WHITE)
             setOnClickListener { prepareExtras() }
         }
         hintText = TextView(context).apply {
@@ -226,18 +282,6 @@ internal class BehaviorCaptureController(
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
             setPadding((16 * density).toInt(), (16 * density).toInt(), (16 * density).toInt(), (16 * density).toInt())
-            background = ContextCompat.getDrawable(context, R.drawable.biometric_capture_panel_bg)
-            elevation = 10f * density
-            addView(TextView(context).apply {
-                text = if (enroll) {
-                    localized(R.string.biometriccompat_behavior_overlay_title_enroll)
-                } else {
-                    localized(R.string.biometriccompat_behavior_overlay_title_auth)
-                }
-                gravity = Gravity.CENTER
-                textSize = 16f
-                setTextColor(ContextCompat.getColor(context, R.color.textColor))
-            })
             addView(modeGroup)
             addView(hintText, LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -248,6 +292,7 @@ internal class BehaviorCaptureController(
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ))
             if (builder.getBehaviorTypingView() == null) {
+                (phraseInput.parent as? ViewGroup)?.removeView(phraseInput)
                 addView(phraseInput, LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -260,6 +305,7 @@ internal class BehaviorCaptureController(
                 }
             }
             if (builder.getBehaviorSignatureContainer() == null) {
+                (signaturePad.parent as? ViewGroup)?.removeView(signaturePad)
                 addView(TextView(context).apply {
                     text = localized(R.string.biometriccompat_behavior_signature_label)
                     gravity = Gravity.CENTER
@@ -270,31 +316,60 @@ internal class BehaviorCaptureController(
                     max(180, (180 * density).toInt())
                 ))
             }
-            addView(actionButton)
             updateModeVisibility()
         }
 
-        return FrameLayout(context).apply {
-            setBackgroundColor(0x99000000.toInt())
-            filterTouchesWhenObscured = true
-            setOnClickListener {
-                hideOverlay()
+        return object : FrameLayout(context) {
+            override fun onFilterTouchEventForSecurity(event: MotionEvent): Boolean =
+                acceptCaptureTouch(event, requireActive = false) && super.onFilterTouchEventForSecurity(event)
+
+            override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+                val frame = Rect()
+                getWindowVisibleDisplayFrame(frame)
+                val windowHeight = frame.height().takeIf { it > 0 } ?: resources.displayMetrics.heightPixels
+                val parentHeight = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED)
+                    windowHeight else MeasureSpec.getSize(heightMeasureSpec)
+                val height = minOf((600 * density).toInt(), windowHeight, parentHeight).coerceAtLeast(1)
+                super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY))
             }
-            addView(panel, FrameLayout.LayoutParams(
+        }.apply {
+            filterTouchesWhenObscured = true
+            val card = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                background = ContextCompat.getDrawable(context, R.drawable.biometric_capture_panel_bg)
+                addView(ScrollView(context).apply {
+                    isFillViewport = true
+                    addView(panel)
+                }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+                addView(LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    addView(Button(context).apply {
+                        text = localized(R.string.biometriccompat_behavior_action_restart)
+                        minWidth = 0
+                        setOnClickListener { startCaptureSession() }
+                    }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                    actionButton.minWidth = 0
+                    addView(actionButton, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                })
+            }
+            addView(card, FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.MATCH_PARENT,
                 Gravity.CENTER
             ).apply {
                 leftMargin = (12 * density).toInt()
                 rightMargin = (12 * density).toInt()
+                topMargin = (12 * density).toInt()
+                bottomMargin = (12 * density).toInt()
             })
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
             )
-            panel.setOnClickListener { }
+            card.setOnClickListener { }
             protectOverlayView(this)
             protectOverlayView(panel)
+            protectOverlayView(card)
             protectOverlayView(actionButton)
             protectOverlayView(modeGroup)
             typingKeyboard?.let(::protectOverlayView)
@@ -312,6 +387,12 @@ internal class BehaviorCaptureController(
     private fun hideOverlay(invalidateSession: Boolean = true) {
         overlayView?.let { (it.parent as? ViewGroup)?.removeView(it) }
         overlayView = null
+        if (ownsTypingView && ::phraseInput.isInitialized) (phraseInput.parent as? ViewGroup)?.removeView(phraseInput)
+        if (externalSignatureContainer == null && ::signaturePad.isInitialized)
+            (signaturePad.parent as? ViewGroup)?.removeView(signaturePad)
+        protectedOverlayViews.forEach { ScreenProtection.applyProtectionInView(it, false) }
+        protectedOverlayViews.clear()
+        clearCapturedData()
         if (invalidateSession) {
             BehaviorCaptureSessionRegistry.invalidate(sessionToken)
             sessionToken = null
@@ -321,6 +402,11 @@ internal class BehaviorCaptureController(
     private fun resetCapturedSample() {
         prepared = false
         captureInvalidated = false
+        clearCapturedData()
+        if (::actionButton.isInitialized) actionButton.isEnabled = true
+    }
+
+    private fun clearCapturedData() {
         keyDowns.clear()
         keyUps.clear()
         points.clear()
@@ -330,20 +416,19 @@ internal class BehaviorCaptureController(
         if (ownsTypingView && ::phraseInput.isInitialized) {
             phraseInput.text = ""
         }
-        if (::actionButton.isInitialized) {
-            actionButton.isEnabled = true
-        }
     }
 
     private fun attachTypingCapture(view: TextView) {
         if (ownsTypingView) {
             view.setOnKeyListener { _, eventKeyCode, event ->
+                if (!runtimeCaptureAllowed()) return@setOnKeyListener false
+                val token = sessionToken ?: return@setOnKeyListener false
                 if (eventKeyCode == KeyEvent.KEYCODE_UNKNOWN) {
                     return@setOnKeyListener false
                 }
                 when (event.action) {
-                    KeyEvent.ACTION_DOWN -> keyDowns.add(event.eventTime)
-                    KeyEvent.ACTION_UP -> keyUps.add(event.eventTime)
+                    KeyEvent.ACTION_DOWN -> keyDowns.add(token.relativeUptime(event.eventTime))
+                    KeyEvent.ACTION_UP -> keyUps.add(token.relativeUptime(event.eventTime))
                 }
                 false
             }
@@ -352,10 +437,12 @@ internal class BehaviorCaptureController(
         textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (!runtimeCaptureAllowed()) return
                 if (count > 0 && keyDowns.size < MAX_CAPTURED_TYPING_EVENTS) {
-                    val nowMs = SystemClock.elapsedRealtime()
-                    keyDowns.add(nowMs)
-                    keyUps.add(nowMs + TEXT_EVENT_DWELL_MS)
+                    val token = sessionToken ?: return
+                    val nowMs = token.relativeUptime(SystemClock.uptimeMillis())
+                    keyDowns.add((nowMs - TEXT_EVENT_DWELL_MS).coerceAtLeast(0L))
+                    keyUps.add(nowMs)
                 }
             }
             override fun afterTextChanged(s: Editable?) = Unit
@@ -376,7 +463,7 @@ internal class BehaviorCaptureController(
             BehaviorMode.SIGNATURE -> localized(R.string.biometriccompat_behavior_hint_signature)
             BehaviorMode.COMBINED -> localized(R.string.biometriccompat_behavior_hint_combined)
         }
-        clearInputError()
+        if (!captureInvalidated) clearInputError()
     }
 
     private fun createTypingKeyboard(context: android.content.Context): View {
@@ -409,9 +496,13 @@ internal class BehaviorCaptureController(
     }
 
     private fun createKeyButton(context: android.content.Context, key: String): TextView {
-        var downTime = 0L
+        var downTime: Long? = null
+        var downNonce: Long? = null
         val density = context.resources.displayMetrics.density
-        return TextView(context).apply {
+        return object : TextView(context) {
+            override fun onFilterTouchEventForSecurity(event: MotionEvent): Boolean =
+                acceptCaptureTouch(event) && super.onFilterTouchEventForSecurity(event)
+        }.apply {
             text = when (key) {
                 KEY_SPACE -> localized(R.string.biometriccompat_behavior_key_space)
                 KEY_BACKSPACE -> localized(R.string.biometriccompat_behavior_key_backspace)
@@ -423,26 +514,33 @@ internal class BehaviorCaptureController(
             background = ContextCompat.getDrawable(context, R.drawable.biometric_capture_surface_bg)
             filterTouchesWhenObscured = true
             setOnTouchListener { _, event ->
-                if (!event.isTrustedBehaviorTouch()) {
-                    invalidateCapture()
-                    showInputError(localized(R.string.biometriccompat_behavior_error_touch_obscured))
-                    return@setOnTouchListener true
-                }
+                if (!acceptCaptureTouch(event)) return@setOnTouchListener true
                 when (event.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
                         downTime = event.eventTime
+                        downNonce = sessionToken?.nonce
+                        parent?.requestDisallowInterceptTouchEvent(true)
                         true
                     }
                     MotionEvent.ACTION_UP -> {
+                        parent?.requestDisallowInterceptTouchEvent(false)
+                        val down = downTime
+                        downTime = null
+                        if (down == null || downNonce != sessionToken?.nonce) {
+                            interruptCapture()
+                            return@setOnTouchListener true
+                        }
                         if (key == KEY_BACKSPACE) {
                             removeLastTypedCharacter()
                         } else {
-                            appendTypedCharacter(key, downTime, event.eventTime)
+                            appendTypedCharacter(key, down, event.eventTime)
                         }
                         true
                     }
                     MotionEvent.ACTION_CANCEL -> {
-                        downTime = 0L
+                        downTime = null
+                        parent?.requestDisallowInterceptTouchEvent(false)
+                        interruptCapture()
                         true
                     }
                     else -> true
@@ -452,6 +550,7 @@ internal class BehaviorCaptureController(
     }
 
     private fun appendTypedCharacter(key: String, downTime: Long, upTime: Long) {
+        val token = sessionToken ?: return
         if (phraseInput.text?.length ?: 0 >= MAX_CAPTURED_TYPING_CHARS ||
             keyDowns.size >= MAX_CAPTURED_TYPING_EVENTS
         ) {
@@ -459,8 +558,8 @@ internal class BehaviorCaptureController(
             return
         }
         phraseInput.append(if (key == KEY_SPACE) " " else key)
-        keyDowns.add(downTime)
-        keyUps.add(upTime)
+        keyDowns.add(token.relativeUptime(downTime))
+        keyUps.add(token.relativeUptime(upTime))
     }
 
     private fun removeLastTypedCharacter() {
@@ -473,14 +572,60 @@ internal class BehaviorCaptureController(
 
     private fun invalidateCapture() {
         captureInvalidated = true
-        keyDowns.clear()
-        keyUps.clear()
-        points.clear()
+        BehaviorCaptureSessionRegistry.invalidate(sessionToken)
+        sessionToken = null
+        clearCapturedData()
+    }
+
+    private fun interruptCapture() {
+        invalidateCapture()
+        if (::errorText.isInitialized) showInputError(localized(R.string.biometriccompat_behavior_error_capture_invalid))
+    }
+
+    private fun acceptCaptureTouch(event: MotionEvent, requireActive: Boolean = true): Boolean {
+        if (!event.isTrustedBehaviorTouch()) {
+            invalidateCapture()
+            if (::errorText.isInitialized) showInputError(localized(R.string.biometriccompat_behavior_error_touch_obscured))
+            return false
+        }
+        if (event.pointerCount != 1) {
+            interruptCapture()
+            return false
+        }
+        // Recovery and dismissal controls must remain usable after capture is invalidated.
+        if (!requireActive) return true
+        if (!runtimeCaptureAllowed()) return false
+        if (captureInvalidated || disposed || prepared || sessionToken == null) return false
+        if (SystemClock.elapsedRealtime() - sessionToken!!.startedAtMs > MAX_CAPTURE_DURATION_MS) {
+            invalidateCapture()
+            showInputError(localized(R.string.biometriccompat_behavior_help_timeout))
+            return false
+        }
+        return true
+    }
+
+    private fun protectInput(view: View) {
+        val originalFilter = view.filterTouchesWhenObscured
+        val alreadyProtected = view.getTag(BiometricR.id.bio_tag_screen_protection_applied) == true
+        if (!alreadyProtected) ScreenProtection.applyProtectionInView(view)
+        inputProtection += InputProtection(view, originalFilter,
+            !alreadyProtected && view.getTag(BiometricR.id.bio_tag_screen_protection_applied) == true)
+        view.filterTouchesWhenObscured = true
+    }
+
+    private data class InputProtection(val view: View, val originalFilter: Boolean, val acquiredProtection: Boolean)
+    private var submittedNonce: Long? = null
+
+    private fun runtimeCaptureAllowed(): Boolean {
+        if (!BiometricPromptCompat.hasDetectedRuntimeHooks()) return true
+        invalidateCapture()
+        showInputError(localized(R.string.biometriccompat_behavior_help_unavailable))
+        return false
     }
 
     @Suppress("LongMethod", "CyclomaticComplexMethod", "ReturnCount")
     private fun prepareExtras() {
-        if (prepared || captureInvalidated) return
+        if (prepared || captureInvalidated || !runtimeCaptureAllowed()) return
         val mode = selectedMode()
         val phrase = phraseInput.text?.toString().orEmpty()
         val token = sessionToken ?: return
@@ -494,8 +639,8 @@ internal class BehaviorCaptureController(
         )) {
             BehaviorCaptureSessionDecision.ACTIVE -> Unit
             BehaviorCaptureSessionDecision.EXPIRED -> {
+                invalidateCapture()
                 showInputError(localized(R.string.biometriccompat_behavior_help_timeout))
-                hideOverlay()
                 return
             }
             BehaviorCaptureSessionDecision.ALREADY_SUBMITTED,
@@ -517,46 +662,24 @@ internal class BehaviorCaptureController(
             showInputError(localized(R.string.biometriccompat_behavior_error_need_signature))
             return
         }
-        if (ownsTypingView && mode != BehaviorMode.SIGNATURE) {
-            val typingDecision = evaluateTypingIntegrity(
-                downs = keyDowns,
-                ups = keyUps,
-                phraseLength = phrase.length,
-                startedAtMs = token.startedAtMs,
-                nowMs = nowMs,
-                maxInterEventGapMs = MAX_INTER_EVENT_GAP_MS
-            )
-            if (typingDecision != BehaviorInputIntegrityDecision.ACCEPT) {
-                showInputError(localized(R.string.biometriccompat_behavior_error_capture_invalid))
-                return
-            }
-        }
-        if (mode != BehaviorMode.TYPING) {
-            val signatureDecision = evaluateSignatureIntegrity(
-                points = decodeCapturedPoints(),
-                startedAtMs = token.startedAtMs,
-                nowMs = nowMs,
-                cancelled = captureInvalidated
-            )
-            if (signatureDecision != BehaviorInputIntegrityDecision.ACCEPT) {
-                showInputError(localized(R.string.biometriccompat_behavior_error_capture_invalid))
-                return
-            }
+        val sample = BehaviorSample(mode, phrase.trim(), keyDowns.toList(), keyUps.toList(), decodeCapturedPoints())
+            .normalizedForMode()
+        val inputDecision = evaluateBehaviorSampleIntegrity(
+            sample, 0L, token.relativeUptime(SystemClock.uptimeMillis()), MAX_INTER_EVENT_GAP_MS)
+        if (inputDecision != BehaviorInputIntegrityDecision.ACCEPT) {
+            showInputError(localized(R.string.biometriccompat_behavior_error_capture_invalid))
+            return
         }
 
-        val extras = buildBehaviorExtras(
-            existing = builder.getExtras(),
-            mode = mode,
-            phrase = phrase,
-            keyDownTimesMs = keyDowns.toLongArray(),
-            keyUpTimesMs = keyUps.toLongArray(),
-            strokePoints = points.toFloatArray(),
-            enroll = enroll,
-            sessionToken = token
-        )
+        val extras = sealBehaviorExtras(builder.getExtras(), sample, enroll, token, nowMs)
+        if (extras == null) {
+            showInputError(localized(R.string.biometriccompat_behavior_error_capture_invalid))
+            return
+        }
         prepared = true
+        submittedNonce = token.nonce
         builder.setExtras(extras)
-        actionButton.isEnabled = false
+        if (::actionButton.isInitialized) actionButton.isEnabled = false
         rootView.findViewById<TextView>(R.id.status)?.text =
             localized(R.string.biometriccompat_behavior_status_checking)
         hideOverlay(invalidateSession = false)
@@ -578,8 +701,11 @@ internal class BehaviorCaptureController(
     }
 
     private fun showInputError(message: CharSequence) {
-        errorText.text = message
-        errorText.visibility = View.VISIBLE
+        if (::errorText.isInitialized) {
+            errorText.text = message
+            errorText.visibility = View.VISIBLE
+        }
+        onInputError?.invoke(message)
         rootView.findViewById<TextView>(R.id.status)?.text = message
     }
 
@@ -591,6 +717,7 @@ internal class BehaviorCaptureController(
     }
 
     private fun selectedMode(): BehaviorMode {
+        consumerMode?.let { return it }
         return when (modeGroup.checkedRadioButtonId) {
             MODE_TYPING_ID -> BehaviorMode.TYPING
             MODE_SIGNATURE_ID -> BehaviorMode.SIGNATURE
@@ -601,6 +728,7 @@ internal class BehaviorCaptureController(
     private class SignaturePad(
         context: android.content.Context,
         lineColor: Int,
+        private val acceptsTouch: (MotionEvent) -> Boolean,
         private val onPoint: (Float, Float, Long, Float, Float, Int) -> Unit,
         private val onInvalidated: () -> Unit
     ) : View(context) {
@@ -624,20 +752,29 @@ internal class BehaviorCaptureController(
         }
 
         fun clear() {
+            parent?.requestDisallowInterceptTouchEvent(false)
             path.reset()
             strokeId = 0
             invalidate()
         }
 
         override fun onTouchEvent(event: MotionEvent): Boolean {
-            if (!event.isTrustedBehaviorTouch()) {
-                onInvalidated()
-                return true
-            }
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> path.moveTo(event.x, event.y)
+            if (!acceptsTouch(event)) return true
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    parent?.requestDisallowInterceptTouchEvent(true)
+                    path.moveTo(event.x, event.y)
+                }
                 MotionEvent.ACTION_MOVE -> path.lineTo(event.x, event.y)
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> strokeId++
+                MotionEvent.ACTION_UP -> {
+                    parent?.requestDisallowInterceptTouchEvent(false)
+                    strokeId++
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    clear()
+                    onInvalidated()
+                    return true
+                }
             }
             if (event.action == MotionEvent.ACTION_DOWN || event.action == MotionEvent.ACTION_MOVE) {
                 for (index in 0 until event.historySize) {
@@ -656,6 +793,9 @@ internal class BehaviorCaptureController(
             }
             return true
         }
+
+        override fun onFilterTouchEventForSecurity(event: MotionEvent): Boolean =
+            acceptsTouch(event) && super.onFilterTouchEventForSecurity(event)
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)

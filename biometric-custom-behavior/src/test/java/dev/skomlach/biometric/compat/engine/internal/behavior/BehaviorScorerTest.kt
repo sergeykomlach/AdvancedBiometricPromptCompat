@@ -4,8 +4,20 @@ import android.os.Bundle
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [29], manifest = Config.NONE)
 class BehaviorScorerTest {
+    @Test
+    fun signatureScoreIgnoresDraftTypingPhrase() {
+        val sample = BehaviorSample(BehaviorMode.SIGNATURE, "first draft", emptyList(), emptyList(),
+            (0 until 24).map { BehaviorPoint(it * 5f, (it % 5) * 12f, it * 15L) })
+
+        assertEquals(1f, BehaviorScorer.score(sample, sample.copy(phrase = "another draft")), 0.001f)
+    }
     @Test
     fun typingScoreAcceptsSimilarTiming() {
         val enrolled = BehaviorSample(

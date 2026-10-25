@@ -2,6 +2,10 @@ package dev.skomlach.biometric.compat.engine.internal.behavior
 
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptDelegate
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptHost
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricFragmentHost
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricType
 
 internal class BehaviorPromptDelegate(
     private val host: SoftwareBiometricPromptHost
@@ -10,10 +14,9 @@ internal class BehaviorPromptDelegate(
         BehaviorCaptureController(
             rootView = rootView,
             builder = host.builder,
-            enroll = host.enroll
-        ) {
-            host.callbacks.onReady(host.builder.getExtras())
-        }
+            enroll = host.enroll,
+            onReady = { host.callbacks.onReady(host.builder.getExtras()) }
+        )
     }
 
     override fun shouldInstall(): Boolean =
@@ -23,15 +26,22 @@ internal class BehaviorPromptDelegate(
         )
 
     override fun install() {
-        controller?.install()
+        val capture = controller ?: return
+        val fragmentHost = host.callbacks as? SoftwareBiometricFragmentHost
+        if (fragmentHost == null || !fragmentHost.mountContent(FRAGMENT_TAG,
+                BehaviorCaptureFragment().also { it.controller = capture })) {
+            host.callbacks.onFailure(AuthenticationResult(BiometricType.BIOMETRIC_BEHAVIOR,
+                reason = AuthenticationFailureReason.INTERNAL_ERROR))
+        }
     }
 
     override fun cancel() {
-        controller?.dispose()
+        dispose()
     }
 
     override fun dispose() {
         controller?.dispose()
+        (host.callbacks as? SoftwareBiometricFragmentHost)?.unmountContent(FRAGMENT_TAG)
     }
 
     override fun isReadyToStartAuth(): Boolean {
@@ -40,5 +50,9 @@ internal class BehaviorPromptDelegate(
             hasController = controller != null,
             hasPreparedPayload = controller?.consumePrepared() == true
         )
+    }
+
+    private companion object {
+        const val FRAGMENT_TAG = "behavior.capture.content"
     }
 }

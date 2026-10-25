@@ -109,9 +109,11 @@ class FaceLock {
 
     fun unbind() {
         d(TAG + " unbind from service")
+        val connection = mServiceConnection
+        mServiceConnection = null
         if (serviceBindingState.consumeUnbindRequest()) {
             try {
-                mServiceConnection?.let {
+                connection?.let {
                     context.unbindService(it)
                 }
             } catch (e: IllegalArgumentException) {
@@ -120,7 +122,6 @@ class FaceLock {
                 e(e, TAG + " unbind failed")
             }
         }
-        mServiceConnection = null
     }
 
     @Throws(
@@ -229,38 +230,41 @@ class FaceLock {
     )
     fun unregisterCallback(cb: IFaceLockCallback) {
         d(TAG + " unregisterCallback")
+        val callback = mMap.remove(cb) ?: return
+        val service = mFaceLockService ?: return
         flInterface?.getMethod("unregisterCallback", flCallbackInterface)
-            ?.invoke(mFaceLockService, mMap[cb])
-        mMap.remove(cb)
+            ?.invoke(service, callback)
     }
 
     private inner class ServiceConnectionWrapper(private val mServiceConnection: ServiceConnection) :
         ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
+            if (this@FaceLock.mServiceConnection !== this) return
             d(TAG + " service connected to $name")
             try {
                 mFaceLockService = flInterfaceStub?.getMethod("asInterface", IBinder::class.java)
                     ?.invoke(null, service)
                 mServiceConnection.onServiceConnected(name, service)
             } catch (e: IllegalArgumentException) {
-                mFaceLockService = null
+                if (this@FaceLock.mServiceConnection === this) mFaceLockService = null
                 e(e, TAG + e.message)
             } catch (e: IllegalAccessException) {
-                mFaceLockService = null
+                if (this@FaceLock.mServiceConnection === this) mFaceLockService = null
                 e(e, TAG + e.message)
             } catch (e: InvocationTargetException) {
-                mFaceLockService = null
+                if (this@FaceLock.mServiceConnection === this) mFaceLockService = null
                 e(e, TAG + e.message)
             } catch (e: NoSuchMethodException) {
-                mFaceLockService = null
+                if (this@FaceLock.mServiceConnection === this) mFaceLockService = null
                 e(e, TAG + e.message)
             }
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
+            if (this@FaceLock.mServiceConnection !== this) return
             d(TAG + " service disconnected from $name")
-            mServiceConnection.onServiceDisconnected(name)
             mFaceLockService = null
+            mServiceConnection.onServiceDisconnected(name)
         }
     }
 

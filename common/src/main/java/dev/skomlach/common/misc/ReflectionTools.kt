@@ -20,43 +20,31 @@
 package dev.skomlach.common.misc
 
 import android.content.Context
-import android.content.pm.PackageManager
-import androidx.core.os.BuildCompat
 import dalvik.system.PathClassLoader
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat.log
 import dev.skomlach.common.logging.LogCat.logException
 import java.lang.reflect.Modifier
-import java.util.WeakHashMap
 
 
 object ReflectionTools {
 
-    private val cache = WeakHashMap<String, PathClassLoader>()
+    private val packageCodeLoaders = SystemPackageCodeLoader(
+        lookup = { pkg ->
+            val info = appContext.packageManager.getApplicationInfo(pkg, 0)
+            SystemPackageCodeIdentity(
+                packageName = info.packageName,
+                sourceDir = info.sourceDir,
+                uid = info.uid,
+                isSystem = info.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM != 0,
+                isUpdatedSystem = info.flags and android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP != 0
+            )
+        },
+        create = { path -> PathClassLoader(path, ClassLoader.getSystemClassLoader()) }
+    )
 
     @Throws(Exception::class)
-    fun getPathClassLoaderForPkg(pkg: String): PathClassLoader {
-        var pathClassLoader = cache[pkg]
-        if (pathClassLoader == null) {
-            var apkName: String? = null
-            try {
-                apkName = appContext.packageManager.getApplicationInfo(
-                    pkg, 0
-                ).sourceDir
-            } catch (e: Throwable) {
-                if (BuildCompat.isAtLeastN()) apkName =
-                    appContext.packageManager.getApplicationInfo(
-                        pkg, PackageManager.MATCH_SYSTEM_ONLY
-                    ).sourceDir
-            }
-            pathClassLoader = PathClassLoader(
-                apkName,
-                ClassLoader.getSystemClassLoader()
-            )
-            cache[pkg] = pathClassLoader
-        }
-        return pathClassLoader
-    }
+    fun getPathClassLoaderForPkg(pkg: String): PathClassLoader = packageCodeLoaders.get(pkg)
 
 
     @Throws(ClassNotFoundException::class)

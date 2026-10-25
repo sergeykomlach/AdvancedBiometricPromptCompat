@@ -9,6 +9,20 @@ internal enum class FaceChallengeAction {
     RIGHT
 }
 
+/** A completed challenge is reusable only for the same continuously matched identity. */
+internal class FaceChallengeIdentityBinding {
+    private var candidateId: String? = null
+
+    fun reset() { candidateId = null }
+
+    /** Returns true when existing challenge evidence must be discarded. */
+    fun update(matchedCandidateId: String?): Boolean {
+        val changed = candidateId != null && candidateId != matchedCandidateId
+        candidateId = matchedCandidateId
+        return changed
+    }
+}
+
 internal enum class FaceChallengeDecision {
     IN_PROGRESS,
     COMPLETE,

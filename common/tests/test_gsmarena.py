@@ -37,6 +37,16 @@ def response(status=200, body=b"<html>ok</html>", **headers):
 
 
 class HttpTests(unittest.TestCase):
+    def test_optional_diagnostics_keep_response_for_parser_failure_investigation(self):
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"GSMARENA_DIAGNOSTICS_DIR": directory}):
+            session = Mock(headers={})
+            session.get.return_value = response(body=b"<html>Actual review markup</html>")
+            with patch("gsmarena_http.time.sleep"):
+                self.assertEqual(b"<html>Actual review markup</html>",
+                    PoliteHttpClient(session=session).get_html(REVIEW_URL))
+            self.assertEqual(b"<html>Actual review markup</html>", (Path(directory) / "last_response.html").read_bytes())
+            self.assertEqual(REVIEW_URL, json.loads((Path(directory) / "last_response.json").read_text())["url"])
+
     def setUp(self):
         self.env = patch.dict(os.environ, {}, clear=True)
         self.env.start()
@@ -221,6 +231,306 @@ class ScraperTests(unittest.TestCase):
         return {"phone_name": "Phone", "Features": {"Sensors": "Fingerprint"},
                 "_metadata": {"review_url": REVIEW_URL, "spec_url": SPEC_URL, "phone_name": "Phone"}}
 
+    def article(self, title, extra="", canonical=REVIEW_URL, body="Recognized article content."):
+        return (f'<link rel="canonical" href="{canonical}"><div class="article-info">'
+                f'<h1 class="article-info-name">{title}</h1>{extra}</div>'
+                f'<div id="review-body">{body}</div>').encode()
+
+    def test_honor_magic_vs_is_not_a_comparison_article(self):
+        for title in ("Honor Magic Vs review", "Honor Magic Vs hands-on review", "Honor Magic Vs 5G review",
+                      "Honor Magic Vs Pro review", "MWC 2023: Honor Magic Vs Pro hands-on: First look"):
+            html = self.article(title, f'<li class="meta-link-specs"><a href="{SPEC_URL}">Honor Magic Vs</a></li>')
+            self.assertEqual(SPEC_URL, specs.find_spec_url_from_review(REVIEW_URL,
+                Mock(get_html=Mock(return_value=html))))
+
+    def test_renamed_comparison_is_not_a_single_primary_phone(self):
+        html = self.article("Apple iPhone 8 Plus vs. Samsung Galaxy Note8 blind camera shootout",
+            f'<li class="meta-link-specs"><a href="{SPEC_URL}">First phone</a></li>')
+        with self.assertRaisesRegex(ScrapeError, "comparison_article"):
+            specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_event_prefix_keeps_explicit_multi_device_classification(self):
+        html = self.article("Samsung at IFA 2017: Gear Sport, Fit2 Pro, IconX (2018) hands-on review")
+        with self.assertRaisesRegex(ScrapeError, "multi_device_article"):
+            specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_single_device_at_an_event_remains_eligible(self):
+        html = self.article("Samsung at IFA 2017: Gear Sport hands-on review",
+            f'<li class="meta-link-specs"><a href="{SPEC_URL}">Gear Sport</a></li>')
+        self.assertEqual(SPEC_URL, specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html))))
+
+    def test_wearable_without_standalone_specsheet_is_accounted_for(self):
+        for tag in ("Smart wearables", "Wear OS"):
+            with self.subTest(tag=tag):
+                html = self.article("Watch review", f'<div class="article-tags"><a><b>{tag}</b></a></div>',
+                    body=f'<a href="{SPEC_URL}">Another device mentioned in prose</a>')
+                with self.assertRaisesRegex(ScrapeError, "no_standalone_specifications"):
+                    specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_wearable_with_a_primary_specsheet_remains_eligible(self):
+        html = self.article("Watch review", '<div class="article-tags"><a>Smart wearables</a></div>'
+            f'<li class="meta-link-specs"><a href="{SPEC_URL}">Watch</a></li>')
+        self.assertEqual(SPEC_URL, specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html))))
+
+    def inline_summary(self, name="MOQI i7s"):
+        return (f'<h3 class="article-blurb-title">{name} specs</h3><ul class="article-blurb">'
+                '<li><b>Body:</b>Plastic, 280 grams</li><li><b>OS:</b>Android 8.1</li>'
+                '<li><b>Battery:</b>6000 mAh</li></ul>')
+
+    def test_inline_spec_summary_is_collected_without_another_http_request(self):
+        source = self.root / "reviews.csv"
+        reviews.save_to_csv([{"phone_name": "MOQI i7s review", "review_url": REVIEW_URL}], source)
+        html = self.article("MOQI i7s Android game console review", body=self.inline_summary())
+        http = Mock(get_html=Mock(return_value=html))
+        result = specs.scrape_specs_from_csv(source, output_file=self.root / "specs.json",
+            output_csv=self.root / "specs.csv", state_file=self.root / "state.json", client=http)
+        self.assertEqual(1, http.get_html.call_count)
+        self.assertEqual("MOQI i7s", result[0]["phone_name"])
+        self.assertEqual("Android 8.1", result[0]["Review specifications"]["OS"])
+        self.assertEqual("review_inline", result[0]["_metadata"]["spec_source"])
+        self.assertEqual("inline_summary", result[0]["_metadata"]["spec_scope"])
+        self.assertEqual(REVIEW_URL, result[0]["_metadata"]["spec_url"])
+
+    def test_two_inline_device_summaries_remain_ambiguous(self):
+        html = self.article("Device A and Device B review", body=self.inline_summary("Device A") + self.inline_summary("Device B"))
+        with self.assertRaises(ScrapeError):
+            specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_inline_base_model_cannot_supply_a_variant_review(self):
+        html = self.article("Samsung Galaxy S6 edge review", body=self.inline_summary("Samsung Galaxy S6"))
+        with self.assertRaises(ScrapeError):
+            specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_inline_key_features_accepts_colon_outside_bold_label(self):
+        body = ('<h3 class="article-blurb-title">Apple TV 4K Key Features</h3>'
+            '<ul class="article-blurb"><li><b>Chipset</b>: Apple A10X</li>'
+            '<li><b>Memory:</b>3GB RAM</li><li><b>Video:</b>4K HDR</li></ul>')
+        html = self.article("Apple TV 4K review", body=body)
+        parsed = specs.scrape_specifications(REVIEW_URL, Mock(), html=html)
+        self.assertEqual("Apple TV 4K", parsed["phone_name"])
+        self.assertEqual("Apple A10X", parsed["Review specifications"]["Chipset"])
+
+    def test_inline_review_tagline_does_not_change_the_model(self):
+        html = self.article("Doogee Mix review: Dress to impress", body=self.inline_summary("Doogee Mix"))
+        self.assertEqual("Doogee Mix", specs.scrape_specifications(REVIEW_URL, Mock(), html=html)["phone_name"])
+
+    def test_inline_selects_one_exact_model_among_multiple_summaries(self):
+        body = (self.inline_summary("Moto Z Droid Edition") + self.inline_summary("Moto Z Force Droid Edition")).replace(" specs</h3>", " at a glance:</h3>")
+        html = self.article("Moto Z Force Droid Edition hands-on: First look", body=body)
+        self.assertEqual("Moto Z Force Droid Edition", specs.scrape_specifications(REVIEW_URL, Mock(), html=html)["phone_name"])
+
+    def test_inline_nested_list_wrapper_and_unlabelled_facts_are_preserved(self):
+        body = ('<h3 class="article-blurb-title">Sony Xperia X Performance at a glance:</h3>'
+            '<ul class="article-blurb"><ul><li>5-inch LCD display</li><li><b>Front camera</b>: 13MP</li>'
+            '<li>No fingerprint sensor on US model</li></ul></ul>')
+        html = self.article("Sony Xperia X Performance hands-on: Second encounter", body=body)
+        fields = specs.scrape_specifications(REVIEW_URL, Mock(), html=html)["Review specifications"]
+        self.assertEqual("5-inch LCD display", fields["Feature 1"])
+        self.assertEqual("13MP", fields["Front camera"])
+        self.assertEqual("No fingerprint sensor on US model", fields["Feature 3"])
+        self.assertNotIn("Sensors", fields)
+
+    def test_verified_inline_model_corrections_are_limited_to_exact_source(self):
+        cases = [
+            ("https://www.gsmarena.com/huawei_mate_book_mwc_2016-review-1389.php", "Huawei Mate Book", "Huawei Media Book", "Huawei Mate Book"),
+            ("https://www.gsmarena.com/letv_le_1s_hands_on-review-1373.php", "LeTV (LeEco) Le 1s", "LeTV Le 1s", "LeTV Le 1s"),
+            ("https://www.gsmarena.com/pebble_time-review-1265.php", "Pebble Time", "Key features", "Pebble Time"),
+            ("https://www.gsmarena.com/htc_re_camera-review-1179.php", "HTC Re camera", "Key features", "HTC Re camera"),
+            ("https://www.gsmarena.com/samsung_galaxy_note_ii_n7100-review-806.php", "Samsung Galaxy Note II", "Samsung Galaxy Note  II N7100", "Samsung Galaxy Note II N7100"),
+        ]
+        for url, heading, summary, expected in cases:
+            with self.subTest(url=url):
+                html = self.article(heading + " hands-on: First look", canonical=url, body=self.inline_summary(summary))
+                parsed = specs.scrape_specifications(url, Mock(), html=html)
+                self.assertEqual(expected, parsed["phone_name"])
+                wrong_source = self.article(heading + " hands-on: First look", body=self.inline_summary(summary))
+                with self.assertRaises(ScrapeError):
+                    specs.scrape_specifications(REVIEW_URL, Mock(), html=wrong_source)
+
+    def test_verified_editorial_title_variants_are_accounted_for(self):
+        for title in ("Our mobile chipset guide: The 2017 edition", "Introducing time-saver reviews",
+            "SmartSensor Image Stabilization and Super VOOC: Oppo at MWC 2016", "Amazon Kindle Fire HD hands-on: First look",
+            "Pop Up, Start, First and Idol 3C hands-on: Alcatel Day 2", "GSMArena.com turns 15: A video trip down memory lane",
+            "Samsung Galaxy S6 and S6 edge video review", "Charge test: Battle of the fast chargers",
+            "Galaxy shootout: Blind camera test", "Samsung Galaxy S6 and S6 edge preview: Closer encounter",
+            "MWC 2015: HTC One M9, Grip hands-on", "MWC 2015: Samsung Galaxy S6 and S6 edge hands-on",
+            "CES 2014: Various brands overview", "Samsung Galaxy S III Jelly Bean preview: First look",
+            "GSMArena feature labs: The tests", "Fashion phones overview: Man’s best friend",
+            "Mobile phones go scalp hunting: The Red List", "MWC 2010: Microsoft Windows Phone 7 Series",
+            "Sony Ericsson Media Go review: First look", "MWC 2009: The top 7 things we wish we took home",
+            "Samsung G800 launch event: A night at the museum", "GSMArena feature lab: Enter new goodies",
+            "Dual SIM review: Mobiles go two-in-one"):
+            with self.subTest(title=title), self.assertRaisesRegex(ScrapeError, "Non-device review"):
+                specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=self.article(title))))
+
+    def test_editorial_device_links_are_not_exported_as_the_article_device(self):
+        html = self.article("MWC 2009: The top 7 things we wish we took home",
+            body='<a href="http://www.gsmarena.com/samsung_i8910_omnia_hd-2691.php">Specifications</a>')
+        with self.assertRaisesRegex(ScrapeError, "editorial"):
+            specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_legacy_unclassed_summary_requires_named_spec_heading(self):
+        body = self.inline_summary("Samsung Galaxy A3").replace(' class="article-blurb-title"', '').replace(' class="article-blurb"', '')
+        html = self.article("Samsung Galaxy A3 preview: First look", body=body)
+        self.assertEqual("Samsung Galaxy A3", specs.scrape_specifications(REVIEW_URL, Mock(), html=html)["phone_name"])
+        unrelated = self.article("Samsung Galaxy A3 preview", body=body.replace("Samsung Galaxy A3 specs", "Samsung Galaxy A3"))
+        with self.assertRaises(ScrapeError):
+            specs.scrape_specifications(REVIEW_URL, Mock(), html=unrelated)
+
+    def test_omitted_li_end_tags_do_not_merge_adjacent_spec_fields(self):
+        heading = '<h3>Samsung I9300 Galaxy S III at a glance:</h3>'
+        for source_heading in (heading, '<p>' + heading + '</p>'):
+            with self.subTest(heading=source_heading):
+                body = source_heading + '<ul><li><b>General:</b>GSM<li><b>Display:</b>AMOLED<li><b>Sensors:</b>Fingerprint</ul>'
+                html = self.article("Samsung I9300 Galaxy S III preview: First look", body=body)
+                fields = specs.scrape_specifications(REVIEW_URL, Mock(), html=html)["Review specifications"]
+                self.assertEqual({"General": "GSM", "Display": "AMOLED", "Sensors": "Fingerprint"}, fields)
+
+    def test_real_nested_notes_remain_with_their_own_specification(self):
+        body = ('<h3 class="article-blurb-title">Phone specs</h3><ul class="article-blurb">'
+            '<li><b>Sensors:</b>Fingerprint<ul><li>Not available in US model</li></ul></li>'
+            '<li><b>Display:</b>AMOLED</li><li><b>Battery:</b>4000 mAh</li></ul>')
+        html = self.article("Phone review", body=body)
+        fields = specs.scrape_specifications(REVIEW_URL, Mock(), html=html)["Review specifications"]
+        self.assertEqual("Fingerprint Not available in US model", fields["Sensors"])
+        self.assertEqual("AMOLED", fields["Display"])
+        self.assertEqual(3, len(fields))
+
+    def test_os_article_subtitles_preserve_single_phone_reviews(self):
+        for title in ("Windows 10 for phones preview: First look", "Windows Phone 8.1 review: Major league"):
+            with self.assertRaisesRegex(ScrapeError, "software_article"):
+                specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=self.article(title))))
+        phone = self.article("HTC Windows Phone 8X review: First look", f'<li class="meta-link-specs"><a href="{SPEC_URL}">HTC</a></li>')
+        self.assertEqual(SPEC_URL, specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=phone))))
+
+    def test_verified_prose_only_devices_are_explicitly_accounted_for(self):
+        for title in ("The Card phone review: The future is modular", "Zopo Speed 8 hands-on: Zopo at MWC 2016",
+                      "HTC One hands-on: First look", "Samsung I9300 Galaxy S III hands-on: First look",
+                      "Samsung Galaxy Note hands-on: First look", "Samsung F480 preview: First look"):
+            with self.subTest(title=title):
+                with self.assertRaisesRegex(ScrapeError, "no_standalone_specifications"):
+                    specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=self.article(title))))
+                primary = self.article(title, f'<li class="meta-link-specs"><a href="{SPEC_URL}">Phone</a></li>')
+                self.assertEqual(SPEC_URL, specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=primary))))
+
+    def test_parser_failures_collect_remaining_phones_and_reuse_downloaded_source(self):
+        source, state, output = self.root / "reviews.csv", self.root / "state.json", self.root / "specs.json"
+        other = "https://www.gsmarena.com/other-review-2222.php"
+        reviews.save_to_csv([{"phone_name": "Unknown", "review_url": REVIEW_URL},
+                            {"phone_name": "Phone", "review_url": other}], source)
+        unknown = self.article("Unknown phone review")
+        recognized = self.article("Phone review", f'<li class="meta-link-specs"><a href="{SPEC_URL}">Phone</a></li>', canonical=other)
+        with patch.dict(os.environ, {"GSMARENA_PAGE_CACHE_DIR": str(self.root / "pages")}):
+            http = Mock(get_html=Mock(side_effect=[unknown, recognized, SPEC_HTML]))
+            with self.assertRaisesRegex(ScrapeError, "Unresolved"):
+                specs.scrape_specs_from_csv(source, output_file=output, output_csv=self.root / "out.csv", state_file=state, client=http)
+            self.assertEqual(3, http.get_html.call_count)
+            self.assertEqual(other, load_json(output, list)[0]["_metadata"]["review_url"])
+            self.assertIn(REVIEW_URL, load_json(state, dict)["unresolved_reviews"])
+            self.assertFalse(load_json(state, dict)["complete"])
+            retry = Mock(get_html=Mock(side_effect=AssertionError("Already downloaded source must be reused")))
+            with self.assertRaisesRegex(ScrapeError, "Unresolved"):
+                specs.scrape_specs_from_csv(source, output_file=output, output_csv=self.root / "out.csv", state_file=state, client=retry)
+            retry.get_html.assert_not_called()
+
+    def test_corrupt_page_cache_is_not_silently_accepted(self):
+        source = self.root / "reviews.csv"
+        reviews.save_to_csv([{"phone_name": "Unknown", "review_url": REVIEW_URL}], source)
+        with patch.dict(os.environ, {"GSMARENA_PAGE_CACHE_DIR": str(self.root / "pages")}):
+            with self.assertRaises(ScrapeError):
+                specs.scrape_specs_from_csv(source, output_file=self.root / "specs.json", state_file=self.root / "state.json",
+                    client=Mock(get_html=Mock(return_value=self.article("Unknown phone review"))))
+            paths = list((self.root / "pages").glob("*.html"))
+            self.assertEqual(1, len(paths))
+            paths[0].write_bytes(b"truncated")
+            with self.assertRaisesRegex(ScrapeError, "cache"):
+                specs.scrape_specs_from_csv(source, output_file=self.root / "specs.json", state_file=self.root / "state.json", client=Mock())
+
+    def test_inline_model_must_belong_to_review_and_identity_must_match(self):
+        for title, canonical in (("Different phone review", REVIEW_URL),
+                                 ("MOQI i7s review", "https://www.gsmarena.com/wrong-review-9999.php")):
+            html = self.article(title, canonical=canonical, body=self.inline_summary())
+            with self.assertRaises(ScrapeError):
+                specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_maker_directories_are_not_legacy_phone_candidates(self):
+        html = self.article("Phone preview", body='<a href="samsung-phones-9.php">Samsung</a>'
+                            '<a href="nokia_5140-587.php">Nokia 5140</a>')
+        self.assertEqual("https://www.gsmarena.com/nokia_5140-587.php",
+            specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html))))
+
+    def test_missing_article_identity_cannot_follow_a_spec_link(self):
+        with self.assertRaisesRegex(ScrapeError, "identity"):
+            specs.find_spec_url_from_review(REVIEW_URL,
+                Mock(get_html=Mock(return_value=f'<a href="{SPEC_URL}">Specifications</a>'.encode())))
+
+    def test_multiple_body_spec_links_are_not_reduced_to_the_first(self):
+        html = self.article("Unknown device preview", body=f'<a href="{SPEC_URL}">Specifications</a>'
+                            '<a href="other-23456.php">Specifications</a>')
+        with self.assertRaisesRegex(ScrapeError, "unambiguous"):
+            specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_primary_device_link_wins_over_sidebar_specs(self):
+        html = self.article("Phone review", f'<a href="other-23456.php">Specifications</a>'
+                            f'<li class="meta-link-specs"><a href="{SPEC_URL}">Phone</a></li>')
+        self.assertEqual(SPEC_URL, specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html))))
+
+    def test_legacy_three_digit_device_id_is_supported(self):
+        url = "https://www.gsmarena.com/nokia_5140-587.php"
+        self.assertEqual(url, specs.find_spec_url_from_review(REVIEW_URL,
+            Mock(get_html=Mock(return_value=self.article("Nokia 5140 review",
+                body=f'<a href="{url}">Specifications</a>')))))
+
+    def test_roundup_cannot_become_its_single_sidebar_phone(self):
+        html = self.article("The best-sounding smartphones and tablets of 2024",
+                            f'<a href="{SPEC_URL}">Phone</a>')
+        with self.assertRaisesRegex(ScrapeError, "Non-device review"):
+            specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_article_identity_mismatch_cannot_be_excluded(self):
+        html = self.article("Android 12 review", canonical="https://www.gsmarena.com/other-review-9999.php")
+        with self.assertRaisesRegex(ScrapeError, "identity"):
+            specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_editorial_exclusion_is_checkpointed_and_not_refetched(self):
+        source, state, output = self.root / "reviews.csv", self.root / "state.json", self.root / "specs.json"
+        reviews.save_to_csv([{"phone_name": "Android 12 review", "review_url": REVIEW_URL}], source)
+        save_json([dict(self.record(), _metadata=dict(self.record()["_metadata"],
+            review_url="https://www.gsmarena.com/existing-review-9999.php"))], output)
+        http = Mock(get_html=Mock(return_value=self.article("Android 12 review")))
+        result = specs.scrape_specs_from_csv(source, output_file=output, output_csv=self.root / "specs.csv",
+            state_file=state, client=http)
+        self.assertEqual(1, len(result))
+        saved = load_json(state, dict)
+        self.assertTrue(saved["complete"])
+        self.assertEqual("software_article", saved["excluded_reviews"][REVIEW_URL]["reason"])
+        self.assertEqual("Android 12 review", saved["excluded_reviews"][REVIEW_URL]["title"])
+        specs.scrape_specs_from_csv(source, output_file=output, output_csv=self.root / "specs.csv",
+            state_file=state, client=http)
+        self.assertEqual(1, http.get_html.call_count)
+
+    def test_ordinary_phone_without_specs_is_still_an_error(self):
+        html = self.article("Oppo Find X3 Pro review", '<a href="a-12345.php">A</a><a href="b-23456.php">B</a>')
+        with self.assertRaises(ScrapeError):
+            specs.find_spec_url_from_review(REVIEW_URL, Mock(get_html=Mock(return_value=html)))
+
+    def test_duplicate_review_checkpoint_is_rejected(self):
+        output = self.root / "specs.json"
+        save_json([self.record(), self.record()], output)
+        with self.assertRaisesRegex(ScrapeError, "Duplicate"):
+            specs.load_existing_specs(output)
+
+    def test_pipeline_recovers_missing_checkpoint_records_from_published_asset(self):
+        published = self.root / "src/main/assets/devices/specifications.json"
+        published.parent.mkdir(parents=True)
+        recovered = dict(self.record(), _metadata=dict(self.record()["_metadata"],
+            review_url="https://www.gsmarena.com/older-review-9999.php"))
+        save_json([self.record(), recovered], published)
+        current = dict(self.record(), Features={"Sensors": "New sensor"})
+        save_json([current], self.root / "gsmarena_specifications.json")
+        result = pipeline.run(self.root, Mock(get_html=Mock(return_value=index_html())))
+        self.assertEqual([current, recovered], result)
+
     def test_specs_use_header_inside_each_table(self):
         result = specs.scrape_specifications(SPEC_URL, Mock(get_html=Mock(return_value=SPEC_HTML)))
         self.assertEqual({"Technology": "GSM"}, result["Network"])
@@ -232,17 +542,20 @@ class ScraperTests(unittest.TestCase):
                 call(url, Mock(get_html=Mock(return_value=b"<html>Something changed</html>")))
 
     def test_external_spec_link_is_not_followed(self):
-        http = Mock(get_html=Mock(return_value=b'<a href="https://example.org/phone-12345.php">Specifications</a>'))
+        http = Mock(get_html=Mock(return_value=self.article("Phone review",
+            body='<a href="https://example.org/phone-12345.php">Specifications</a>')))
         with self.assertRaises(ScrapeError):
             specs.find_spec_url_from_review(REVIEW_URL, http)
 
     def test_ambiguous_sidebar_links_do_not_choose_an_arbitrary_phone(self):
-        http = Mock(get_html=Mock(return_value=b'<a href="a-12345.php">A</a><a href="b-23456.php">B</a>'))
+        http = Mock(get_html=Mock(return_value=self.article("Phone review",
+            '<a href="a-12345.php">A</a><a href="b-23456.php">B</a>')))
         with self.assertRaises(ScrapeError):
             specs.find_spec_url_from_review(REVIEW_URL, http)
 
     def test_pipeline_reuses_client_and_second_run_skips_known_specs(self):
-        http = Mock(get_html=Mock(side_effect=[index_html(), f'<a href="{SPEC_URL}">Specifications</a>'.encode(), SPEC_HTML]))
+        http = Mock(get_html=Mock(side_effect=[index_html(), self.article("Phone review",
+            body=f'<a href="{SPEC_URL}">Specifications</a>'), SPEC_HTML]))
         self.assertEqual(1, len(pipeline.run(self.root, http)))
         self.assertEqual(3, http.get_html.call_count)
         second = Mock(get_html=Mock(return_value=index_html(next_page=2)))

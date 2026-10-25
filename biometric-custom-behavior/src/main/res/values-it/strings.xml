@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">Controllo del comportamento</string>
     <string name="biometriccompat_behavior_error_capture_invalid">L’acquisizione è stata interrotta o non era valida. Riprova.</string>
     <string name="biometriccompat_behavior_error_accessibility">È attivo un servizio di accessibilità non attendibile. Disattivalo e riprova.</string>
+    <string name="biometriccompat_behavior_action_restart">Ricomincia</string>
 </resources>
 
 

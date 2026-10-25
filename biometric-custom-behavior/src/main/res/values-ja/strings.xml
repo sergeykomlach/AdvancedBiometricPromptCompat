@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">行動を確認しています</string>
     <string name="biometriccompat_behavior_error_capture_invalid">取得が中断されたか、無効でした。もう一度お試しください。</string>
     <string name="biometriccompat_behavior_error_accessibility">信頼できないユーザー補助サービスが有効です。無効にしてから、もう一度お試しください。</string>
+    <string name="biometriccompat_behavior_action_restart">やり直す</string>
 </resources>
 
 

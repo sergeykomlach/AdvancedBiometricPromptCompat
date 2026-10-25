@@ -1,0 +1,18 @@
+1. Set 'Build Variants' to 'Release'
+2. Press 'Build/Clean'
+3. Press 'Build/Rebuild'
+4. In terminal:
+./gradlew publishRelease
+
+The task publishes every release library module except `app` and
+`biometric-custom-behavior`, then runs `common:postRelease` automatically.
+
+
+Also:
+- See OWASP check
+- See https://lift.sonatype.com/result/Salat-Cx65/AdvancedBiometricPromptCompat
+- See https://app.snyk.io/org/salat-cx65/projects
+
+
+
+https://blog.sonatype.com/2010/12/now-available-central-download-statistics-for-oss-projects/

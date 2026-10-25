@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">Memeriksa perilaku</string>
     <string name="biometriccompat_behavior_error_capture_invalid">Pengambilan terhenti atau tidak valid. Coba lagi.</string>
     <string name="biometriccompat_behavior_error_accessibility">Layanan aksesibilitas yang tidak tepercaya sedang aktif. Nonaktifkan lalu coba lagi.</string>
+    <string name="biometriccompat_behavior_action_restart">Mulai ulang</string>
 </resources>
 
 

@@ -23,6 +23,7 @@ javaAesCrypto = "1.1.0"
 jsoup = "1.22.1"
 json = "20251224"
 junit = "4.13.2"
+robolectric = "4.16.1"
 kotlinGradlePlugin = "2.3.10"
 kotlinStdlib = "2.3.10"
 leakcanaryAndroid = "2.14"
@@ -75,6 +76,7 @@ java-aes-crypto = { module = "com.github.tozny:java-aes-crypto", version.ref = "
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 json = { module = "org.json:json", version.ref = "json" }
 junit = { module = "junit:junit", version.ref = "junit" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinStdlib" }
 kotlin-parcelize-runtime = { module = "org.jetbrains.kotlin:kotlin-parcelize-runtime", version.ref = "kotlinGradlePlugin" }

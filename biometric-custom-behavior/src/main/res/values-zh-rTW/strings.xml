@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">正在檢查行為</string>
     <string name="biometriccompat_behavior_error_capture_invalid">擷取已中斷或無效。請重試。</string>
     <string name="biometriccompat_behavior_error_accessibility">不受信任的無障礙服務正在運作。請停用該服務後重試。</string>
+    <string name="biometriccompat_behavior_action_restart">重新開始</string>
 </resources>
 
 

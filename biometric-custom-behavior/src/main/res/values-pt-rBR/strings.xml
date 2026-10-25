@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">Verificando comportamento</string>
     <string name="biometriccompat_behavior_error_capture_invalid">A captura foi interrompida ou era inválida. Tente novamente.</string>
     <string name="biometriccompat_behavior_error_accessibility">Um serviço de acessibilidade não confiável está ativo. Desative-o e tente novamente.</string>
+    <string name="biometriccompat_behavior_action_restart">Recomeçar</string>
 </resources>
 
 

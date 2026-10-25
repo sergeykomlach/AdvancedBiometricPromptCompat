@@ -154,7 +154,7 @@ object A11yDetection {
     private fun isSystemApp(context: Context, packageName: String): Boolean {
         return try {
             val ai = context.packageManager.getApplicationInfo(packageName, 0)
-            (ai.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+            isSystemAccessibilitySource(ai.flags)
         } catch (e: Exception) {
             false
         }
@@ -177,8 +177,7 @@ object A11yDetection {
                 AccessibilityServiceIdentity.from(info.packageName, info.name)
             }
             return areAllAccessibilityServicesTrusted(list) {
-                val trustedSource = isSystemApp(cnt, it.packageName) ||
-                        trustedA11yPackages.contains(it.packageName)
+                val trustedSource = isSystemApp(cnt, it.packageName)
                 trustedSource && isAccessibilityTool(cnt, it)
             }.also {
                 trustedListCache = Pair(now, it)

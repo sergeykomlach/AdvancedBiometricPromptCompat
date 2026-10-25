@@ -38,7 +38,6 @@ import java.net.URLEncoder
 import java.security.SecureRandom
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.pow
 
 object LocalizationHelper {
     val agents = arrayOf(
@@ -159,18 +158,16 @@ object LocalizationHelper {
 
             val responseCode = urlConnection.responseCode
             if (responseCode == 429 && retryCount < maxRetries) {
-                val retryAfter = urlConnection.getHeaderField("Retry-After")?.toLongOrNull() ?: 0L
-                val delay = if (retryAfter > 0) {
-                    retryAfter * 1000
-                } else {
-                    2.0.pow(retryCount.toDouble()).toLong() * 1000
-                }
+                val delay = webRetryDelayMillis(urlConnection.getHeaderField("Retry-After"), retryCount)
+                urlConnection.disconnect()
+                urlConnection = null
 
                 LogCat.log("LocalizationHelper: 429 Too Many Requests. Retrying in $delay ms... (Attempt ${retryCount + 1})")
 
                 try {
                     Thread.sleep(delay)
                 } catch (_: InterruptedException) {
+                    Thread.currentThread().interrupt()
                     return null
                 }
                 return fetchFromWebWithRedirects(url, redirectCount, retryCount + 1)

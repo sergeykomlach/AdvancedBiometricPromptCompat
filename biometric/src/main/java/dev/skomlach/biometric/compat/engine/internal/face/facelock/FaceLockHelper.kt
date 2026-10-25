@@ -35,6 +35,7 @@ import java.lang.reflect.InvocationTargetException
 
 
 class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
+    private var activeInterface = faceLockInterface
     private var targetView: View? = null
     private var mFaceLock: FaceLock? = null
     private var mFaceLockServiceRunning = false
@@ -92,16 +93,21 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
     }
 
 
-    fun initFacelock() {
+    fun initFacelock() = initFacelock(faceLockInterface)
+
+    internal fun initFacelock(faceLockInterface: FaceLockInterface) {
+        stopFaceLock()
+        activeInterface = faceLockInterface
 
         d(TAG + ".initFacelock")
         try {
-            mCallback = object : IFaceLockCallback {
+            val callback = object : IFaceLockCallback {
 
                 var screenLock: PowerManager.WakeLock? = null
 
                 @Throws(RemoteException::class)
                 override fun unlock() {
+                    if (mCallback !== this) return
                     d(TAG + ".IFaceIdCallback.unlock")
                     stopFaceLock()
                     d(TAG + ".IFaceIdCallback.exec onAuthorized")
@@ -110,22 +116,21 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
 
                 @Throws(RemoteException::class)
                 override fun cancel() {
+                    if (mCallback !== this) return
                     d(TAG + ".IFaceIdCallback.cancel")
                     if (mBoundToFaceLockService) {
                         d(TAG + ".timeout")
-                        faceLockInterface.onError(
-                            FACELOCK_TIMEOUT,
-                            getMessage(FACELOCK_TIMEOUT)
-                        )
                         if (screenLock?.isHeld == true) {
                             screenLock?.release()
                         }
                         stopFaceLock()
+                        faceLockInterface.onError(FACELOCK_TIMEOUT, getMessage(FACELOCK_TIMEOUT))
                     }
                 }
 
                 @Throws(RemoteException::class)
                 override fun reportFailedAttempt() {
+                    if (mCallback !== this) return
                     d(TAG + ".IFaceIdCallback.reportFailedAttempt")
                     faceLockInterface.onError(
                         FACELOCK_FAILED_ATTEMPT, getMessage(
@@ -136,10 +141,12 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
 
                 @Throws(RemoteException::class)
                 override fun exposeFallback() {
+                    if (mCallback !== this) return
                     d(TAG + ".IFaceIdCallback.exposeFallback")
                 }
 
                 override fun pokeWakelock(millis: Int) {
+                    if (mCallback !== this) return
                     d(TAG + ".IFaceIdCallback.pokeWakelock1")
                     try {
                         val pm =
@@ -161,6 +168,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
 
                 @Throws(RemoteException::class)
                 override fun pokeWakelock() {
+                    if (mCallback !== this) return
                     d(TAG + ".IFaceIdCallback.pokeWakelock2")
                     try {
                         val pm =
@@ -180,13 +188,13 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                     }
                 }
             }
+            mCallback = callback
             mServiceConnection = object : ServiceConnection {
                 override fun onServiceDisconnected(name: ComponentName) {
+                    if (mServiceConnection !== this) return
                     d(TAG + ".ServiceConnection.onServiceDisconnected")
                     try {
-                        mCallback?.let {
-                            mFaceLock?.unregisterCallback(it)
-                        }
+                        mFaceLock?.unregisterCallback(callback)
                     } catch (e: Exception) {
                         if (e is InvocationTargetException) {
                             e(
@@ -204,12 +212,11 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                 }
 
                 override fun onServiceConnected(name: ComponentName, service: IBinder) {
+                    if (mServiceConnection !== this) return
                     d(TAG + ".ServiceConnection.onServiceConnected")
                     mBoundToFaceLockService = true
                     try {
-                        mCallback?.let {
-                            mFaceLock?.registerCallback(it)
-                        }
+                        mFaceLock?.registerCallback(callback)
                     } catch (e: Exception) {
                         if (e is InvocationTargetException) {
                             e(
@@ -222,7 +229,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                         }
                         mBoundToFaceLockService = false
                     }
-                    faceLockInterface.onConnected()
+                    if (mServiceConnection === this) faceLockInterface.onConnected()
                 }
             }
             if (!mBoundToFaceLockService) {
@@ -258,6 +265,9 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
     fun stopFaceLock() {
 
         d(TAG + ".stopFaceLock")
+        val callback = mCallback
+        mCallback = null
+        mServiceConnection = null
         if (mFaceLockServiceRunning) {
             try {
                 d(TAG + ".Stopping FaceId")
@@ -266,6 +276,9 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                 e(e, TAG + "Caught exception stopping FaceId: $e")
             }
             mFaceLockServiceRunning = false
+        }
+        if (callback != null) {
+            try { mFaceLock?.unregisterCallback(callback) } catch (e: Exception) { e(e, TAG) }
         }
         mFaceLock?.unbind()
         if (mBoundToFaceLockService) {
@@ -278,6 +291,8 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
     // Tells the FaceId service to start displaying its UI and perform recognition
     private fun startFaceAuth(targetView: View) {
         d(TAG + ".startFaceLock")
+        val callbacks = activeInterface
+        val callback = mCallback ?: return
         if (!mFaceLockServiceRunning) {
             try {
                 d(TAG + ".Starting FaceId")
@@ -291,7 +306,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                 )
             } catch (e: Exception) {
                 e(e, TAG + ("Caught exception starting FaceId: " + e.message))
-                faceLockInterface.onError(FACELOCK_CANNT_START, getMessage(FACELOCK_CANNT_START))
+                if (mCallback === callback) callbacks.onError(FACELOCK_CANNT_START, getMessage(FACELOCK_CANNT_START))
                 return
             }
             mFaceLockServiceRunning = true

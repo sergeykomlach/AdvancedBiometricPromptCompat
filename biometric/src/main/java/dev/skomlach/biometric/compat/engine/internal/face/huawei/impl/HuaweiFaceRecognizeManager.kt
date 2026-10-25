@@ -26,6 +26,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.locks.ReentrantLock
+import dev.skomlach.biometric.compat.engine.internal.face.FaceAuthenticationRequestGate
 
 
 class HuaweiFaceRecognizeManager {
@@ -200,7 +201,9 @@ class HuaweiFaceRecognizeManager {
         }
     }
 
-    private var mAuthenticatorCallback: HuaweiFaceManager.AuthenticatorCallback? = null
+    private val requests = FaceAuthenticationRequestGate<HuaweiFaceManager.AuthenticatorCallback> { action ->
+        ExecutorHelper.post { action() }
+    }
 
     //    EMUI 10/0/0
     //    [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 14 type 2 code 1 errCode 9]
@@ -227,58 +230,25 @@ class HuaweiFaceRecognizeManager {
                 .append(")")
             d(str, stringBuilder.toString())
 
-            ExecutorHelper.post {
-                if (mAuthenticatorCallback == null) {
-                    e(TAG, "mAuthenticatorCallback empty in onCallbackEvent ")
-                    return@post
-                }
-                if (type != TYPE_CALLBACK_AUTH) {
-                    str = TAG
-                    stringBuilder = StringBuilder()
-                    stringBuilder.append(" gotten not huawei's auth callback reqid ")
-                    e(str, stringBuilder.toString())
-                } else
-                    if (code == CODE_CALLBACK_ACQUIRE) {
-                        val result = converHwAcquireInfoToHuawei(errorCode)
-                        val str2 = TAG
-                        val stringBuilder2 = StringBuilder()
-                        stringBuilder2.append(" result ")
-                        stringBuilder2.append(result)
-                        d(str2, stringBuilder2.toString())
-                        if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
-                            mAuthenticatorCallback?.onAuthenticationStatus(result)
-                        }
-                    } else if (code == CODE_CALLBACK_RESULT) {
-                        val result = converHwErrorCodeToHuawei(errorCode)
-                        var str2 = TAG
-                        var stringBuilder2 = StringBuilder()
-                        stringBuilder2.append(" result ")
-                        stringBuilder2.append(result)
-                        d(str2, stringBuilder2.toString())
-                        if (result == HUAWEI_FACE_AUTHENTICATOR_SUCCESS) {
-                            d(TAG, "huawei face auth success")
-                            mAuthenticatorCallback?.onAuthenticationSucceeded()
-                            mAuthenticatorCallback = null
-                        } else if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
-                            str2 = TAG
-                            stringBuilder2 = StringBuilder()
-                            stringBuilder2.append(" error reason ")
-                            stringBuilder2.append(result)
-                            e(str2, stringBuilder2.toString())
-
-                            mAuthenticatorCallback?.onAuthenticationError(result)
-                            mAuthenticatorCallback = null
-                        } else {
-                            mAuthenticatorCallback?.onAuthenticationFailed()
-                            str2 = TAG
-                            stringBuilder2 = StringBuilder()
-                            stringBuilder2.append(" fail reason ")
-                            stringBuilder2.append(result)
-                            e(str2, stringBuilder2.toString())
-                        }
-                    } else {
-                        e("bad params, ignore")
+            if (type != TYPE_CALLBACK_AUTH) return
+            when (code) {
+                CODE_CALLBACK_ACQUIRE -> {
+                    val result = converHwAcquireInfoToHuawei(errorCode)
+                    if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
+                        requests.dispatch(reqId, terminal = false) { it.onAuthenticationStatus(result) }
                     }
+                }
+                CODE_CALLBACK_RESULT -> {
+                    val result = converHwErrorCodeToHuawei(errorCode)
+                    when (result) {
+                        HUAWEI_FACE_AUTHENTICATOR_SUCCESS ->
+                            requests.dispatch(reqId, terminal = true) { it.onAuthenticationSucceeded() }
+                        HUAWEI_FACE_AUTHENTICATOR_FAIL ->
+                            requests.dispatch(reqId, terminal = false) { it.onAuthenticationFailed() }
+                        else -> requests.dispatch(reqId, terminal = true) { it.onAuthenticationError(result) }
+                    }
+                }
+                else -> e("bad params, ignore")
             }
         }
     }
@@ -313,7 +283,14 @@ class HuaweiFaceRecognizeManager {
     }
 
 
-    fun setAuthCallback(authCallback: HuaweiFaceManager.AuthenticatorCallback?) {
-        mAuthenticatorCallback = authCallback
+    internal fun beginAuthentication(callback: HuaweiFaceManager.AuthenticatorCallback): Int =
+        requests.begin(callback)
+
+    internal fun isAuthenticationActive(requestId: Int): Boolean = requests.isActive(requestId)
+
+    internal fun failAuthentication(requestId: Int, error: Int) {
+        requests.dispatch(requestId, terminal = true) { it.onAuthenticationError(error) }
     }
+
+    internal fun cancelAuthentication(): Int? = requests.cancel()
 }

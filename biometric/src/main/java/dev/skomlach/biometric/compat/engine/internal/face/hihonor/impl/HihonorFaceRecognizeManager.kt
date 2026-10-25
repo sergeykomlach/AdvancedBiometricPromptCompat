@@ -26,6 +26,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.locks.ReentrantLock
+import dev.skomlach.biometric.compat.engine.internal.face.FaceAuthenticationRequestGate
 
 
 class HihonorFaceRecognizeManager {
@@ -200,7 +201,9 @@ class HihonorFaceRecognizeManager {
         }
     }
 
-    private var mAuthenticatorCallback: HihonorFaceManager.AuthenticatorCallback? = null
+    private val requests = FaceAuthenticationRequestGate<HihonorFaceManager.AuthenticatorCallback> { action ->
+        ExecutorHelper.post { action() }
+    }
 
     //    EMUI 10/0/0
     //    [HihonorFaceRecognize,  onCallbackEvent gotten reqId 14 type 2 code 1 errCode 9]
@@ -227,58 +230,25 @@ class HihonorFaceRecognizeManager {
                 .append(")")
             d(str, stringBuilder.toString())
 
-            ExecutorHelper.post {
-                if (mAuthenticatorCallback == null) {
-                    e(TAG, "mAuthenticatorCallback empty in onCallbackEvent ")
-                    return@post
-                }
-                if (type != TYPE_CALLBACK_AUTH) {
-                    str = TAG
-                    stringBuilder = StringBuilder()
-                    stringBuilder.append(" gotten not hihonor's auth callback reqid ")
-                    e(str, stringBuilder.toString())
-                } else
-                    if (code == CODE_CALLBACK_ACQUIRE) {
-                        val result = converHwAcquireInfoToHihonor(errorCode)
-                        val str2 = TAG
-                        val stringBuilder2 = StringBuilder()
-                        stringBuilder2.append(" result ")
-                        stringBuilder2.append(result)
-                        d(str2, stringBuilder2.toString())
-                        if (result != HIHONOR_FACE_AUTHENTICATOR_FAIL) {
-                            mAuthenticatorCallback?.onAuthenticationStatus(result)
-                        }
-                    } else if (code == CODE_CALLBACK_RESULT) {
-                        val result = converHwErrorCodeToHihonor(errorCode)
-                        var str2 = TAG
-                        var stringBuilder2 = StringBuilder()
-                        stringBuilder2.append(" result ")
-                        stringBuilder2.append(result)
-                        d(str2, stringBuilder2.toString())
-                        if (result == HIHONOR_FACE_AUTHENTICATOR_SUCCESS) {
-                            d(TAG, "hihonor face auth success")
-                            mAuthenticatorCallback?.onAuthenticationSucceeded()
-                            mAuthenticatorCallback = null
-                        } else if (result != HIHONOR_FACE_AUTHENTICATOR_FAIL) {
-                            str2 = TAG
-                            stringBuilder2 = StringBuilder()
-                            stringBuilder2.append(" error reason ")
-                            stringBuilder2.append(result)
-                            e(str2, stringBuilder2.toString())
-
-                            mAuthenticatorCallback?.onAuthenticationError(result)
-                            mAuthenticatorCallback = null
-                        } else {
-                            mAuthenticatorCallback?.onAuthenticationFailed()
-                            str2 = TAG
-                            stringBuilder2 = StringBuilder()
-                            stringBuilder2.append(" fail reason ")
-                            stringBuilder2.append(result)
-                            e(str2, stringBuilder2.toString())
-                        }
-                    } else {
-                        e("bad params, ignore")
+            if (type != TYPE_CALLBACK_AUTH) return
+            when (code) {
+                CODE_CALLBACK_ACQUIRE -> {
+                    val result = converHwAcquireInfoToHihonor(errorCode)
+                    if (result != HIHONOR_FACE_AUTHENTICATOR_FAIL) {
+                        requests.dispatch(reqId, terminal = false) { it.onAuthenticationStatus(result) }
                     }
+                }
+                CODE_CALLBACK_RESULT -> {
+                    val result = converHwErrorCodeToHihonor(errorCode)
+                    when (result) {
+                        HIHONOR_FACE_AUTHENTICATOR_SUCCESS ->
+                            requests.dispatch(reqId, terminal = true) { it.onAuthenticationSucceeded() }
+                        HIHONOR_FACE_AUTHENTICATOR_FAIL ->
+                            requests.dispatch(reqId, terminal = false) { it.onAuthenticationFailed() }
+                        else -> requests.dispatch(reqId, terminal = true) { it.onAuthenticationError(result) }
+                    }
+                }
+                else -> e("bad params, ignore")
             }
         }
     }
@@ -313,7 +283,14 @@ class HihonorFaceRecognizeManager {
     }
 
 
-    fun setAuthCallback(authCallback: HihonorFaceManager.AuthenticatorCallback?) {
-        mAuthenticatorCallback = authCallback
+    internal fun beginAuthentication(callback: HihonorFaceManager.AuthenticatorCallback): Int =
+        requests.begin(callback)
+
+    internal fun isAuthenticationActive(requestId: Int): Boolean = requests.isActive(requestId)
+
+    internal fun failAuthentication(requestId: Int, error: Int) {
+        requests.dispatch(requestId, terminal = true) { it.onAuthenticationError(error) }
     }
+
+    internal fun cancelAuthentication(): Int? = requests.cancel()
 }

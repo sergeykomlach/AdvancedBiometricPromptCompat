@@ -97,5 +97,8 @@ enum class AuthenticationFailureReason {
     UNSUPPORTED_AUTHENTICATION_TYPE,
 
     /** Debugger/hook detection rejected the authentication result; no success is delivered. */
-    HOOK_DETECTED
+    HOOK_DETECTED,
+
+    /** Available providers do not meet this operation's explicit trust requirements. */
+    INSUFFICIENT_TRUST
 }

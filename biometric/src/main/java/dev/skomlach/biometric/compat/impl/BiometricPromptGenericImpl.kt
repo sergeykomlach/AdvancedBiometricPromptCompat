@@ -71,6 +71,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     private var systemUiModuleTag: Int? = null
     private var stageTypes: Set<BiometricType> = emptySet()
     private var remainingStageTypes: Set<BiometricType> = emptySet()
+    internal var afterAuthenticationStopped: (() -> Unit)? = null
     @Volatile
     private var stageGeneration = 0L
     internal val systemPromptOwnsUi: Boolean
@@ -138,6 +139,12 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         this.authFinished.clear()
         seedPreSatisfiedEnrollResults()
         this.callback = callback
+        val missing = builder.missingAuthenticationTrustResults()
+        if (missing.isNotEmpty()) {
+            callback?.onFailed(missing)
+            cancelAuthentication()
+            return
+        }
         showStageUi()
     }
 
@@ -179,7 +186,13 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             } finally {
                 val closingDialog = dialog
                 dialog = null
-                closingDialog?.dismissDialog()
+                val stopped = afterAuthenticationStopped
+                afterAuthenticationStopped = null
+                if (stopped != null && closingDialog != null) closingDialog.dismissForStageHandoff(stopped)
+                else {
+                    closingDialog?.dismissDialog()
+                    stopped?.invoke()
+                }
             }
         }
     }
@@ -332,7 +345,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         }
 
         //non fatal
-        if (mutableListOf(
+        if (!builder.isBehaviorFirstStage() && mutableListOf(
                 AuthenticationFailureReason.SENSOR_FAILED,
                 AuthenticationFailureReason.AUTHENTICATION_FAILED
             ).contains(failureReason)
@@ -477,7 +490,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         return if (builder.enroll) {
             builder.getPendingEnrollTypes()
         } else {
-            builder.getEffectiveAvailableTypes()
+            builder.getAuthenticationExecutionTypes()
         }
     }
 
@@ -485,7 +498,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         return if (builder.enroll) {
             builder.getCurrentEnrollCompletionTypes()
         } else {
-            builder.getEffectiveAvailableTypes()
+            builder.getAuthenticationCompletionTypes()
         }
     }
 

@@ -5,11 +5,11 @@ import org.junit.Test
 import javax.crypto.Cipher
 
 class HookDetectionResultTest {
-    @Test fun detectedFastSuccessBecomesAnExplicitFailureWithoutCrypto() {
+    @Test fun detectedHookBecomesAnExplicitFailureWithoutCrypto() {
         val result = AuthenticationResult(BiometricType.BIOMETRIC_FINGERPRINT,
             cryptoObject = BiometricCryptoObject(cipher = Cipher.getInstance("AES/GCM/NoPadding")),
             cryptoSecurityLevel = CryptoSecurityLevel.APP_FLOW_NOT_BIOMETRIC_BOUND)
-        val rejected = hookDetectionFailure(setOf(result), true, 0, 200)!!.single()
+        val rejected = hookDetectionFailure(setOf(result), true)!!.single()
         assertEquals(result.type, rejected.type)
         assertEquals(AuthenticationFailureReason.HOOK_DETECTED, rejected.reason)
         assertNull(rejected.cryptoObject)
@@ -17,12 +17,18 @@ class HookDetectionResultTest {
     }
 
     @Test fun legitimateSuccessIsNotRewritten() {
-        assertNull(hookDetectionFailure(emptySet(), false, 0, 200))
-        assertNull(hookDetectionFailure(emptySet(), true, 201, 200))
+        assertNull(hookDetectionFailure(emptySet(), false))
+    }
+
+    @Test fun knownHookRejectsSoftwareProviderSuccess() {
+        val failure = hookDetectionFailure(setOf(AuthenticationResult(BiometricType.BIOMETRIC_BEHAVIOR)),
+            true)
+        assertNotNull(failure)
+        assertEquals(AuthenticationFailureReason.HOOK_DETECTED, failure!!.single().reason)
     }
 
     @Test fun emptySuccessStillProducesOneTerminalRejection() {
-        val result = hookDetectionFailure(emptySet(), true, 200, 200)!!.single()
+        val result = hookDetectionFailure(emptySet(), true)!!.single()
         assertNull(result.type)
         assertEquals(AuthenticationFailureReason.HOOK_DETECTED, result.reason)
     }
@@ -32,7 +38,7 @@ class HookDetectionResultTest {
         val events = mutableListOf<String>()
         var detected = false
         val confirmed = setOf(AuthenticationResult(BiometricType.BIOMETRIC_FINGERPRINT))
-        val failure = hookDetectionFailure(confirmed, detected, 0, 200)
+        val failure = hookDetectionFailure(confirmed, detected)
         val completion = AuthFlowCompletion(
             post = { queue += it }, ownsFlow = { true },
             cleanup = { events += if (failure == null) "commit" else "rollback" },
@@ -40,7 +46,7 @@ class HookDetectionResultTest {
         )
         completion.finish { events += if (failure == null) "success" else "failure" }
         detected = true
-        assertNotNull(hookDetectionFailure(confirmed, detected, 0, 200))
+        assertNotNull(hookDetectionFailure(confirmed, detected))
         queue.single().invoke()
         assertEquals(listOf("commit", "release", "success", "closed"), events)
     }
@@ -48,7 +54,7 @@ class HookDetectionResultTest {
     @Test fun hookRejectionRollsBackBeforeFailureAndCannotTurnIntoSuccess() {
         val queue = mutableListOf<() -> Unit>()
         val events = mutableListOf<String>()
-        val failure = hookDetectionFailure(emptySet(), true, 0, 200)!!
+        val failure = hookDetectionFailure(emptySet(), true)!!
         val completion = AuthFlowCompletion(
             post = { queue += it }, ownsFlow = { true },
             cleanup = { events += "rollback" }, release = { events += "release"; true },

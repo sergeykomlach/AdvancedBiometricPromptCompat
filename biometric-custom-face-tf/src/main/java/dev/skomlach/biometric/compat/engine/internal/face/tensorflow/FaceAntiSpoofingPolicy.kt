@@ -63,8 +63,15 @@ internal class FaceAntiSpoofingWindow(
         scores.addLast(validScore)
         while (scores.size > windowSize) scores.removeFirst()
         if (scores.size < minimumFrames) return FaceAntiSpoofingDecision.PENDING
-        val spoof = scores.average() >= threshold && validScore >= threshold &&
+        val average = scores.average()
+        val spoof = average >= threshold && validScore >= threshold &&
             scores.count { it >= threshold } >= minimumFrames
-        return if (spoof) FaceAntiSpoofingDecision.SPOOF else FaceAntiSpoofingDecision.PASS
+        val live = average < threshold && validScore < threshold &&
+            scores.count { it < threshold } >= minimumFrames
+        return when {
+            spoof -> FaceAntiSpoofingDecision.SPOOF
+            live -> FaceAntiSpoofingDecision.PASS
+            else -> FaceAntiSpoofingDecision.PENDING
+        }
     }
 }

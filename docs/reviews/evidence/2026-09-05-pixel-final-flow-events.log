@@ -1,0 +1,4 @@
+09-05 17:12:02.111 25280 25280 E BiometricLogging: [CheckBiometric.onFailed()]
+09-05 17:12:26.101 25280 25280 E BiometricLogging: [CheckBiometric.start() for BiometricAuthRequest(api=LEGACY_API, type=BIOMETRIC_FINGERPRINT, confirmation=ANY, provider=COMBINED) isRegister=false]
+09-05 17:12:26.292 25280 25280 D BiometricLogging: [BiometricPromptGenericImpl.authenticate(): doNotShowDialog=true]
+09-05 17:12:40.520 25280 25280 E BiometricLogging: [CheckBiometric.onSucceeded() for [AuthenticationResult(type=BIOMETRIC_FINGERPRINT, cryptoObject=null, reason=null, description=null, cryptoSecurityLevel=NONE)]; Криптографія не працює або вимкнена]

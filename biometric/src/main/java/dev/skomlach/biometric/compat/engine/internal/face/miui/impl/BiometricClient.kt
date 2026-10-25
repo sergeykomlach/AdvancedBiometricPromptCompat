@@ -294,7 +294,19 @@ class BiometricClient {
     }
 
     @JvmOverloads
-    fun sendCommand(cmd: Int, arg: Int = 0) {
+    fun sendCommand(cmd: Int, arg: Int = 0) = queueCommand(cmd, arg, null)
+
+    internal fun authenticationChannel(callback: ServiceCallback): AuthenticationChannel {
+        val looper = checkNotNull(mConnectHandler).looper
+        val reply = Messenger(ConnectHandler(looper, callback))
+        return AuthenticationChannel { command -> queueCommand(command, 0, reply) }
+    }
+
+    internal class AuthenticationChannel(private val send: (Int) -> Unit) {
+        fun sendCommand(command: Int) = send(command)
+    }
+
+    private fun queueCommand(cmd: Int, arg: Int, reply: Messenger?) {
         val z = BiometricConnect.DEBUG_LOG
         val str = ":Send MSG: sendCommand cmd:"
         val str2 = ":"
@@ -313,6 +325,7 @@ class BiometricClient {
         msg.what = 1001
         msg.arg1 = cmd
         msg.arg2 = arg
+        msg.replyTo = reply
         val msg_cmd = Message.obtain(mHandler, 5003)
         msg_cmd.obj = msg
         mHandler?.sendMessage(msg_cmd)
@@ -615,7 +628,7 @@ class BiometricClient {
             d(str3, stringBuilder3.toString())
         }
         try {
-            msg.replyTo = mReplyMessager
+            if (msg.replyTo == null) msg.replyTo = mReplyMessager
             replayReadyLatch_ = CountDownLatch(1)
             mSendMessager?.send(msg)
             accessLock_.runCatching {
@@ -679,8 +692,12 @@ class BiometricClient {
         fun onBiometricServiceDisconnected()
     }
 
-    private inner class ConnectHandler(looper: Looper) : Handler(looper) {
+    private inner class ConnectHandler(
+        looper: Looper,
+        private val ownedCallback: ServiceCallback? = null
+    ) : Handler(looper) {
         override fun handleMessage(msg: Message) {
+            val callback = ownedCallback ?: mServiceCallback
             var stringBuilder: StringBuilder
             val z = BiometricConnect.DEBUG_LOG
             val str = ", arg1:"
@@ -704,7 +721,7 @@ class BiometricClient {
                 return
             }
             accessLock_.runCatching { this.lock() }
-            if (mServiceCallback == null) {
+            if (callback == null) {
                 stringBuilder = StringBuilder()
                 stringBuilder.append(str2)
                 stringBuilder.append(mTagInfo)
@@ -753,7 +770,7 @@ class BiometricClient {
                 val str4 = BiometricConnect.MSG_REPLY_MODULE_ID
                 val stringBuilder3: StringBuilder
                 if (i == 1004) {
-                    if (!result || mServiceCallback == null) {
+                    if (!result || callback == null) {
                         stringBuilder3 = StringBuilder()
                         stringBuilder3.append(str2)
                         stringBuilder3.append(mTagInfo)
@@ -763,7 +780,7 @@ class BiometricClient {
                         stringBuilder3.append(msg.arg1)
                         e(str3, stringBuilder3.toString())
                     } else {
-                        mServiceCallback?.onBiometricEventCallback(
+                        callback?.onBiometricEventCallback(
                             in_bundle.getInt(str4),
                             in_bundle.getInt("event"),
                             in_bundle.getInt(BiometricConnect.MSG_REPLY_ARG1),
@@ -778,7 +795,7 @@ class BiometricClient {
                         this.unlock()
                     }
                 } else {
-                    if (!result || mServiceCallback == null) {
+                    if (!result || callback == null) {
                         stringBuilder3 = StringBuilder()
                         stringBuilder3.append(str2)
                         stringBuilder3.append(mTagInfo)
@@ -788,7 +805,7 @@ class BiometricClient {
                         stringBuilder3.append(msg.arg1)
                         e(str3, stringBuilder3.toString())
                     } else {
-                        mServiceCallback?.onBiometricBundleCallback(
+                        callback?.onBiometricBundleCallback(
                             in_bundle.getInt(str4),
                             in_bundle.getInt("key"),
                             in_bundle

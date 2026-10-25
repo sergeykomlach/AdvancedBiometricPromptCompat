@@ -1,5 +1,11 @@
 package dev.skomlach.common.protection
 
+import android.content.pm.ApplicationInfo
+
+/** Package names and accessibility-tool metadata alone do not establish provenance. */
+internal fun isSystemAccessibilitySource(applicationFlags: Int): Boolean =
+    applicationFlags and (ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+
 /** Canonical package/class identity; relative classes follow Android ComponentName semantics. */
 internal data class AccessibilityServiceIdentity private constructor(
     val packageName: String,

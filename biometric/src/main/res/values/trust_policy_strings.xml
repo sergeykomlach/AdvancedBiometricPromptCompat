@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_authentication_trust_required">This authentication method does not meet the security requirements for this operation.</string>
+</resources>

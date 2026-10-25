@@ -35,7 +35,8 @@ object BehaviorScorer {
         if (enrolled.mode != probe.mode) {
             return BehaviorScore(0f, reason = BehaviorScoreReason.MODE_MISMATCH)
         }
-        if (enrolled.phrase != null && probe.phrase != null && enrolled.phrase != probe.phrase) {
+        if (enrolled.mode != BehaviorMode.SIGNATURE &&
+            enrolled.phrase != null && probe.phrase != null && enrolled.phrase != probe.phrase) {
             return BehaviorScore(0f, reason = BehaviorScoreReason.PHRASE_MISMATCH)
         }
         if (!enrolled.hasRequiredDataForMode() || !probe.hasRequiredDataForMode()) {
@@ -165,8 +166,15 @@ object BehaviorScorer {
         val duration = (points.last().timestampMs - firstTime).takeIf { it > 0L } ?: 1L
         val scale = max(maxX - minX, maxY - minY).takeIf { it > 0f } ?: return emptyList()
 
+        var previousStroke: Int? = null
+        var strokeOrdinal = -1
         return points.map {
+            if (previousStroke != it.strokeId) {
+                previousStroke = it.strokeId
+                strokeOrdinal++
+            }
             it.copy(
+                strokeId = strokeOrdinal,
                 x = (it.x - minX) / scale,
                 y = (it.y - minY) / scale,
                 timestampMs = (((it.timestampMs - firstTime).toDouble() / duration) * 1_000_000).toLong()
@@ -271,7 +279,8 @@ object BehaviorScorer {
             y = a.y + (b.y - a.y) * ratio,
             timestampMs = (a.timestampMs + (b.timestampMs - a.timestampMs) * ratio).toLong(),
             pressure = interpolateNullable(a.pressure, b.pressure, ratio),
-            size = interpolateNullable(a.size, b.size, ratio)
+            size = interpolateNullable(a.size, b.size, ratio),
+            strokeId = a.strokeId
         )
     }
 

@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">Đang kiểm tra hành vi</string>
     <string name="biometriccompat_behavior_error_capture_invalid">Quá trình thu thập bị gián đoạn hoặc không hợp lệ. Hãy thử lại.</string>
     <string name="biometriccompat_behavior_error_accessibility">Một dịch vụ hỗ trợ tiếp cận không đáng tin cậy đang hoạt động. Hãy tắt dịch vụ đó rồi thử lại.</string>
+    <string name="biometriccompat_behavior_action_restart">Bắt đầu lại</string>
 </resources>
 
 

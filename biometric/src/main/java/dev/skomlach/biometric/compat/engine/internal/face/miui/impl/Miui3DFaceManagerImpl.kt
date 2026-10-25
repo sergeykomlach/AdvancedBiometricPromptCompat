@@ -173,7 +173,15 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
     private lateinit var mHasFaceDataObserver: ContentObserver
     private val mMiuifaceList: List<Miuiface>? = null
     private var boostFramework: Any? = null
-    private var mAuthenticationCallback: IMiuiFaceManager.AuthenticationCallback?
+    private val authenticationEvents = Miui3DAuthenticationEvents()
+    private var authentication: AuthenticationOperation? = null
+    private class AuthenticationOperation(
+        val attempt: Miui3DAuthenticationEvents.Attempt,
+        val channel: BiometricClient.AuthenticationChannel,
+        val handler: Handler,
+        val timeout: Runnable,
+        var closed: Boolean = false
+    )
     private var mBiometricClient: BiometricClient? = null
     private var mDatabaseChanged = false
     @Volatile
@@ -193,7 +201,6 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
     private var mRemovalMiuiface: Miuiface? = null
     private var mTemplateIdMax = 0
     private var mTemplateItemList: MutableList<TemplateItem?>? = null
-    private var mcancelStatus = 0
     private var myDB: SQLiteDatabase? = null
     private var myTemplateItemList: MutableList<TemplateItem?>? = null
     private var sAcquireFunc: Method? = null
@@ -205,7 +212,6 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         mDisonnected = true
         isReleased = false
         mRemovalCallback = null
-        mAuthenticationCallback = null
         mEnrollmentCallback = null
 
         mHandler = ClientHandler(
@@ -306,7 +312,9 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         bundle.classLoader = BiometricConnect::class.java.classLoader
     }
 
+    @Synchronized
     override fun release() {
+        authentication?.let { cancelAuthentication(it) }
         val str: String
         val stringBuilder: StringBuilder
         if (isReleased) {
@@ -453,43 +461,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                 }
 
                                 else -> {
-                                    val authenticationCallback: IMiuiFaceManager.AuthenticationCallback?
                                     when (event) {
-                                        40 -> {
-                                            str = LOG_TAG
-                                            stringBuilder2 = StringBuilder()
-                                            stringBuilder2.append("onBiometricEventCallback  MSG_CB_EVENT_VERIFY_SUCCESS mAuthenticationCallback:")
-                                            stringBuilder2.append(mAuthenticationCallback)
-                                            d(str, stringBuilder2.toString())
-                                            authenticationCallback = mAuthenticationCallback
-                                            if (authenticationCallback != null) {
-                                                authenticationCallback.onAuthenticationSucceeded(
-                                                    null
-                                                )
-                                                cancelAuthentication()
-                                            }
-                                        }
-
-                                        41 -> {
-                                            authenticationCallback = mAuthenticationCallback
-                                            if (authenticationCallback != null) {
-                                                authenticationCallback.onAuthenticationHelp(
-                                                    70,
-                                                    null
-                                                )
-                                            }
-                                        }
-
-                                        42 -> {
-                                            authenticationCallback = mAuthenticationCallback
-                                            if (authenticationCallback != null) {
-                                                authenticationCallback.onAuthenticationHelp(
-                                                    arg1,
-                                                    null
-                                                )
-                                            }
-                                        }
-
                                         43 -> {
                                             val removalCallback = mRemovalCallback
                                             if (removalCallback != null) {
@@ -921,41 +893,29 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         tryConnectService()
     }
 
-    private fun cancelAuthentication() {
-        val str: String
-        val stringBuilder: StringBuilder
-        if (isReleased) {
-            str = LOG_TAG
-            stringBuilder = StringBuilder()
-            stringBuilder.append("stopVerify ctx:")
-            stringBuilder.append(context)
-            stringBuilder.append(" ignore!")
-            e(str, stringBuilder.toString())
-            return
-        }
-        if (mcancelStatus != 0) {
-            mAuthenticationCallback?.onAuthenticationError(34, getMessageInfo(34))
-            mcancelStatus = 0
-        }
+    @Synchronized
+    private fun finishAuthentication(operation: AuthenticationOperation) {
+        if (operation.closed) return
+        operation.closed = true
+        if (authentication === operation) authentication = null
+        operation.handler.removeCallbacks(operation.timeout)
+        operation.channel.sendCommand(6)
         try {
-            if (sReleaseFunc != null) {
-                sReleaseFunc?.invoke(boostFramework)
-            }
-        } catch (e: IllegalAccessException) {
-            e(e)
-        } catch (e2: InvocationTargetException) {
-            e(e2)
+            sReleaseFunc?.invoke(boostFramework)
+        } catch (error: IllegalAccessException) {
+            e(error)
+        } catch (error: InvocationTargetException) {
+            e(error)
         }
-        str = LOG_TAG
-        stringBuilder = StringBuilder()
-        stringBuilder.append("cancelAuthentication ctx:")
-        stringBuilder.append(context)
-        d(str, stringBuilder.toString())
-        mAuthenticationCallback = null
-        mBiometricClient?.sendCommand(6)
-        mHandler.removeMessages(1)
     }
 
+    @Synchronized
+    private fun cancelAuthentication(operation: AuthenticationOperation) {
+        if (!operation.attempt.cancel()) return
+        finishAuthentication(operation)
+    }
+
+    @Synchronized
     override fun authenticate(
         cancel: CancellationSignal?,
         flags: Int,
@@ -987,7 +947,6 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                     d(LOG_TAG, "authentication already canceled")
                     return
                 }
-                cancel.setOnCancelListener(OnAuthenticationCancelListener())
             }
             try {
                 if (sAcquireFunc != null) {
@@ -1008,12 +967,34 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             stringBuilder.append(str2)
             stringBuilder.append(context)
             d(str, stringBuilder.toString())
-            useHandler(handler)
-            mAuthenticationCallback = callback
+            authentication?.let {
+                it.attempt.cancel()
+                finishAuthentication(it)
+            }
+            val resultHandler = Handler(handler?.looper ?: context.mainLooper)
+            lateinit var operation: AuthenticationOperation
+            val attempt = authenticationEvents.begin(callback,
+                enqueue = { action -> resultHandler.post { action() }; Unit },
+                onTerminal = { finishAuthentication(operation) })
+            val receiver = object : ServiceCallback {
+                override fun onBiometricEventCallback(module: Int, event: Int, arg1: Int, arg2: Int) {
+                    if (!isReleased && !mDisonnected) attempt.onEvent(module, event, arg1, arg2)
+                }
+                override fun onBiometricServiceConnected() = Unit
+                override fun onBiometricServiceDisconnected() = Unit
+                override fun onBiometricEventClassLoader(bundle: Bundle) {
+                    bundle.classLoader = BiometricConnect::class.java.classLoader
+                }
+                override fun onBiometricBundleCallback(module: Int, key: Int, bundle: Bundle) = Unit
+            }
+            val channel = checkNotNull(mBiometricClient).authenticationChannel(receiver)
+            operation = AuthenticationOperation(attempt, channel, resultHandler, Runnable { attempt.timeout() })
+            authentication = operation
+            cancel?.setOnCancelListener(OnAuthenticationCancelListener(operation))
+            if (!attempt.isActive) return
             tryConnectService()
-            mBiometricClient?.sendCommand(5)
-            val handler2 = mHandler
-            handler2.sendMessageDelayed(handler2.obtainMessage(1), timeout.toLong())
+            channel.sendCommand(5)
+            resultHandler.postDelayed(operation.timeout, timeout.toLong())
         } else {
             throw IllegalArgumentException("Must supply an authentication callback")
         }
@@ -1345,11 +1326,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             }
             val i = msg.what
             if (i != 0) {
-                if (i == 1 && mAuthenticationCallback != null) {
-                    d(LOG_TAG, "xiaomi ---> RECEIVER_ON_AUTHENTICATION_TIMEOUT")
-                    mAuthenticationCallback?.onAuthenticationFailed()
-                    cancelAuthentication()
-                }
+
             } else if (mEnrollmentCallback != null) {
                 mEnrollmentCallback?.onEnrollmentError(66, null)
                 d(LOG_TAG, "RECEIVER_ON_ENROLL_TIMEOUT")
@@ -1358,11 +1335,10 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         }
     }
 
-    private inner class OnAuthenticationCancelListener :
+    private inner class OnAuthenticationCancelListener(private val operation: AuthenticationOperation) :
         CancellationSignal.OnCancelListener {
         override fun onCancel() {
-            mcancelStatus = 1
-            cancelAuthentication()
+            cancelAuthentication(operation)
         }
     }
 

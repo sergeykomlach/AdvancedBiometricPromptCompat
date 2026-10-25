@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="20dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/signature_system_description" android:textAppearance="?android:attr/textAppearanceMedium" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" android:text="@string/signature_system_enrollment_hint" />
+        <dev.skomlach.biometric.app.signature.SignatureCaptureView android:id="@+id/signature_pad"
+            android:layout_width="match_parent" android:layout_height="240dp" android:layout_marginTop="16dp"
+            android:background="@drawable/signature_input_background" />
+        <TextView android:id="@+id/behavior_status" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:text="@string/signature_system_no_signal" android:accessibilityLiveRegion="polite" />
+        <TextView android:id="@+id/signature_status" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" android:text="@string/signature_system_ready" android:accessibilityLiveRegion="polite" />
+        <Button android:id="@+id/signature_submit" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:text="@string/signature_system_submit" />
+        <Button android:id="@+id/signature_restart" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/signature_system_restart" />
+        <Button android:id="@+id/signature_cancel" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/signature_system_cancel" android:enabled="false" />
+    </LinearLayout>
+</ScrollView>

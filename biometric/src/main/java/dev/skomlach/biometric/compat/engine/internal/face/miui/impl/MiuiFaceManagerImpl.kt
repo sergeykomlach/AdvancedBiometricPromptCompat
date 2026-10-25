@@ -169,7 +169,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
     private val context = AndroidContext.appContext
     private val mBinderLock = Any()
     private val mToken: IBinder = Binder()
-    private var mAuthenticationCallback: IMiuiFaceManager.AuthenticationCallback? = null
+    private val authenticationCallbacks = MiuiAuthenticationCallbacks()
     private var mEnrollmentCallback: IMiuiFaceManager.EnrollmentCallback? = null
     private val mFaceUnlockModel = 0
     private lateinit var mHandler: Handler
@@ -197,7 +197,6 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                 reply?.writeNoException()
                 true
             } else if (i != 301) {
-                val readLong: Long
                 when (i) {
                     201 -> {
                         data.enforceInterface(RECEIVER_DESCRIPTOR)
@@ -221,27 +220,6 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                             data.readInt(),
                             data.readLong()
                         ).sendToTarget()
-                        reply?.writeNoException()
-                        true
-                    }
-
-                    203 -> {
-                        data.enforceInterface(RECEIVER_DESCRIPTOR)
-                        readLong = data.readLong()
-                        var face: Miuiface? = null
-                        if (data.readInt() != 0) {
-                            face = Miuiface.CREATOR.createFromParcel(data)
-                        }
-                        mHandler.obtainMessage(203, data.readInt(), 0, face)
-                            .sendToTarget()
-                        reply?.writeNoException()
-                        true
-                    }
-
-                    204 -> {
-                        data.enforceInterface(RECEIVER_DESCRIPTOR)
-                        readLong = data.readLong()
-                        mHandler.obtainMessage(204).sendToTarget()
                         reply?.writeNoException()
                         true
                     }
@@ -460,7 +438,9 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
             return res
         }
 
-    private fun cancelAuthentication() {
+    @Synchronized
+    private fun cancelAuthentication(attempt: MiuiAuthenticationCallbacks.Attempt) {
+        if (!attempt.cancel()) return
         if (DEBUG) {
             d(TAG, "cancelAuthentication ")
         }
@@ -520,6 +500,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
             return res
         }
 
+    @Synchronized
     override fun authenticate(
         cancel: CancellationSignal?,
         flags: Int,
@@ -542,10 +523,15 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                     )
                     return
                 }
-                cancel.setOnCancelListener(OnAuthenticationCancelListener())
             }
-            useHandler(handler)
-            mAuthenticationCallback = callback
+            val resultHandler = Handler(handler?.looper ?: context.mainLooper)
+            val attempt = authenticationCallbacks.begin(callback) { action ->
+                resultHandler.post { action() }
+                Unit
+            }
+            val receiver = authenticationReceiver(attempt)
+            cancel?.setOnCancelListener(OnAuthenticationCancelListener(attempt))
+            if (!attempt.isActive) return
             mEnrollmentCallback = null
             try {
                 initService()
@@ -555,7 +541,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                         mToken,
                         -1,
                         -1,
-                        mServiceReceiver,
+                        receiver,
                         flags,
                         context.packageName,
                         timeout
@@ -565,7 +551,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                         TAG,
                         "mMiuiFaceService is null"
                     )
-                    callback.onAuthenticationError(2100, getMessageInfo(2100))
+                    attempt.error(2100, getMessageInfo(2100))
                 }
             } catch (e: Exception) {
                 e(
@@ -573,7 +559,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                     "Remote exception while authenticating: ",
                     e
                 )
-                callback.onAuthenticationError(2100, getMessageInfo(2100))
+                attempt.error(2100, getMessageInfo(2100))
             }
             return
         }
@@ -601,6 +587,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
         )
     }
 
+    @Synchronized
     override fun enroll(
         cryptoToken: ByteArray?,
         cancel: CancellationSignal,
@@ -614,6 +601,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
         var i: Int
         var e: RemoteException?
         if (enrollCallback != null) {
+            authenticationCallbacks.cancel()
             if (cancel != null) {
                 if (cancel.isCanceled) {
                     d(
@@ -701,7 +689,9 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
         return res
     }
 
+    @Synchronized
     override fun remove(face: Miuiface, callback: IMiuiFaceManager.RemovalCallback) {
+        authenticationCallbacks.cancel()
         if (DEBUG) {
             val stringBuilder = StringBuilder()
             stringBuilder.append("remove  faceId:")
@@ -716,7 +706,6 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                 mRemovalMiuiface = face
                 mRemovalCallback = callback
                 mEnrollmentCallback = null
-                mAuthenticationCallback = null
                 binderCallRemove(
                     mMiuiFaceService,
                     mToken,
@@ -1226,11 +1215,6 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
             enrollmentCallback.onEnrollmentError(errMsgId, errorMsg)
             return
         }
-        val authenticationCallback = mAuthenticationCallback
-        if (authenticationCallback != null) {
-            authenticationCallback.onAuthenticationError(errMsgId, errorMsg)
-            return
-        }
         val removalCallback = mRemovalCallback
         removalCallback?.onRemovalError(mRemovalMiuiface, errMsgId, errorMsg)
     }
@@ -1238,16 +1222,6 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
     private fun sendEnrollResult(face: Miuiface, remaining: Int) {
         val enrollmentCallback = mEnrollmentCallback
         enrollmentCallback?.onEnrollmentProgress(remaining, face.miuifaceId)
-    }
-
-    private fun sendAuthenticatedSucceeded(face: Miuiface, userId: Int) {
-        val authenticationCallback = mAuthenticationCallback
-        authenticationCallback?.onAuthenticationSucceeded(face)
-    }
-
-    private fun sendAuthenticatedFailed() {
-        val authenticationCallback = mAuthenticationCallback
-        authenticationCallback?.onAuthenticationFailed()
     }
 
     private fun sendLockoutReset() {
@@ -1264,8 +1238,6 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
             enrollmentCallback.onEnrollmentHelp(clientInfo, msg)
             return
         }
-        val authenticationCallback = mAuthenticationCallback
-        authenticationCallback?.onAuthenticationHelp(clientInfo, msg)
     }
 
     private fun getMessageInfo(msgId: Int): String {
@@ -1354,16 +1326,6 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                         return
                     }
 
-                    203 -> {
-                        sendAuthenticatedSucceeded(msg.obj as Miuiface, msg.arg1)
-                        return
-                    }
-
-                    204 -> {
-                        sendAuthenticatedFailed()
-                        return
-                    }
-
                     205 -> {
                         sendErrorResult((msg.obj as Long).toLong(), msg.arg1, msg.arg2)
                         return
@@ -1380,10 +1342,48 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
         }
     }
 
-    private inner class OnAuthenticationCancelListener :
+    private fun authenticationReceiver(attempt: MiuiAuthenticationCallbacks.Attempt): IBinder =
+        object : Binder() {
+            override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
+                when (code) {
+                    RECEIVER_ON_ON_ACQUIRED -> {
+                        data.enforceInterface(RECEIVER_DESCRIPTOR)
+                        val acquired = data.readInt()
+                        val vendor = data.readInt()
+                        data.readLong()
+                        val message = MiuiCodeToString.getAcquiredString(acquired, vendor)
+                        if (!message.isNullOrBlank()) attempt.help(acquired, message)
+                    }
+                    RECEIVER_ON_AUTHENTICATION_SUCCEEDED -> {
+                        data.enforceInterface(RECEIVER_DESCRIPTOR)
+                        data.readLong()
+                        val face = if (data.readInt() != 0) Miuiface.CREATOR.createFromParcel(data) else null
+                        data.readInt()
+                        attempt.succeeded(face)
+                    }
+                    RECEIVER_ON_AUTHENTICATION_FAILED -> {
+                        data.enforceInterface(RECEIVER_DESCRIPTOR)
+                        data.readLong()
+                        attempt.failed()
+                    }
+                    RECEIVER_ON_ERROR -> {
+                        data.enforceInterface(RECEIVER_DESCRIPTOR)
+                        val error = data.readInt()
+                        val vendor = data.readInt()
+                        data.readLong()
+                        attempt.error(error, MiuiCodeToString.getErrorString(error, vendor))
+                    }
+                    else -> return super.onTransact(code, data, reply, flags)
+                }
+                reply?.writeNoException()
+                return true
+            }
+        }
+
+    private inner class OnAuthenticationCancelListener(private val attempt: MiuiAuthenticationCallbacks.Attempt) :
         CancellationSignal.OnCancelListener {
         override fun onCancel() {
-            cancelAuthentication()
+            cancelAuthentication(attempt)
         }
     }
 

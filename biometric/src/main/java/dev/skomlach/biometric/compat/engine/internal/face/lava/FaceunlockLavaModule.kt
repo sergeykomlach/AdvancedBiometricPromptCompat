@@ -27,7 +27,6 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -42,19 +41,8 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
     private var faceLockHelper: FaceVerifyManager? = null
     private var facelockProxyListener: ProxyListener? = null
     override var isManagerAccessible = false
-    private val faceLockInterface: FaceUnlockCallback = object : FaceUnlockCallback {
-        override fun onFaceVerifyChanged(resultCode: Int, msg: String?) {
-            if (resultCode == 1) {
-                facelockProxyListener?.onAuthenticationSucceeded(null)
-            } else {
-                facelockProxyListener?.onAuthenticationError()
-            }
-        }
-    }
-
     init {
         faceLockHelper = FaceVerifyManager(context)
-        faceLockHelper?.setFaceUnlockCallback(faceLockInterface)
         isManagerAccessible = faceLockHelper != null
         if (listener != null) {
             listener?.initFinished(biometricMethod, this@FaceunlockLavaModule)
@@ -95,31 +83,30 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
         }
 
     @Throws(SecurityException::class)
+    @Synchronized
     override fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        if (!isAuthenticationActive(listener)) return
+        val requestListener = ownAuthenticationRequest(listener, cancellationSignal)
+        if (!isAuthenticationActive(requestListener)) return
+        if (!isAuthenticationActive(requestListener) || cancellationSignal?.isCanceled == true) return
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         try {
             d("$name: Facelock call authorize")
+            val proxy = ProxyListener(biometricCryptoObject, restartPredicate, cancellationSignal, requestListener)
             cancellationSignal?.setOnCancelListener {
-                stopAuth()
+                if (facelockProxyListener === proxy) stopAuth()
             }
-            authorize(
-                ProxyListener(
-                    biometricCryptoObject,
-                    restartPredicate,
-                    cancellationSignal,
-                    listener
-                )
-            )
+            authorize(proxy)
             return
         } catch (e: Throwable) {
             e(e, "$name: authenticate failed unexpectedly")
         }
-        listener?.onFailure(
+        requestListener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
             startAuthenticationFailureDescription()
@@ -127,11 +114,17 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
     }
 
     private fun authorize(proxyListener: ProxyListener) {
-        facelockProxyListener = proxyListener
-        faceLockHelper?.setFaceUnlockCallback(faceLockInterface)
-        authCallTimestamp.set(System.currentTimeMillis())
+        if (!proxyListener.isActive()) return
         faceLockHelper?.stopFaceVerify()
-        faceLockHelper?.bindFaceVerifyService()
+        facelockProxyListener = proxyListener
+        faceLockHelper?.setFaceUnlockCallback(object : FaceUnlockCallback {
+            override fun onFaceVerifyChanged(resultCode: Int, msg: String?) {
+                if (resultCode == 1) proxyListener.onAuthenticationSucceeded(null)
+                else proxyListener.onAuthenticationError()
+            }
+        })
+        authCallTimestamp.set(System.currentTimeMillis())
+        if (proxyListener.isActive()) faceLockHelper?.bindFaceVerifyService()
     }
 
 
@@ -145,7 +138,9 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
         private var selfCanceled = false
+        internal fun isActive(): Boolean = isAuthenticationActive(listener) && cancellationSignal?.isCanceled != true
         fun onAuthenticationError(): Void? {
+            if (!isAuthenticationCurrent(listener)) return null
             d("$name.onAuthenticationError")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout)
@@ -170,6 +165,7 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(tag(), failureReason, null)
+                    if (!isAuthenticationCurrent(listener)) return null
                     selfCanceled = true
                     stopAuth()
                     ExecutorHelper.postDelayed({
@@ -186,15 +182,17 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
                             AuthenticationFailureReason.AUTHENTICATION_FAILED
                         ).contains(failureReason)
                     ) {
+                        if (!isAuthenticationCurrent(listener)) return null
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(tag(), failureReason, null)
-                    postCancelTask {
+                    if (!isAuthenticationCurrent(listener)) return null
+                    postCancelTask(listener) {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
                             listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
-                            Core.cancelAuthentication(this@FaceunlockLavaModule)
+                            cancelAuthentication(listener)
                         }
                     }
                 }

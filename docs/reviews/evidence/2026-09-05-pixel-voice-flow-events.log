@@ -1,0 +1,5 @@
+09-05 17:06:59.207 21978 21978 D BiometricLogging: [BiometricPromptApi28Impl.startAuth(): primary=[] secondary=[BIOMETRIC_VOICE] plan=Api28StartAuthStagePlan(shouldShowSystemPrompt=false, legacyAuthTypes=[BIOMETRIC_VOICE])]
+09-05 17:07:00.491 21978 21978 E BiometricLogging: [CheckBiometric.onSucceeded() for [AuthenticationResult(type=BIOMETRIC_VOICE, cryptoObject=null, reason=null, description=null, cryptoSecurityLevel=NONE)]; Криптографія не працює або вимкнена]
+09-05 17:07:08.435 21978 21978 E BiometricLogging: [CheckBiometric.start() for BiometricAuthRequest(api=LEGACY_API, type=BIOMETRIC_VOICE, confirmation=ANY, provider=COMBINED) isRegister=false]
+09-05 17:07:08.589 21978 21978 D BiometricLogging: [BiometricPromptGenericImpl.authenticate(): doNotShowDialog=false]
+09-05 17:07:13.382 21978 21978 E BiometricLogging: [CheckBiometric.onSucceeded() for [AuthenticationResult(type=BIOMETRIC_VOICE, cryptoObject=null, reason=null, description=null, cryptoSecurityLevel=NONE)]; Криптографія не працює або вимкнена]

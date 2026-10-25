@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    private val secureContentOwners = mutableSetOf<Any>()
 
     private val controller: WindowInsetsControllerCompat by lazy {
         WindowInsetsControllerCompat(window, binding.root)
@@ -173,6 +174,15 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    internal fun acquireSecureContent(): AutoCloseable {
+        val owner = Any()
+        secureContentOwners += owner
+        updateUI()
+        return AutoCloseable {
+            if (secureContentOwners.remove(owner)) updateUI()
+        }
+    }
+
     fun updateUI() {
         if (SharedPreferenceProvider.getPreferences("app_settings")
                 .getBoolean("checkboxFullscreen", false)
@@ -181,7 +191,7 @@ class MainActivity : AppCompatActivity() {
         else
             showSystemUI()
 
-        if (SharedPreferenceProvider.getPreferences("app_settings")
+        if (secureContentOwners.isNotEmpty() || SharedPreferenceProvider.getPreferences("app_settings")
                 .getBoolean("checkboxWindowSecure", false)
         ) {
 //        prevent screen capturing

@@ -29,6 +29,10 @@ import dev.skomlach.biometric.compat.biometricErrorWithCodeDescription
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.biometricStartAuthenticationDescription
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.core.ModuleFeedbackListener
+import dev.skomlach.biometric.compat.engine.core.Core
+import dev.skomlach.biometric.compat.engine.core.ModuleAuthenticationRequests
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -54,6 +58,27 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     private val tag: Int = biometricMethod.id
     private val preferences: SharedPreferences = getPreferences("BiometricCompat_AbstractModule")
     protected var originalCancellationSignal: CancellationSignal? = null
+    private val authenticationRequests by lazy { ModuleAuthenticationRequests(tag()) }
+
+    internal fun ownAuthenticationRequest(listener: AuthenticationListener?, signal: CancellationSignal?): AuthenticationListener =
+        authenticationRequests.bind(listener, signal)
+
+    /** A delayed OEM retry must retain the request that scheduled it. */
+    internal fun isAuthenticationActive(listener: AuthenticationListener?): Boolean =
+        (listener as? ModuleFeedbackListener)?.isAuthenticationActive() != false
+
+    internal fun isAuthenticationCurrent(listener: AuthenticationListener?): Boolean =
+        (listener as? ModuleFeedbackListener)?.isCurrentRequest() != false
+
+    internal fun cancelAuthentication(listener: AuthenticationListener?) {
+        val request = listener as? ModuleFeedbackListener
+        if (request != null) request.cancelAuthentication() else Core.cancelAuthentication(this)
+    }
+
+    internal fun postCancelTask(listener: AuthenticationListener?, runnable: Runnable) {
+        val request = listener as? ModuleFeedbackListener
+        if (request != null) request.postCancelTask(runnable) else postCancelTask(runnable)
+    }
     val name: String
         get() = javaClass.simpleName
     val context = AndroidContext.appContext

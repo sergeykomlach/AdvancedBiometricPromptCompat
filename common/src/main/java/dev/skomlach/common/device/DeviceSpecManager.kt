@@ -103,13 +103,13 @@ object DeviceSpecManager {
                             val rec = manualParseDeviceSpec(fragment)
 
                             val phoneNameNorm = rec.phoneName
-                            if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName) {
+                            if (rec.hasUsableSensorSource() && (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName)) {
                                 LogCat.log("getDeviceSpecCompat $term; fired phoneNameNorm=$phoneNameNorm")
                                 return rec
                             }
 
                             val modelsNorm = rec.getModels()
-                            if (modelsNorm.any { m ->
+                            if (rec.hasUsableSensorSource() && modelsNorm.any { m ->
                                     m == model || (marketingModelNoBrand.isNotEmpty() && m == marketingModelNoBrand)
                                 }
                             ) {

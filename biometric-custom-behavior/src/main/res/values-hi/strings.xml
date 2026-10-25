@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">व्यवहार जाँचा जा रहा है</string>
     <string name="biometriccompat_behavior_error_capture_invalid">कैप्चर बाधित हुआ या अमान्य था। फिर से कोशिश करें।</string>
     <string name="biometriccompat_behavior_error_accessibility">एक अविश्वसनीय सुलभता सेवा सक्रिय है। उसे बंद करें और फिर से कोशिश करें।</string>
+    <string name="biometriccompat_behavior_action_restart">फिर शुरू करें</string>
 </resources>
 
 

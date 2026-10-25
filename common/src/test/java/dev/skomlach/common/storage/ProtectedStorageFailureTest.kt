@@ -17,7 +17,7 @@ class ProtectedStorageFailureTest {
             throw AssertionError("Backing preferences accessed while Keystore unavailable")
         } as SharedPreferences
         val cause = ProviderException("temporarily unavailable")
-        val prefs = EncryptedSharedPreferences(backing) {
+        val prefs = EncryptedSharedPreferences(backing, "unavailable-primary", MemoryPreferenceFence(), emptyList()) {
             attempts++
             throw cause
         }
@@ -28,7 +28,7 @@ class ProtectedStorageFailureTest {
             { prefs.getBoolean("enrolled", false) },
             { prefs.getFloat("score", 0f) },
             { prefs.getStringSet("templates", emptySet()) },
-            { prefs.all }, { prefs.contains("secret") },
+            { prefs.all }, { prefs.keySet() }, { prefs.contains("secret") },
             { prefs.edit().remove("secret").commit() },
             { prefs.edit().clear().apply() }
         )

@@ -87,6 +87,12 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         this.authFinished.clear()
         seedPreSatisfiedEnrollResults()
         this.callback = callback
+        val missing = builder.missingAuthenticationTrustResults()
+        if (missing.isNotEmpty()) {
+            callback?.onFailed(missing)
+            cancelAuthentication()
+            return
+        }
         onUiOpened()
         startAuth()
     }
@@ -234,7 +240,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
             failureCounter.incrementAndGet()
         }
         //non fatal
-        if (mutableListOf(
+        if (!builder.isBehaviorFirstStage() && mutableListOf(
                 AuthenticationFailureReason.SENSOR_FAILED,
                 AuthenticationFailureReason.AUTHENTICATION_FAILED
             ).contains(failureReason)
@@ -344,7 +350,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         return if (builder.enroll) {
             builder.getPendingEnrollTypes()
         } else {
-            builder.getAllAvailableTypes()
+            builder.getAuthenticationExecutionTypes()
         }
     }
 
@@ -352,7 +358,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         return if (builder.enroll) {
             builder.getCurrentEnrollCompletionTypes()
         } else {
-            builder.getAllAvailableTypes()
+            builder.getAuthenticationCompletionTypes()
         }
     }
 

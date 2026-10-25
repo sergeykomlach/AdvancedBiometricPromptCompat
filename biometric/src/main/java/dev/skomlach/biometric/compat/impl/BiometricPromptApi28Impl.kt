@@ -375,7 +375,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         this.authFinished.clear()
         updateSystemPromptStarted(false)
         this.hardwareConfirmation = null
-        nativePrimaryTypes = builder.getPrimaryAvailableTypes().toSet()
+        nativePrimaryTypes = builder.getPrimaryAvailableTypes().intersect(builder.getAuthenticationExecutionTypes())
         admittedSoftwareTypes = emptySet()
         deferredPreparation?.cancel()
         val sessionToken = authSessionToken
@@ -384,11 +384,18 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             { preparationTimeout?.let { ExecutorHelper.removeCallbacks(it) }; preparationTimeout = null }
         ) else null
         // Withheld software is not a requirement until its one preparation batch is admitted.
-        availableTypesAtStart = builder.getAllAvailableTypes().filterTo(LinkedHashSet()) {
+        availableTypesAtStart = (if (builder.enroll) builder.getAuthenticationExecutionTypes()
+            else builder.getAuthenticationCompletionTypes()).filterTo(LinkedHashSet()) {
             deferredPreparation == null || builder.selectedRoute(it)?.provider != BiometricProviderType.SOFTWARE
         }
         softwareEnrollTargetsAtStart = if (builder.hasSoftwareEnrollTargets()) builder.getPendingEnrollTypes().toSet() else emptySet()
         callback = cbk
+        val missing = builder.missingAuthenticationTrustResults()
+        if (missing.isNotEmpty()) {
+            callback?.onFailed(missing)
+            cancelAuthentication()
+            return
+        }
         if (requiresSensorSpecificRoute(
             builder.getBiometricAuthRequest().type,
             builder.getPrimaryAvailableTypes().any { builder.selectedRoute(it)?.usesBiometricPromptHardware == true },
@@ -517,7 +524,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 onFinished = { ready ->
                     if (!ready) admittedSoftwareTypes = emptySet()
                     applyDeferredSoftwareAdmission(
-                        builder.getAllAvailableTypes(), nativePrimaryTypes, admittedSoftwareTypes,
+                        builder.getAuthenticationExecutionTypes(), nativePrimaryTypes, admittedSoftwareTypes,
                         { builder.selectedRoute(it)?.provider == BiometricProviderType.SOFTWARE },
                         builder::disableBiometricType
                     )
@@ -584,7 +591,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     private fun eligibleDeferredSoftwareTypes(): Set<BiometricType> =
-        builder.getAllAvailableTypes().filterTo(LinkedHashSet()) { type ->
+        builder.getAuthenticationExecutionTypes().filterTo(LinkedHashSet()) { type ->
             if (type in nativePrimaryTypes) return@filterTo false
             val route = builder.selectedRoute(type) ?: return@filterTo false
             if (route.provider != BiometricProviderType.SOFTWARE) return@filterTo false
@@ -612,10 +619,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             val sessionToken = authSessionToken
             val legacyCallback = sessionLegacyAuthCallback ?: return
             val owner = legacySessionOwner
-            val bundle = BundleBuilder.create(builder).apply {
-                extras?.let { putAll(it) }
-                putBoolean(BundleBuilder.ENROLL, builder.enroll)
-            }
+            val bundle = BundleBuilder.create(builder, extras)
             ExecutorHelper.postDelayed({
                 if (!authSessionState.owns(sessionToken) || legacySessionOwner !== owner) return@postDelayed
                 types.forEach(builder::trackSoftwareEnrollment)
@@ -711,7 +715,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private fun remainingSecondaryTypes(): Set<BiometricType> {
         return builder.getSecondaryAvailableTypes()
             .filterTo(LinkedHashSet()) { type ->
-                type !in nativePrimaryTypes && !authFinished.containsKey(type) &&
+                type in builder.getAuthenticationExecutionTypes() && type !in nativePrimaryTypes && !authFinished.containsKey(type) &&
                         (deferredPreparation == null ||
                             builder.selectedRoute(type)?.provider != BiometricProviderType.SOFTWARE ||
                             type in admittedSoftwareTypes) &&

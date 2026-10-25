@@ -4,6 +4,13 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class AccessibilityServiceIdentityTest {
+    @Test fun installedPackageNameCannotEstablishSystemProvenance() {
+        assertFalse(isSystemAccessibilitySource(0))
+        assertFalse(isSystemAccessibilitySource(android.content.pm.ApplicationInfo.FLAG_INSTALLED))
+        assertTrue(isSystemAccessibilitySource(android.content.pm.ApplicationInfo.FLAG_SYSTEM))
+        assertTrue(isSystemAccessibilitySource(android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP))
+    }
+
     private val trusted = AccessibilityServiceIdentity.from("trusted.pkg", "trusted.pkg.Reader")!!
 
     @Test fun fullAndRelativeClassesIdentifyTheSameService() {

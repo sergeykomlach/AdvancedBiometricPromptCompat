@@ -1,0 +1,21 @@
+<resources>
+    <string name="signature_system_title">Підпис + системна біометрія</string>
+    <string name="signature_system_description">Намалюйте звичний підпис. Behavior — додатковий сигнал; підтвердити цю демонстраційну дію може лише системна біометрія.</string>
+    <string name="signature_system_enrollment_hint">Для сигналу збігу спершу зареєструйте Signature через Dialog → Behavior. Без профілю сигнал недоступний, а системна біометрія все одно обов’язкова. Для цього demo потрібен Android 9 або новіший.</string>
+    <string name="signature_system_pad_description">Намалюйте підпис тут</string>
+    <string name="signature_system_submit">Перевірити підпис і продовжити</string>
+    <string name="signature_system_restart">Новий підпис</string>
+    <string name="signature_system_cancel">Скасувати</string>
+    <string name="signature_system_ready">Намалюйте новий підпис для початку.</string>
+    <string name="signature_system_checking">Перевіряємо сигнал підпису…</string>
+    <string name="signature_system_prompt">Потрібне підтвердження системною біометрією.</string>
+    <string name="signature_system_success">Демонстраційну дію підтверджено системною біометрією.</string>
+    <string name="signature_system_failed">Системна біометрія не підтвердила дію. Перевірте реєстрацію в системі та спробуйте знову.</string>
+    <string name="signature_system_canceled">Скасовано. Для нової спроби почніть новий підпис.</string>
+    <string name="signature_system_need_signature">Завершіть чіткий підпис із кількома штрихами або почніть новий.</string>
+    <string name="signature_system_input_rejected">Ввід перервано або час вичерпано. Почніть новий підпис.</string>
+    <string name="signature_system_no_signal">Behavior: результату ще немає.</string>
+    <string name="signature_system_matched">Behavior: збіг (додатковий сигнал).</string>
+    <string name="signature_system_not_matched">Behavior: немає збігу (додатковий сигнал).</string>
+    <string name="signature_system_unavailable">Behavior: недоступний (додатковий сигнал).</string>
+</resources>

@@ -74,9 +74,7 @@ object SharedPreferenceProvider {
             .toList()
         ExecutorHelper.startOnBackground {
             runCatching {
-                EncryptionConfig.primaryInstance
-                EncryptionConfig.legacyDeviceIdInstance
-                EncryptionConfig.secondaryInstance
+                EncryptionConfig.keystoreOnlyInstance
                 normalizedNames.forEach { getProtectedPreferences(it) }
             }.onFailure {
                 LogCat.logException(it, "SharedPreferenceProvider.warmUpProtectedStorage")
@@ -110,19 +108,57 @@ object SharedPreferenceProvider {
             private const val KEYSTORE_SALT = "bio_hash_v2"
 
             @Volatile
+            // Legacy EncryptionConfig callers only. V3 protected preferences always require Keystore.
             var failClosedWhenKeyStoreUnavailable: Boolean = true
 
             val secondaryInstance: EncryptionConfig by lazy {
                 getFileBasedEncryptionConfig()
             }
 
+            /** Migration may read existing legacy keys, but must never generate replacement material. */
+            internal val existingLegacyFileInstance: EncryptionConfig? by lazy {
+                existingLegacyFileConfig(getDataDir())
+            }
+
+            internal fun existingLegacyFileConfig(directory: File): EncryptionConfig? {
+                val password = File(directory, "bio_key")
+                val salt = File(directory, "bio_hash")
+                // Salt alone belongs to the historical device-ID configuration.
+                return if (!password.exists()) null else {
+                    check(salt.exists()) { "Incomplete legacy key material" }
+                    EncryptionConfig(
+                        KeyMaterialFile.readOrCreate(password, 32, { error("Legacy key disappeared") }),
+                        KeyMaterialFile.readOrCreate(salt, 128, { error("Legacy salt disappeared") })
+                    )
+                }
+            }
+
+            internal val existingLegacyDeviceIdInstance: EncryptionConfig? by lazy {
+                getDeviceIdEncryptionConfig(createSalt = false)
+            }
+
+            internal fun existingLegacySalt(directory: File): ByteArray? {
+                val salt = File(directory, "bio_hash")
+                if (!salt.exists()) return null
+                return KeyMaterialFile.readOrCreate(salt, 128, { error("Legacy salt disappeared") })
+            }
+
             val legacyDeviceIdInstance: EncryptionConfig? by lazy {
                 getDeviceIdEncryptionConfig()
             }
 
-            val primaryInstance: EncryptionConfig? by lazy {
+            internal val keystoreOnlyInstance: EncryptionConfig by lazy {
                 try {
                     getKeyStoreBackedEncryptionConfig()
+                } catch (error: Exception) {
+                    throw ProtectedStorageUnavailableException(
+                        "Android Keystore is unavailable; v3 protected preferences require its key", error)
+                }
+            }
+
+            val primaryInstance: EncryptionConfig? by lazy {
+                try {
+                    keystoreOnlyInstance
                 } catch (error: Exception) {
                     if (failClosedWhenKeyStoreUnavailable) {
                         throw ProtectedStorageUnavailableException(
@@ -251,7 +287,8 @@ object SharedPreferenceProvider {
                 return cipher.doFinal(ciphertext)
             }
 
-            private fun getDeviceIdEncryptionConfig(): EncryptionConfig? {
+            private fun getDeviceIdEncryptionConfig(createSalt: Boolean = true): EncryptionConfig? {
+                val existingSalt = if (createSalt) null else existingLegacySalt(getDataDir()) ?: return null
                 val context = appContext
 
                 @SuppressLint("HardwareIds")
@@ -294,7 +331,7 @@ object SharedPreferenceProvider {
                 val deviceID = deviceID().trim()
                 if (deviceID.isEmpty()) return null
                 val password = deviceID().reversed().toByteArray(UTF_8)
-                val bytes = readOrCreateBytes("bio_hash", 128)
+                val bytes = existingSalt ?: readOrCreateBytes("bio_hash", 128)
                 return EncryptionConfig(password, bytes.reversedArray())
             }
         }

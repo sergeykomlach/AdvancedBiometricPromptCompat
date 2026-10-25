@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">جارٍ التحقق من السلوك</string>
     <string name="biometriccompat_behavior_error_capture_invalid">تمت مقاطعة الالتقاط أو كان غير صالح. حاول مرة أخرى.</string>
     <string name="biometriccompat_behavior_error_accessibility">هناك خدمة تسهيل استخدام غير موثوقة نشطة. عطّلها وحاول مرة أخرى.</string>
+    <string name="biometriccompat_behavior_action_restart">إعادة البدء</string>
 </resources>
 
 

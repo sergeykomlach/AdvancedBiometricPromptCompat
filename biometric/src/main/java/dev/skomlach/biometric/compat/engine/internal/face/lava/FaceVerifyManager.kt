@@ -24,162 +24,126 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.*
+import dev.skomlach.biometric.compat.engine.internal.OemCallbackSession
 import dev.skomlach.biometric.compat.engine.internal.ServiceBindingState
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.SettingsHelper
 
-
 internal class FaceVerifyManager(private val mContext: Context) {
-
-    companion object {
-        private const val TAG = "PrizeFaceVerifyManager"
-        private const val VERIFY_MSG = 0
-    }
+    companion object { private const val TAG = "PrizeFaceVerifyManager" }
 
     private var mIFaceVerifyService: IFaceVerifyService? = null
     private var isBinded = false
     private val serviceBindingState = ServiceBindingState()
-    private var mFaceUnlockCallback: FaceUnlockCallback? = null
-    private var mHandler: Handler?
-    private val mMainThread: HandlerThread = HandlerThread(TAG).apply {
-        this.start()
-        mHandler = object : Handler(this.looper) {
-            override fun handleMessage(msg: Message) {
-                if (msg.what == VERIFY_MSG) {
-                    val result = msg.arg1
-                    val resultStr = msg.obj as? String
-                    mFaceUnlockCallback?.onFaceVerifyChanged(result, resultStr)
+    private val callbacks = OemCallbackSession<FaceUnlockCallback>()
+    private var connection: ServiceConnection? = null
+    private var registeredCallback: IFaceVerifyServiceCallback? = null
+    private val mMainThread = HandlerThread(TAG).apply { start() }
+    private val mHandler = Handler(mMainThread.looper)
 
-                }
-            }
-        }
-    }
-
-    /* Access modifiers changed, original: protected */
     @Throws(Throwable::class)
     fun finalize() {
-        mMainThread.looper?.quit()
+        stopFaceVerify()
         mMainThread.quit()
     }
 
-    private val mIFaceVerifyServiceCallback: IFaceVerifyServiceCallback =
-        object : IFaceVerifyServiceCallback.Stub() {
-            @Throws(RemoteException::class)
+    fun bindFaceVerifyService() {
+        val capture = callbacks.current() ?: return
+        if (isBinded) {
+            startFaceVerify()
+            return
+        }
+        if (serviceBindingState.isBindingActive()) return
+        val vendorCallback = object : IFaceVerifyServiceCallback.Stub() {
             override fun sendRecognizeResult(resultId: Int, commandStr: String?) {
-                val msg = mHandler?.obtainMessage() ?: return
-                msg.what = VERIFY_MSG
-                msg.arg1 = resultId
-                msg.obj = commandStr
-                mHandler?.sendMessage(msg)
+                mHandler.post {
+                    callbacks.deliver(capture) { it.onFaceVerifyChanged(resultId, commandStr) }
+                }
             }
         }
-    private val conn: ServiceConnection = object : ServiceConnection {
-        override fun onServiceDisconnected(name: ComponentName) {
-            isBinded = false
-            mIFaceVerifyService = null
-        }
+        val requestConnection = object : ServiceConnection {
+            override fun onServiceDisconnected(name: ComponentName) {
+                if (connection !== this || !callbacks.owns(capture)) return
+                isBinded = false
+                mIFaceVerifyService = null
+                registeredCallback = null
+            }
 
-        override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            if (!serviceBindingState.isBindingActive()) return
-            BiometricLoggerImpl.d(TAG, "onServiceConnected start")
-            mIFaceVerifyService = IFaceVerifyService.Stub.asInterface(service)
-            if (null != mIFaceVerifyService) {
+            override fun onServiceConnected(name: ComponentName, service: IBinder) {
+                if (connection !== this || !callbacks.owns(capture)) return
+                val remote = IFaceVerifyService.Stub.asInterface(service) ?: return
+                mIFaceVerifyService = remote
+                registeredCallback = vendorCallback
+                isBinded = true
                 try {
-                    BiometricLoggerImpl.d(
-                        TAG,
-                        "onServiceConnected mIFaceVerifyServiceCallback registered"
-                    )
-                    mIFaceVerifyService?.registerCallback(mIFaceVerifyServiceCallback)
-                    mIFaceVerifyService?.startVerify()
+                    remote.registerCallback(vendorCallback)
+                    if (connection === this && callbacks.owns(capture)) remote.startVerify()
                 } catch (e: RemoteException) {
                     BiometricLoggerImpl.e(e)
                 }
             }
-            isBinded = true
-            BiometricLoggerImpl.d(TAG, "onServiceConnected end")
+        }
+        connection = requestConnection
+        val intent = Intent().setComponent(ComponentName(
+            "com.prize.faceunlock", "com.sensetime.faceunlock.service.PrizeFaceDetectService"
+        ))
+        val accepted = try {
+            mContext.bindService(intent, requestConnection, Context.BIND_AUTO_CREATE)
+        } catch (e: Exception) {
+            BiometricLoggerImpl.e(e)
+            false
+        }
+        if (connection !== requestConnection) {
+            if (accepted) unbind(requestConnection)
+            return
+        }
+        serviceBindingState.recordBindResult(accepted)
+        if (!accepted) connection = null
+    }
+
+    fun unbindFaceVerifyService() = retireConnection(stopCapture = false)
+
+    private fun unbind(oldConnection: ServiceConnection) {
+        try {
+            mContext.unbindService(oldConnection)
+        } catch (e: IllegalArgumentException) {
+            BiometricLoggerImpl.e(e)
+        } catch (e: SecurityException) {
+            BiometricLoggerImpl.e(e)
         }
     }
 
-    fun bindFaceVerifyService() {
-        if (isBinded) {
-            startFaceVerify()
-        } else if (serviceBindingState.isBindingActive()) {
-            BiometricLoggerImpl.d(TAG, "bindFaceVerifyService already waiting for connection")
-        } else {
-            BiometricLoggerImpl.d(TAG, "bindFaceVerifyService start")
-            val intent = Intent()
-            val cn = ComponentName(
-                "com.prize.faceunlock",
-                "com.sensetime.faceunlock.service.PrizeFaceDetectService"
-            )
-            intent.component = cn
-            val bindAccepted = try {
-                mContext.bindService(intent, conn, Context.BIND_AUTO_CREATE)
-            } catch (e: Exception) {
-                BiometricLoggerImpl.e(e)
-                false
-            }
-            serviceBindingState.recordBindResult(bindAccepted)
-            if (!bindAccepted) {
-                BiometricLoggerImpl.d(TAG, "bindFaceVerifyService rejected")
-            }
-            BiometricLoggerImpl.d(TAG, "bindFaceVerifyService end")
-        }
-    }
-
-    fun unbindFaceVerifyService() {
-        BiometricLoggerImpl.d(
-            TAG,
-            "unbindFaceVerifyService start isBinded = $isBinded"
-        )
-        if (serviceBindingState.consumeUnbindRequest()) {
-            try {
-                mContext.unbindService(conn)
-            } catch (e: IllegalArgumentException) {
-                BiometricLoggerImpl.e(e)
-            } catch (e: SecurityException) {
-                BiometricLoggerImpl.e(e)
-            }
-        }
+    private fun retireConnection(stopCapture: Boolean) {
+        val remote = mIFaceVerifyService
+        val callback = registeredCallback
+        val oldConnection = connection
+        val shouldUnbind = serviceBindingState.consumeUnbindRequest()
+        // Retire before any remote call can synchronously enqueue a callback or reenter start.
+        callbacks.clear()
+        connection = null
+        registeredCallback = null
         mIFaceVerifyService = null
         isBinded = false
-        BiometricLoggerImpl.d(TAG, "unbindFaceVerifyService end")
+        if (stopCapture) {
+            try { remote?.stopVerify() } catch (e: RemoteException) { BiometricLoggerImpl.e(e) }
+        }
+        if (callback != null) {
+            try { remote?.unregisterCallback(callback) } catch (e: RemoteException) { BiometricLoggerImpl.e(e) }
+        }
+        if (shouldUnbind && oldConnection != null) unbind(oldConnection)
     }
 
     fun startFaceVerify() {
-        if (null != mIFaceVerifyService) {
-            try {
-                mIFaceVerifyService?.startVerify()
-            } catch (e: RemoteException) {
-                BiometricLoggerImpl.e(e)
-            }
-        }
+        if (callbacks.current() == null) return
+        try { mIFaceVerifyService?.startVerify() } catch (e: RemoteException) { BiometricLoggerImpl.e(e) }
     }
 
-    fun stopFaceVerify() {
-        if (null != mIFaceVerifyService) {
-            try {
-                mIFaceVerifyService?.stopVerify()
-            } catch (e: RemoteException) {
-                BiometricLoggerImpl.e(e)
-            }
-        }
-        unbindFaceVerifyService()
-    }
+    fun stopFaceVerify() = retireConnection(stopCapture = true)
 
     fun setFaceUnlockCallback(callback: FaceUnlockCallback?) {
-        mFaceUnlockCallback = callback
+        if (callback == null) callbacks.clear() else callbacks.begin(callback)
     }
 
     val isFaceUnlockOn: Boolean
-        get() {
-            var on = 0
-            on = SettingsHelper.getInt(
-                mContext,
-                "prize_faceid_switch",//Settings.System.PRIZE_FACEID_SWITCH,
-                0
-            )
-            return on == 1
-        }
-
+        get() = SettingsHelper.getInt(mContext, "prize_faceid_switch", 0) == 1
 }

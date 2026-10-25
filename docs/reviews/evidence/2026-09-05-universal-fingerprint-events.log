@@ -1,0 +1,2 @@
+09-05 17:52:29.214 31110 31110 D BiometricLogging: [BiometricPromptGenericImpl.authenticate(): doNotShowDialog=false]
+09-05 17:55:11.784 31110 31110 E BiometricLogging: [CheckBiometric.onCanceled() [AuthenticationResult(type=BIOMETRIC_FINGERPRINT, cryptoObject=null, reason=CANCELED_BY_USER, description=Користувач скасував дію з відбитком пальця, cryptoSecurityLevel=NONE)]]

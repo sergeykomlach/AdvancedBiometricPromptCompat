@@ -178,6 +178,7 @@ class TensorFlowFaceUnlockManager(
     private var consecutiveMatchCounter = 0
     private var lastMatchedId: String? = null
     private val faceChallengeRandom = SecureRandom()
+    private val faceChallengeIdentity = FaceChallengeIdentityBinding()
     private var faceChallengeSessionNonce: Long? = null
     private var faceChallengeActions: List<FaceChallengeAction> = emptyList()
     private var faceChallengeIndex = 0
@@ -349,6 +350,7 @@ class TensorFlowFaceUnlockManager(
         consecutiveMatchCounter = 0
         lastMatchedId = null
         faceChallengeActions = emptyList()
+        faceChallengeIdentity.reset()
         faceChallengeIndex = 0
         faceChallengeSessionNonce = null
         faceChallengeStepStartedAtMs = 0L
@@ -696,6 +698,7 @@ class TensorFlowFaceUnlockManager(
     }
 
     private fun restartFaceChallenge() {
+        faceChallengeIdentity.reset()
         faceChallengeActions = emptyList()
         faceChallengeIndex = 0
         faceChallengeSessionNonce = null
@@ -947,6 +950,14 @@ class TensorFlowFaceUnlockManager(
                 }
             }
 
+            if (effectiveConfig.base.faceChallengeEnabled && faces.size != 1) {
+                clearAntiSpoofingWindow()
+                consecutiveMatchCounter = 0
+                lastMatchedId = null
+                restartFaceChallenge()
+                return
+            }
+
             val sortedFaces = faces.sortedByDescending {
                 it.boundingBox.width() * it.boundingBox.height()
             }
@@ -1015,6 +1026,7 @@ class TensorFlowFaceUnlockManager(
             }
 
             if (sawInvalidFace) {
+                if (effectiveConfig.base.faceChallengeEnabled) restartFaceChallenge()
                 authCallback?.onAuthenticationHelp(
                     CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
                     LocalizationHelper.getLocalizedString(
@@ -1065,10 +1077,6 @@ class TensorFlowFaceUnlockManager(
             abs(face.headEulerAngleY) > effectiveConfig.maxHeadAngleY
         ) {
             return FaceAttemptResult.InvalidFace
-        }
-
-        if (!isEnrolling && !isFaceChallengeSatisfied(face)) {
-            return FaceAttemptResult.MatchInProgress
         }
 
         val livenessCrop = createScaledFaceCrop(
@@ -1147,7 +1155,23 @@ class TensorFlowFaceUnlockManager(
 
             val distance = result.distance ?: return FaceAttemptResult.InvalidFace
             val id = result.id
-            val matched = distance < effectiveConfig.maxDistanceThreshold
+            val matched = distance.isFinite() && distance >= 0f && !id.isNullOrBlank() &&
+                distance < effectiveConfig.maxDistanceThreshold
+
+            if (effectiveConfig.base.faceChallengeEnabled) {
+                val candidateId = id.takeIf { matched }
+                if (faceChallengeIdentity.update(candidateId)) {
+                    restartFaceChallenge()
+                    faceChallengeIdentity.update(candidateId)
+                    clearAntiSpoofingWindow()
+                    consecutiveMatchCounter = 0
+                    lastMatchedId = null
+                }
+                // Yaw from an unknown face cannot advance or complete another person's challenge.
+                if (!matched || !isFaceChallengeSatisfied(face)) {
+                    return if (matched) FaceAttemptResult.MatchInProgress else FaceAttemptResult.NoMatch(distance)
+                }
+            }
 
             if (!matched || id != antiSpoofCandidateId) {
                 clearAntiSpoofingWindow()

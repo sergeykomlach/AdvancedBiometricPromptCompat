@@ -27,7 +27,6 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -104,12 +103,16 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
     }
 
     @Throws(SecurityException::class)
+    @Synchronized
     override fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        if (!isAuthenticationActive(listener)) return
+        val requestListener = ownAuthenticationRequest(listener, cancellationSignal)
+        if (!isAuthenticationActive(requestListener)) return
         hihonorFaceManagerLegacy?.let {
             try {
                 // Why getCancellationSignalObject returns an Object is unexplained
@@ -117,13 +120,13 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     ?: throw IllegalArgumentException("CancellationSignal can't be null")
 
                 this.originalCancellationSignal = cancellationSignal
-                authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                authenticateInternal(biometricCryptoObject, requestListener, restartPredicate)
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(
+        requestListener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
             startAuthenticationFailureDescription()
@@ -131,11 +134,13 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         return
     }
 
+    @Synchronized
     private fun authenticateInternal(
         biometricCryptoObject: BiometricCryptoObject?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        if (!isAuthenticationActive(listener)) return
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         hihonorFaceManagerLegacy?.let {
             try {
@@ -168,8 +173,14 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     } else {
                         view.holder.addCallback(object : SurfaceHolder.Callback {
                             override fun surfaceCreated(p0: SurfaceHolder) {
-                                authCallTimestamp.set(System.currentTimeMillis())
-                                it.authenticate(callback, view.holder.surface)
+                                synchronized(this@HihonorFaceUnlockModule) {
+                                    if (!isAuthenticationActive(listener) || cancellationSignal.isCanceled) {
+                                        p0.removeCallback(this)
+                                        return
+                                    }
+                                    authCallTimestamp.set(System.currentTimeMillis())
+                                    it.authenticate(callback, view.holder.surface)
+                                }
                             }
 
                             override fun surfaceChanged(
@@ -217,6 +228,7 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
         private var selfCanceled = false
         override fun onAuthenticationError(errMsgId: Int) {
+            if (!isAuthenticationCurrent(listener)) return
             d("$name.onAuthenticationError: $errMsgId")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout)
@@ -234,6 +246,7 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     AuthenticationFailureReason.TIMEOUT
 
                 HihonorFaceRecognizeManager.HIHONOR_FACE_AUTH_ERROR_LOCKED -> {
+                    if (!isAuthenticationCurrent(listener)) return
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -241,7 +254,8 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(tag(), failureReason, authenticationErrorWithCodeDescription(errMsgId))
-                        postCancelTask {
+                        if (!isAuthenticationCurrent(listener)) return
+                        postCancelTask(listener) {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
                                 listener?.onCanceled(
@@ -249,7 +263,7 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                                     AuthenticationFailureReason.CANCELED,
                                     null
                                 )
-                                Core.cancelAuthentication(this@HihonorFaceUnlockModule)
+                                cancelAuthentication(listener)
                             }
                         }
                     }
@@ -268,6 +282,7 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(tag(), failureReason, null)
+                    if (!isAuthenticationCurrent(listener)) return
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -279,15 +294,17 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                             AuthenticationFailureReason.AUTHENTICATION_FAILED
                         ).contains(failureReason)
                     ) {
+                        if (!isAuthenticationCurrent(listener)) return
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(tag(), failureReason, null)
-                    postCancelTask {
+                    if (!isAuthenticationCurrent(listener)) return
+                    postCancelTask(listener) {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
                             listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
-                            Core.cancelAuthentication(this@HihonorFaceUnlockModule)
+                            cancelAuthentication(listener)
                         }
                     }
                 }

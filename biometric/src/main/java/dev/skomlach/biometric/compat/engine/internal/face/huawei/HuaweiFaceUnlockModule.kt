@@ -27,7 +27,6 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -103,12 +102,16 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
     }
 
     @Throws(SecurityException::class)
+    @Synchronized
     override fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        if (!isAuthenticationActive(listener)) return
+        val requestListener = ownAuthenticationRequest(listener, cancellationSignal)
+        if (!isAuthenticationActive(requestListener)) return
         huaweiFaceManagerLegacy?.let {
             try {
                 // Why getCancellationSignalObject returns an Object is unexplained
@@ -116,13 +119,13 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     ?: throw IllegalArgumentException("CancellationSignal can't be null")
 
                 this.originalCancellationSignal = cancellationSignal
-                authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                authenticateInternal(biometricCryptoObject, requestListener, restartPredicate)
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(
+        requestListener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
             startAuthenticationFailureDescription()
@@ -130,11 +133,13 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         return
     }
 
+    @Synchronized
     private fun authenticateInternal(
         biometricCryptoObject: BiometricCryptoObject?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        if (!isAuthenticationActive(listener)) return
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         huaweiFaceManagerLegacy?.let {
             try {
@@ -166,8 +171,14 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     } else {
                         view.holder.addCallback(object : SurfaceHolder.Callback {
                             override fun surfaceCreated(p0: SurfaceHolder) {
-                                authCallTimestamp.set(System.currentTimeMillis())
-                                it.authenticate(callback, view.holder.surface)
+                                synchronized(this@HuaweiFaceUnlockModule) {
+                                    if (!isAuthenticationActive(listener) || cancellationSignal.isCanceled) {
+                                        p0.removeCallback(this)
+                                        return
+                                    }
+                                    authCallTimestamp.set(System.currentTimeMillis())
+                                    it.authenticate(callback, view.holder.surface)
+                                }
                             }
 
                             override fun surfaceChanged(
@@ -213,6 +224,7 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
         private var selfCanceled = false
         override fun onAuthenticationError(errMsgId: Int) {
+            if (!isAuthenticationCurrent(listener)) return
             d("$name.onAuthenticationError: $errMsgId")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout)
@@ -230,6 +242,7 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     AuthenticationFailureReason.TIMEOUT
 
                 HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_LOCKED -> {
+                    if (!isAuthenticationCurrent(listener)) return
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -237,7 +250,8 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(tag(), failureReason, authenticationErrorWithCodeDescription(errMsgId))
-                        postCancelTask {
+                        if (!isAuthenticationCurrent(listener)) return
+                        postCancelTask(listener) {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
                                 listener?.onCanceled(
@@ -245,7 +259,7 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                                     AuthenticationFailureReason.CANCELED,
                                     null
                                 )
-                                Core.cancelAuthentication(this@HuaweiFaceUnlockModule)
+                                cancelAuthentication(listener)
                             }
                         }
                     }
@@ -264,6 +278,7 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(tag(), failureReason, null)
+                    if (!isAuthenticationCurrent(listener)) return
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -275,15 +290,17 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                             AuthenticationFailureReason.AUTHENTICATION_FAILED
                         ).contains(failureReason)
                     ) {
+                        if (!isAuthenticationCurrent(listener)) return
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(tag(), failureReason, null)
-                    postCancelTask {
+                    if (!isAuthenticationCurrent(listener)) return
+                    postCancelTask(listener) {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
                             listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
-                            Core.cancelAuthentication(this@HuaweiFaceUnlockModule)
+                            cancelAuthentication(listener)
                         }
                     }
                 }

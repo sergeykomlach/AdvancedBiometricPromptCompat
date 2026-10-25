@@ -49,6 +49,7 @@ import dev.skomlach.biometric.compat.engine.internal.EnrollmentRollbackSession
 import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
+import dev.skomlach.biometric.compat.impl.BehaviorFirstBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.BiometricPromptSilentImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.canPrepareSoftwareAlongsideNative
@@ -106,7 +107,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private const val EXTRA_VOICE_PHRASE = "voice.phrase"
         private const val EXTRA_VOICE_SAMPLE_COUNT = "voice.sample_count"
         private const val MAX_VOICE_SAMPLE_COUNT = 5
-        private var reference = AtomicBoolean(false)
+        private val reference = AtomicBoolean(false)
+
+        /** Best-effort local signal, not attestation. A positive detection lasts for this process. */
+        @JvmStatic
+        fun hasDetectedRuntimeHooks(): Boolean = reference.get()
         var API_ENABLED = true
             private set
 
@@ -240,10 +245,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     initInProgress.set(true)
                     pendingTasks.add(execute)
                     BiometricLoggerImpl.d("BiometricPromptCompat.init() for ${AndroidContext.appContext.packageName}")
-                    reference.set(false)
                     HookDetection.detect(object : HookDetection.HookDetectionListener {
                         override fun onDetected(flag: Boolean) {
-                            reference.set(flag)
+                            if (flag) reference.set(true)
                         }
                     })
                     ExecutorHelper.startOnBackground {
@@ -352,6 +356,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private val implementationCache = AuthFlowRouteCache<Unit, IBiometricPromptImpl>()
     private val backgroundDetectorCache = AuthFlowRouteCache<Unit, AppBackgroundDetector>()
     private val impl: IBiometricPromptImpl get() = implementationCache.getOrPut(Unit) {
+        if (!builder.enroll && BiometricType.BIOMETRIC_BEHAVIOR in builder.getAuthenticationExecutionTypes()) {
+            BehaviorFirstBiometricPromptImpl(builder, ::createBackend)
+        } else createBackend()
+    }
+
+    private fun createBackend(): IBiometricPromptImpl {
         val isBiometricPrompt = shouldUseBiometricPromptImpl()
         BiometricLoggerImpl.d(
             "BiometricPromptCompat.IBiometricPromptImpl - " +
@@ -364,7 +374,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         } else {
             BiometricPromptGenericImpl(builder)
         }
-        iBiometricPromptImpl
+        return iBiometricPromptImpl
     }
     private val appBackgroundDetector: AppBackgroundDetector get() = backgroundDetectorCache.getOrPut(Unit) {
         AppBackgroundDetector(impl) {
@@ -825,6 +835,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 delegate.onFailed(failure.withMissingPermissionDescriptions())
             }
 
+            override fun onSupplementalResult(result: SupplementalBiometricResult) {
+                delegate.onSupplementalResult(result)
+            }
+
             override fun onUIOpened() {
                 delegate.onUIOpened()
             }
@@ -938,6 +952,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 )
             } else {
                 BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
+                if (failIfNoEffectiveBiometrics(callbackOuter, authFlowId)) return@authTask
+                builder.freezeAuthenticationRequirements()
                 builder.systemPromptOwnsUi = when (val implementation = impl) {
                     is BiometricPromptApi28Impl -> !DevicesWithKnownBugs.isMissedBiometricUI
                     is BiometricPromptGenericImpl -> {
@@ -1097,6 +1113,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         completion.finish { callbackOuter.onFailed(canceled) }
                     }
 
+                    override fun onSupplementalResult(result: SupplementalBiometricResult) {
+                        postWhileActive {
+                            runCatching { callbackOuter.onSupplementalResult(result) }
+                                .onFailure { BiometricLoggerImpl.e(it) }
+                        }
+                    }
+
                     override fun onUIOpened() {
                         if (isCurrentAuthFlow(authFlowId) && !completion.isFinishing() && !builder.isUIOpened.get()) {
                             hadUi = true
@@ -1243,6 +1266,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         authFlowId: Long
     ): Boolean {
         if (builder.enroll && awaitingSystemEnrollment) return false
+        if (!builder.enroll && builder.getAllAvailableTypes().isNotEmpty() &&
+            builder.getEligibleAuthenticationTypes().isEmpty()) {
+            val failures = builder.getAllAvailableTypes().mapTo(LinkedHashSet()) {
+                AuthenticationResult(it, reason = AuthenticationFailureReason.INSUFFICIENT_TRUST,
+                    description = builder.getContext().getString(R.string.biometriccompat_authentication_trust_required))
+            }
+            dispatchAfterFlowFinished({ finishAuthFlow(authFlowId) }, { callback.onFailed(failures) })
+            return true
+        }
         if (if (builder.enroll) builder.getPendingEnrollTypes().isNotEmpty() else builder.getEffectiveAvailableTypes().isNotEmpty()) {
             return false
         }
@@ -1595,6 +1627,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         )
 
     private fun shouldUseBiometricPromptImpl(): Boolean {
+        if (builder.authenticationStageTypes != null && builder.getAuthenticationExecutionTypes().none {
+                builder.selectedRoute(it)?.usesBiometricPromptHardware == true
+            }) return false
         if (builder.getBiometricAuthRequest().provider == BiometricProviderType.SOFTWARE) {
             return false
         }
@@ -1615,13 +1650,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return false
         }
 
-        return builder.getEffectiveAvailableTypes().any { type ->
+        return builder.getAuthenticationExecutionTypes().any { type ->
             isSelectedBiometricPromptHardwareType(type)
         }
     }
 
     private fun isHigherPrioritySoftwareSelectedThanBiometricPrompt(): Boolean {
-        val selectedRoutes = builder.getEffectiveAvailableTypes()
+        val selectedRoutes = builder.getAuthenticationExecutionTypes()
             .mapNotNull { type -> builder.selectedRoute(type) }
         val bestSoftwarePriority = selectedRoutes
             .filter { it.provider == BiometricProviderType.SOFTWARE }
@@ -1636,7 +1671,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun getUsedPermissionsMapForSelectedModules(): List<Pair<BiometricType, List<String>>> {
-        return builder.getAllAvailableTypes().map { type ->
+        val types = if (builder.enroll) builder.getAllAvailableTypes() else builder.getAuthenticationExecutionTypes()
+        return types.map { type ->
             val permissions = builder.getSelectedTypePermissions(type)
             Pair(
                 type,
@@ -1652,7 +1688,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun getSoftwarePreparationTypes(): Set<BiometricType> {
-        return builder.getEffectiveAvailableTypes()
+        return builder.getAuthenticationExecutionTypes()
             .filter { type -> isSelectedSoftwareType(type) }
             .toSet()
     }
@@ -1736,7 +1772,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         try {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate $impl")
 
-            callback.updateTimestamp()
 
             if (!builder.forceDeviceCredential()) {
                 BiometricLoggerImpl.d("BiometricPromptCompat BiometricOpeningTime: authenticateInternal >> regular ${System.currentTimeMillis() - startTs} ms")
@@ -1932,18 +1967,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     abstract class AuthenticationCallback {
-        //Solution to prevent Frida hooking
-        //See https://fi5t.xyz/posts/biometric-underauthentication/
-        private val skipTimeout =
-            AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
-        private val authCallTimeStamp = AtomicLong(SystemClock.uptimeMillis())
-        internal fun updateTimestamp() {
-            authCallTimeStamp.set(SystemClock.uptimeMillis())
-        }
-
+        // Reject a known local compromise before dispatch; this cannot attest an unmodified process.
         internal fun hookFailureOrNull(results: Set<AuthenticationResult>): Set<AuthenticationResult>? =
-            hookDetectionFailure(results, reference.get(),
-                SystemClock.uptimeMillis() - authCallTimeStamp.get(), skipTimeout)
+            hookDetectionFailure(results, reference.get())
 
         @MainThread
         @CallSuper
@@ -1961,6 +1987,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             canceled: Set<AuthenticationResult>
         ) {
         }
+
+        /** Advisory signal only: it neither authorizes nor denies the operation by itself. */
+        @MainThread
+        open fun onSupplementalResult(result: SupplementalBiometricResult) {}
 
         @MainThread
         open fun onUIOpened() {
@@ -2233,10 +2263,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             if (BiometricErrorLockoutPermanentFix.isRebootDetected())
                 BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
 
-            reference.set(false)
             HookDetection.detect(object : HookDetection.HookDetectionListener {
                 override fun onDetected(flag: Boolean) {
-                    reference.set(flag)
+                    if (flag) reference.set(true)
                 }
             })
             setDeviceCredentialFallbackAllowed(true)
@@ -2450,6 +2479,67 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             ).toHashSet()
         }
 
+        internal var authenticationStageTypes: Set<BiometricType>? = null
+        private var configuredTrustPolicy = BiometricTrustPolicy()
+        private var activeTrustPolicy: BiometricTrustPolicy? = null
+        private var trustPolicyFlowId = -1L
+        private var admittedAuthenticationTypes: Set<BiometricType>? = null
+
+        /** Changes apply to the next operation; an active flow keeps its original policy. */
+        fun setBiometricTrustPolicy(policy: BiometricTrustPolicy): Builder {
+            configuredTrustPolicy = policy
+            if (activeTrustPolicy == null) selectedRouteCache.invalidate()
+            return this
+        }
+
+        fun getBiometricTrustPolicy(): BiometricTrustPolicy = activeTrustPolicy ?: configuredTrustPolicy
+
+        internal fun getEligibleAuthenticationTypes(): Set<BiometricType> =
+            getEffectiveAvailableTypes().filterTo(LinkedHashSet()) { type ->
+                val route = selectedRoute(type) ?: return@filterTo false
+                val manager = (route.module as? SoftwareBiometricModule)?.manager
+                runCatching {
+                    getBiometricTrustPolicy().permitsAuthentication(type, route.provider == BiometricProviderType.HARDWARE,
+                        manager?.securityProfile, manager?.trustedCaptureForAuthentication == true)
+                }.getOrDefault(false)
+            }
+
+        internal fun freezeAuthenticationRequirements() {
+            if (!enroll && admittedAuthenticationTypes == null) {
+                admittedAuthenticationTypes = getEligibleAuthenticationTypes().toSet()
+            }
+        }
+
+        internal fun getRequiredAuthenticationTypes(): Set<BiometricType> =
+            admittedAuthenticationTypes ?: getEligibleAuthenticationTypes()
+
+        internal fun getAuthenticationCompletionTypes(): Set<BiometricType> {
+            if (isBehaviorFirstStage()) return setOf(BiometricType.BIOMETRIC_BEHAVIOR)
+            return resolveAuthenticationTrustScope(biometricAuthRequest.confirmation, admittedAuthenticationTypes,
+                getEligibleAuthenticationTypes(), authenticationStageTypes)
+        }
+
+        internal fun missingAuthenticationTrustResults(): Set<AuthenticationResult> {
+            if (enroll || biometricAuthRequest.confirmation != BiometricConfirmation.ALL) return emptySet()
+            return (getAuthenticationCompletionTypes() - getAuthenticationExecutionTypes()).mapTo(LinkedHashSet()) {
+                AuthenticationResult(it, reason = AuthenticationFailureReason.INSUFFICIENT_TRUST,
+                    description = getContext().getString(R.string.biometriccompat_authentication_trust_required))
+            }
+        }
+
+        internal fun getAuthenticationExecutionTypes(): Set<BiometricType> {
+            val available = getEffectiveAvailableTypes()
+            if (enroll) return available
+            val eligible = getEligibleAuthenticationTypes()
+            val executable = available.filterTo(LinkedHashSet()) { type ->
+                type in eligible || (type == BiometricType.BIOMETRIC_BEHAVIOR && selectedRoute(type) != null)
+            }
+            return authenticationStageTypes?.let { executable.intersect(it) } ?: executable
+        }
+
+        internal fun isBehaviorFirstStage(): Boolean = !enroll &&
+            authenticationStageTypes == setOf(BiometricType.BIOMETRIC_BEHAVIOR)
+
         internal fun getEnrollScopeTypes(): Set<BiometricType> {
             return getAllAvailableTypes()
         }
@@ -2588,10 +2678,30 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         internal fun getDisabledModuleTags(): Set<Int> {
-            return HashSet(disabledModuleTags)
+            val excluded = HashSet(disabledModuleTags)
+            if (enroll) return excluded
+            val policy = getBiometricTrustPolicy()
+            for (type in BiometricType.entries) {
+                if (type == BiometricType.BIOMETRIC_ANY) continue
+                for (module in LegacyBiometric.getAvailableBiometricModules(type, biometricAuthRequest.provider)) {
+                    val software = module as? SoftwareBiometricModule ?: continue
+                    val manager = software.manager
+                    val allowed = runCatching {
+                        manager != null && policy.permitsExecution(type, false,
+                            manager.securityProfile, manager.trustedCaptureForAuthentication,
+                            supplemental = type == BiometricType.BIOMETRIC_BEHAVIOR)
+                    }.getOrDefault(false)
+                    if (!allowed) excluded.add(module.tag())
+                }
+            }
+            return excluded
         }
 
         internal fun beginAuthFlow(authFlowId: Long) {
+            admittedAuthenticationTypes = null
+            activeTrustPolicy = configuredTrustPolicy
+            trustPolicyFlowId = authFlowId
+            authenticationStageTypes = null
             deferSoftwarePreparation = false
             disabledModuleTags.clear()
             disabledBiometricTypes.clear()
@@ -2600,6 +2710,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         internal fun endAuthFlow(authFlowId: Long) {
+            if (trustPolicyFlowId == authFlowId) {
+                admittedAuthenticationTypes = null
+                activeTrustPolicy = null
+                trustPolicyFlowId = -1L
+            }
+            authenticationStageTypes = null
             selectedRouteCache.endFlow(authFlowId)
             availableTypeCache.endFlow(authFlowId)
         }
@@ -2639,7 +2755,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private fun filterDisabledTypes(types: Collection<BiometricType>): HashSet<BiometricType> {
             val enabledTypes = types.filterNotTo(HashSet()) { disabledBiometricTypes.contains(it) }
-            val disabled = getDisabledModuleTags()
+            // Availability describes hardware/providers, not authorization policy.
+            val disabled = HashSet(disabledModuleTags)
             if (disabled.isEmpty()) {
                 return enabledTypes
             }

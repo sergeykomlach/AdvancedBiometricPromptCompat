@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">Verhalten wird geprüft</string>
     <string name="biometriccompat_behavior_error_capture_invalid">Die Erfassung wurde unterbrochen oder war ungültig. Versuchen Sie es erneut.</string>
     <string name="biometriccompat_behavior_error_accessibility">Ein nicht vertrauenswürdiger Bedienungshilfedienst ist aktiv. Deaktivieren Sie ihn und versuchen Sie es erneut.</string>
+    <string name="biometriccompat_behavior_action_restart">Neu starten</string>
 </resources>
 
 

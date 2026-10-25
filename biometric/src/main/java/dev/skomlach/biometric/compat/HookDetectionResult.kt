@@ -1,13 +1,11 @@
 package dev.skomlach.biometric.compat
 
-/** Preserve the existing fast-success heuristic without throwing across an app callback. */
+/** A known hook is a rejection regardless of how long an injected result waits. */
 internal fun hookDetectionFailure(
     results: Set<AuthenticationResult>,
-    detected: Boolean,
-    elapsedMillis: Long,
-    fastSuccessWindowMillis: Int
+    detected: Boolean
 ): Set<AuthenticationResult>? {
-    if (!detected || elapsedMillis > fastSuccessWindowMillis) return null
+    if (!detected) return null
     // Never expose a successful crypto object through a rejected authentication result.
     return results.map { it.type }.ifEmpty { listOf(null) }.map { type ->
         AuthenticationResult(

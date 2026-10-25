@@ -86,11 +86,15 @@
                     android:text="@string/allow_device_credentials"
                     />
 
+            <Button android:id="@+id/button_signature_system"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_below="@id/allowDeviceCredentials" android:text="@string/signature_system_title" />
+
             <LinearLayout
                     android:id="@+id/buttons_list"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_below="@+id/allowDeviceCredentials"
+                    android:layout_below="@id/button_signature_system"
                     android:orientation="vertical"
                     />
         </RelativeLayout>

@@ -28,16 +28,26 @@ object BundleBuilder {
     const val DESCRIPTION = "prompt_description"
     fun create(
         biometricBuilderCompat: BiometricPromptCompat.Builder
+    ): Bundle = create(biometricBuilderCompat, null)
+
+    fun create(
+        biometricBuilderCompat: BiometricPromptCompat.Builder,
+        preparedExtras: Bundle?
     ): Bundle {
         val title = biometricBuilderCompat.getTitle()?.toString()
         val subtitle = biometricBuilderCompat.getSubtitle()?.toString()
         val description = biometricBuilderCompat.getDescription()?.toString()
         return Bundle().apply {
             biometricBuilderCompat.getExtras()?.let { putAll(it) }
+            preparedExtras?.let { putAll(it) }
             putBoolean(ENROLL, biometricBuilderCompat.enroll)
             title?.let { this.putString(TITLE, it) }
             subtitle?.let { this.putString(SUBTITLE, it) }
             description?.let { this.putString(DESCRIPTION, it) }
+            AuthenticationTrustContext.write(this, biometricBuilderCompat.getBiometricTrustPolicy(),
+                supplemental = biometricBuilderCompat.isBehaviorFirstStage() &&
+                    BiometricType.BIOMETRIC_BEHAVIOR !in biometricBuilderCompat.getRequiredAuthenticationTypes(),
+                enrollment = biometricBuilderCompat.enroll)
         }
     }
 }

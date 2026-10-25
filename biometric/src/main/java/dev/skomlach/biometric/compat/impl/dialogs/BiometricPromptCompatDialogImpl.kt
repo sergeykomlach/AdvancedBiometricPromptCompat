@@ -27,6 +27,11 @@ import android.view.SurfaceView
 import android.view.View
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.Window
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricFragmentHost
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import dev.skomlach.biometric.compat.BehaviorAuthMode
@@ -68,6 +73,7 @@ class BiometricPromptCompatDialogImpl(
     @Volatile private var feedbackGeneration = 0L
     private val foregroundFeedback = compatBuilder.foregroundFeedback
     private var feedbackDialogView: View? = null
+    private var afterStageDismissed: (() -> Unit)? = null
 
 
     init {
@@ -119,6 +125,7 @@ class BiometricPromptCompatDialogImpl(
                 compatBuilder.getActivity()?.supportFragmentManager?.beginTransaction()?.remove(it)
                     ?.commitNow()
             }
+            afterStageDismissed?.also { afterStageDismissed = null }?.invoke()
         }
         dialog.setOnCancelListener {
             clearFeedback()
@@ -201,7 +208,34 @@ class BiometricPromptCompatDialogImpl(
                         builder = compatBuilder,
                         enroll = compatBuilder.enroll,
                         rootView = dialog.rootView,
-                        callbacks = object : SoftwareBiometricPromptHost.Callbacks {
+                        callbacks = object : SoftwareBiometricPromptHost.Callbacks, SoftwareBiometricFragmentHost {
+                            override fun mountContent(ownerTag: String, fragment: Fragment): Boolean {
+                                if (!active() || dialog.childFragmentManager.isStateSaved) return false
+                                dialog.prepareSoftwareContent()
+                                val root = dialog.rootView ?: return false
+                                val auth = root.findViewById<View>(R.id.auth_content_container) ?: return false
+                                val parent = auth.parent as? LinearLayout ?: return false
+                                val content = root.findViewById<FragmentContainerView>(R.id.software_capture_content)
+                                    ?: FragmentContainerView(root.context).also {
+                                        it.id = R.id.software_capture_content
+                                        parent.addView(it, parent.indexOfChild(auth), LinearLayout.LayoutParams(-1, -2))
+                                    }
+                                dialog.fingerprintIcon?.visibility = View.GONE
+                                content.visibility = View.VISIBLE
+                                return runCatching {
+                                    dialog.childFragmentManager.beginTransaction()
+                                        .replace(content.id, fragment, ownerTag).commitNow()
+                                    true
+                                }.getOrElse { e(it); false }
+                            }
+
+                            override fun unmountContent(ownerTag: String) {
+                                if (!active() || dialog.childFragmentManager.isStateSaved || dialog.view == null) return
+                                dialog.childFragmentManager.findFragmentByTag(ownerTag)?.let { fragment ->
+                                    // Disposal can occur from the parent's view-destruction transaction.
+                                    dialog.childFragmentManager.beginTransaction().remove(fragment).commit()
+                                }
+                            }
                             override fun onHelp(message: CharSequence) {
                                 onStatus(SoftwarePromptStatus(primaryText = message))
                             }
@@ -247,7 +281,7 @@ class BiometricPromptCompatDialogImpl(
 
             e("BiometricPromptGenericImpl.primaryBiometricType > ${compatBuilder.getEffectiveAvailableTypes()}")
             val selectedType = LegacyBiometric.getSelectedBiometricModule(
-                compatBuilder.getEffectiveAvailableTypes()
+                        compatBuilder.getAuthenticationExecutionTypes()
                     .filterNot { authFinishedCopy.containsKey(it) },
                 compatBuilder.getBiometricAuthRequest().provider,
                 compatBuilder.enroll,
@@ -384,6 +418,18 @@ class BiometricPromptCompatDialogImpl(
         val viewModel: DialogViewModel =
             ViewModelProvider(compatBuilder.getActivity() ?: return)[DialogViewModel::class.java]
         viewModel.dismissDialog()
+    }
+
+    internal fun dismissForStageHandoff(done: () -> Unit) {
+        afterStageDismissed = done
+        val showing = dialog.isShowing
+        clearFeedback()
+        detachWindowListeners()
+        cancelAuth()
+        // Remove the first window synchronously. There is no half-closed interactive window
+        // whose Back/Cancel could be lost while a replacement backend is being scheduled.
+        if (showing) dialog.dismissNow()
+        if (!showing) afterStageDismissed?.also { afterStageDismissed = null }?.invoke()
     }
 
     fun onHelp(msg: CharSequence?) {

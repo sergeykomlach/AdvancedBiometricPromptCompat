@@ -21,7 +21,8 @@ internal fun evaluateTypingIntegrity(
     phraseLength: Int,
     startedAtMs: Long,
     nowMs: Long,
-    maxInterEventGapMs: Long
+    maxInterEventGapMs: Long,
+    latestRelevantEventAtMs: Long? = null
 ): BehaviorInputIntegrityDecision {
     if (downs.isEmpty() || downs.size != ups.size || phraseLength < 0) {
         return BehaviorInputIntegrityDecision.NON_MONOTONIC_TIMESTAMPS
@@ -37,7 +38,10 @@ internal fun evaluateTypingIntegrity(
     ) {
         return BehaviorInputIntegrityDecision.NON_MONOTONIC_TIMESTAMPS
     }
-    val lastEventAtMs = maxOf(downs.last(), ups.last())
+    if (latestRelevantEventAtMs != null && !latestRelevantEventAtMs.isBetween(startedAtMs, nowMs)) {
+        return BehaviorInputIntegrityDecision.NON_MONOTONIC_TIMESTAMPS
+    }
+    val lastEventAtMs = maxOf(downs.last(), ups.last(), latestRelevantEventAtMs ?: ups.last())
     if (nowMs - lastEventAtMs > maxInterEventGapMs) {
         return BehaviorInputIntegrityDecision.STALE_CAPTURE
     }
@@ -45,6 +49,25 @@ internal fun evaluateTypingIntegrity(
         return BehaviorInputIntegrityDecision.NON_MONOTONIC_TIMESTAMPS
     }
     return BehaviorInputIntegrityDecision.ACCEPT
+}
+
+/** Validate every channel before its last event can keep a Combined capture fresh. */
+internal fun evaluateBehaviorSampleIntegrity(
+    sample: BehaviorSample,
+    startedAtMs: Long,
+    nowMs: Long,
+    maxInterEventGapMs: Long
+): BehaviorInputIntegrityDecision {
+    if (sample.mode != BehaviorMode.TYPING) {
+        val signature = evaluateSignatureIntegrity(sample.strokePoints, startedAtMs, nowMs, false)
+        if (signature != BehaviorInputIntegrityDecision.ACCEPT) return signature
+    }
+    if (sample.mode == BehaviorMode.SIGNATURE) return BehaviorInputIntegrityDecision.ACCEPT
+    return evaluateTypingIntegrity(
+        sample.keyDownTimesMs, sample.keyUpTimesMs, sample.phrase?.length ?: 0,
+        startedAtMs, nowMs, maxInterEventGapMs,
+        sample.strokePoints.lastOrNull()?.timestampMs.takeIf { sample.mode == BehaviorMode.COMBINED }
+    )
 }
 
 @Suppress("CyclomaticComplexMethod", "ComplexCondition", "ReturnCount")

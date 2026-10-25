@@ -30,7 +30,6 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -49,89 +48,104 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
     override var isManagerAccessible = false
 
 
-    init {
-        val faceLockInterface: FaceLockInterface = object : FaceLockInterface {
+    private fun createFaceLockInterface(proxy: ProxyListener?): FaceLockInterface {
+        return object : FaceLockInterface {
             override fun onError(code: Int, msg: String) {
                 d("$name:FaceIdInterface.onError $code $msg")
-                if (facelockProxyListener != null) {
-                    facelockProxyListener?.onAuthenticationError(code, msg)
+                if (proxy != null) {
+                    proxy.onAuthenticationError(code, msg)
                 }
             }
 
             override fun onAuthorized() {
                 d("$name.FaceIdInterface.onAuthorized")
-                if (facelockProxyListener != null) {
-                    facelockProxyListener?.onAuthenticationSucceeded(null)
+                if (proxy != null) {
+                    proxy.onAuthenticationSucceeded(null)
                 }
             }
 
             override fun onConnected() {
-                d("$name.FaceIdInterface.onConnected")
-                if (facelockProxyListener != null) {
-                    facelockProxyListener?.onAuthenticationAcquired(0)
-                }
-                if (listener != null) {
-                    isManagerAccessible = true
-                    listener?.initFinished(biometricMethod, this@FacelockOldModule)
-                    listener = null
-                    faceLockHelper?.stopFaceLock()
-                } else {
-                    try {
-                        d(name + ".authorize: " + viewWeakReference.get())
-                        viewWeakReference.get()?.let { view ->
-                            if (view.visibility == View.VISIBLE || view.holder.isCreating) {
+                synchronized(this@FacelockOldModule) {
+                    d("$name.FaceIdInterface.onConnected")
+                    if (proxy != null) {
+                        proxy.onAuthenticationAcquired(0)
+                    }
+                    if (listener != null) {
+                        isManagerAccessible = true
+                        val initListener = listener
+                        listener = null
+                        faceLockHelper?.stopFaceLock()
+                        initListener?.initFinished(biometricMethod, this@FacelockOldModule)
+                    } else {
+                        if (proxy?.isActive() != true) return
+                        try {
+                            d(name + ".authorize: " + viewWeakReference.get())
+                            viewWeakReference.get()?.let { view ->
+                                if (view.visibility == View.VISIBLE || view.holder.isCreating) {
+                                    authCallTimestamp.set(System.currentTimeMillis())
+                                    faceLockHelper?.startFaceLockWithUi(view)
+                                    return
+                                } else {
+                                    view.holder.addCallback(object : SurfaceHolder.Callback {
+                                        override fun surfaceCreated(p0: SurfaceHolder) {
+                                            synchronized(this@FacelockOldModule) {
+                                                if (!proxy.isActive()) {
+                                                    p0.removeCallback(this)
+                                                    return
+                                                }
+                                                authCallTimestamp.set(System.currentTimeMillis())
+                                                faceLockHelper?.startFaceLockWithUi(view)
+                                            }
+                                        }
+
+                                        override fun surfaceChanged(
+                                            p0: SurfaceHolder,
+                                            p1: Int,
+                                            p2: Int,
+                                            p3: Int
+                                        ) {
+
+                                        }
+
+                                        override fun surfaceDestroyed(p0: SurfaceHolder) {
+
+                                        }
+                                    })
+                                    view.visibility = View.VISIBLE
+                                }
+
+                            } ?: kotlin.run {
                                 authCallTimestamp.set(System.currentTimeMillis())
-                                faceLockHelper?.startFaceLockWithUi(view)
-                                return
-                            } else {
-                                view.holder.addCallback(object : SurfaceHolder.Callback {
-                                    override fun surfaceCreated(p0: SurfaceHolder) {
-                                        authCallTimestamp.set(System.currentTimeMillis())
-                                        faceLockHelper?.startFaceLockWithUi(view)
-                                    }
-
-                                    override fun surfaceChanged(
-                                        p0: SurfaceHolder,
-                                        p1: Int,
-                                        p2: Int,
-                                        p3: Int
-                                    ) {
-
-                                    }
-
-                                    override fun surfaceDestroyed(p0: SurfaceHolder) {
-
-                                    }
-                                })
-                                view.visibility = View.VISIBLE
+                                faceLockHelper?.startFaceLockWithUi(null)
                             }
 
-                        } ?: kotlin.run {
-                            authCallTimestamp.set(System.currentTimeMillis())
-                            faceLockHelper?.startFaceLockWithUi(null)
+                        } catch (e: Throwable) {
+                            e("$name.FaceIdInterface.onConnected", e)
                         }
-
-                    } catch (e: Throwable) {
-                        e("$name.FaceIdInterface.onConnected", e)
                     }
                 }
             }
 
             override fun onDisconnected() {
                 d("$name.FaceIdInterface.onDisconnected")
-                if (facelockProxyListener != null) {
-                    facelockProxyListener?.onAuthenticationError(
+                if (proxy != null) {
+                    proxy.onAuthenticationError(
                         FaceLockHelper.FACELOCK_CANCELED,
                         FaceLockHelper.getMessage(FaceLockHelper.FACELOCK_CANCELED)
                     )
                 }
                 if (listener != null) {
-                    listener?.initFinished(biometricMethod, this@FacelockOldModule)
+                    val initListener = listener
                     listener = null
                     faceLockHelper?.stopFaceLock()
+                    initListener?.initFinished(biometricMethod, this@FacelockOldModule)
                 }
             }
         }
+    }
+
+    init {
+        val faceLockInterface = createFaceLockInterface(null)
         faceLockHelper = FaceLockHelper(faceLockInterface)
         if (!isHardwarePresent) {
             if (listener != null) {
@@ -176,31 +190,30 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
         }
 
     @Throws(SecurityException::class)
+    @Synchronized
     override fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        if (!isAuthenticationActive(listener)) return
+        val requestListener = ownAuthenticationRequest(listener, cancellationSignal)
+        if (!isAuthenticationActive(requestListener)) return
+        if (!isAuthenticationActive(requestListener) || cancellationSignal?.isCanceled == true) return
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         try {
             d("$name: Facelock call authorize")
+            val proxy = ProxyListener(biometricCryptoObject, restartPredicate, cancellationSignal, requestListener)
             cancellationSignal?.setOnCancelListener {
-                stopAuth()
+                if (facelockProxyListener === proxy) stopAuth()
             }
-            authorize(
-                ProxyListener(
-                    biometricCryptoObject,
-                    restartPredicate,
-                    cancellationSignal,
-                    listener
-                )
-            )
+            authorize(proxy)
             return
         } catch (e: Throwable) {
             e(e, "$name: authenticate failed unexpectedly")
         }
-        listener?.onFailure(
+        requestListener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
             startAuthenticationFailureDescription()
@@ -213,9 +226,10 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
     }
 
     private fun authorize(proxyListener: ProxyListener) {
+        if (!proxyListener.isActive()) return
         facelockProxyListener = proxyListener
         faceLockHelper?.stopFaceLock()
-        faceLockHelper?.initFacelock()
+        if (proxyListener.isActive()) faceLockHelper?.initFacelock(createFaceLockInterface(proxyListener))
     }
 
 
@@ -229,7 +243,9 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
         private var selfCanceled = false
+        internal fun isActive(): Boolean = isAuthenticationActive(listener) && cancellationSignal?.isCanceled != true
         fun onAuthenticationError(errMsgId: Int, errString: CharSequence?): Void? {
+            if (!isAuthenticationCurrent(listener)) return null
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout)
@@ -255,7 +271,8 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
-                        postCancelTask {
+                        if (!isAuthenticationCurrent(listener)) return null
+                        postCancelTask(listener) {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
                                 listener?.onCanceled(
@@ -263,7 +280,7 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
                                     AuthenticationFailureReason.CANCELED,
                                     null
                                 )
-                                Core.cancelAuthentication(this@FacelockOldModule)
+                                cancelAuthentication(listener)
                             }
                         }
                     }
@@ -287,6 +304,7 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
+                    if (!isAuthenticationCurrent(listener)) return null
                     selfCanceled = true
                     stopAuth()
                     ExecutorHelper.postDelayed({
@@ -303,15 +321,17 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
                             AuthenticationFailureReason.AUTHENTICATION_FAILED
                         ).contains(failureReason)
                     ) {
+                        if (!isAuthenticationCurrent(listener)) return null
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
-                    postCancelTask {
+                    if (!isAuthenticationCurrent(listener)) return null
+                    postCancelTask(listener) {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
                             listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
-                            Core.cancelAuthentication(this@FacelockOldModule)
+                            cancelAuthentication(listener)
                         }
                     }
                 }

@@ -23,51 +23,23 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import android.util.Base64
-import android.util.Pair
 import androidx.collection.ArraySet
+import androidx.core.content.ContextCompat
 import com.tozny.crypto.android.AesCbcWithIntegrity
-import dev.skomlach.common.logging.LogCat
-import java.io.UnsupportedEncodingException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.security.GeneralSecurityException
-import java.security.SecureRandom
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlin.text.Charsets.UTF_8
 
 private class KeyNameCipher(
-    private val aesKey32: ByteArray,
-    private val secureRandom: SecureRandom = SecureRandom()
+    private val aesKey32: ByteArray
 ) {
 
     private val aad = "FNv2".toByteArray(UTF_8)
-
-    fun encryptName(realName: String): String {
-        val nonce12 = ByteArray(12)
-        secureRandom.nextBytes(nonce12)
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(
-            Cipher.ENCRYPT_MODE,
-            SecretKeySpec(aesKey32, "AES"),
-            GCMParameterSpec(128, nonce12)
-        )
-        cipher.updateAAD(aad)
-        val ct = cipher.doFinal(realName.toByteArray(UTF_8))
-
-        val packed = ByteArray(nonce12.size + ct.size)
-        System.arraycopy(nonce12, 0, packed, 0, nonce12.size)
-        System.arraycopy(ct, 0, packed, nonce12.size, ct.size)
-
-        val b64 = Base64.encodeToString(
-            packed,
-            Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
-        )
-        return "e2_$b64"
-    }
 
     fun decryptName(encName: String): String? {
         if (!encName.startsWith("e2_")) return null
@@ -92,144 +64,235 @@ private class KeyNameCipher(
 
 class EncryptedSharedPreferences internal constructor(
     private val mSharedPreferences: SharedPreferences,
+    private val storageIdentity: String,
+    private val migrationFence: PreferenceMigrationFence,
+    legacyEncryptionConfigs: List<() -> SharedPreferenceProvider.EncryptionConfig?>,
     private val encryptionConfig: () -> SharedPreferenceProvider.EncryptionConfig?
 ) : SharedPreferences {
     constructor(context: Context, sharedPrefFilename: String? = null) : this(
         if (sharedPrefFilename.isNullOrEmpty()) PreferenceManager.getDefaultSharedPreferences(context)
         else context.getSharedPreferences(sharedPrefFilename, Context.MODE_PRIVATE),
-        { SharedPreferenceProvider.EncryptionConfig.primaryInstance }
+        fileIdentity(context, sharedPrefFilename),
+        KeyStorePreferenceMigrationFence(fileIdentity(context, sharedPrefFilename)),
+        listOf({ SharedPreferenceProvider.EncryptionConfig.existingLegacyDeviceIdInstance },
+            { SharedPreferenceProvider.EncryptionConfig.existingLegacyFileInstance }),
+        { SharedPreferenceProvider.EncryptionConfig.keystoreOnlyInstance }
     )
+
+    private class StoreState {
+        var failure: ProtectedStorageUnavailableException? = null
+        var committed = false
+    }
+
     companion object {
         private const val NULL_VALUE = "__NULL__"
+        private const val HEADER = "__esp_v3_format__"
+        private val states = ConcurrentHashMap<String, StoreState>()
+
+        internal fun fileIdentity(context: Context, filename: String?): String {
+            val directory = ContextCompat.getDataDir(context)
+                ?: throw ProtectedStorageUnavailableException("Cannot identify protected preference file")
+            return directory.canonicalPath + "/shared_prefs/" +
+                (filename?.takeIf { it.isNotEmpty() } ?: "${context.packageName}_preferences") + ".xml"
+        }
     }
 
-    private data class DerivedConfig(
-        val valueKeys: AesCbcWithIntegrity.SecretKeys,
-        val fileNameCipher: KeyNameCipher
-    )
+    private val state = states.getOrPut(storageIdentity) { StoreState() }
+    private val mListeners = CopyOnWriteArrayList<SharedPreferences.OnSharedPreferenceChangeListener>()
+    private data class DerivedConfig(val valueKeys: AesCbcWithIntegrity.SecretKeys, val names: KeyNameCipher)
+    private fun derive(config: SharedPreferenceProvider.EncryptionConfig) = DerivedConfig(
+        AesCbcWithIntegrity.generateKeyFromPassword(String(config.password.reversedArray()), config.salt.reversedArray()),
+        KeyNameCipher((config.password + config.salt).copyOf(32).reversedArray()))
+    private val primary by lazy { derive(encryptionConfig()
+        ?: throw ProtectedStorageUnavailableException("Protected preference primary key is unavailable")) }
+    private val cipher by lazy { BoundPreferenceCipher(primary.valueKeys.integrityKey, storageIdentity) }
+    private val legacy = legacyEncryptionConfigs.map { provider -> lazy { provider()?.let(::derive) } }
+    private val configs get() = sequence {
+        yield(primary)
+        legacy.forEach { config -> config.value?.let { yield(it) } }
+    }
 
-    private val primaryConfig by lazy {
+    private inline fun <T> locked(action: () -> T): T = synchronized(state) {
+        state.failure?.let { throw it }
         try {
-            deriveConfig(encryptionConfig())
-        } catch (error: ProtectedStorageUnavailableException) {
-            throw error
-        } catch (error: Exception) {
-            throw ProtectedStorageUnavailableException("Cannot initialize protected preferences", error)
+            // No backing-store access or legacy fallback before the primary key is available.
+            primary
+            action()
+        } catch (error: ProtectedStorageUnavailableException) { throw error }
+        catch (error: Exception) { throw ProtectedStorageUnavailableException("Cannot access protected preferences", error) }
+    }
+
+    private fun fenceState(): String? = if (state.committed) PreferenceMigrationFence.COMMITTED
+        else migrationFence.state()
+
+    private fun snapshotDigest(snapshot: Map<String, *>): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        digest.update(BoundPreferenceCipher.encodeFields("ProtectedPreferenceSnapshot3", snapshot.size.toString()))
+        snapshot.toSortedMap().forEach { (key, value) ->
+            val fields = if (value is Set<*>) arrayOf(key, "set", *value.map { it as String }.sorted().toTypedArray())
+                else arrayOf(key, value?.javaClass?.name, value?.toString())
+            digest.update(ByteBuffer.allocate(4).putInt(fields.size).array())
+            digest.update(BoundPreferenceCipher.encodeFields(*fields))
         }
-    }
-    private val legacyDeviceIdConfig by lazy {
-        deriveConfig(SharedPreferenceProvider.EncryptionConfig.legacyDeviceIdInstance)
-    }
-    private val secondaryConfig by lazy {
-        deriveConfig(SharedPreferenceProvider.EncryptionConfig.secondaryInstance)
+        return digest.digest().joinToString("") { "%02x".format(it.toInt() and 255) }
     }
 
-    private val configs: Sequence<DerivedConfig>
-        get() = sequence {
-            // Always require the Keystore config before attempting a legacy migration.
-            primaryConfig?.let { yield(it) }
-            legacyDeviceIdConfig?.let { yield(it) }
-            secondaryConfig?.let { yield(it) }
-        }
-
-    @Volatile
-    private var persistenceFailure: ProtectedStorageUnavailableException? = null
-
-    private fun requireStorage() {
-        persistenceFailure?.let { throw it }
-        primaryConfig ?: secondaryConfig
-    }
-
-    private fun deriveConfig(config: SharedPreferenceProvider.EncryptionConfig?): DerivedConfig? {
-        if (config == null) return null
-        return DerivedConfig(
-            valueKeys = AesCbcWithIntegrity.generateKeyFromPassword(
-                String(config.password.reversedArray()),
-                config.salt.reversedArray()
-            ),
-            fileNameCipher = KeyNameCipher(
-                (config.password + config.salt).copyOf(32).reversedArray()
-            )
-        )
-    }
-
-    private val mListeners =
-        CopyOnWriteArrayList<SharedPreferences.OnSharedPreferenceChangeListener>()
-    private val keyResolver = PreferenceKeyResolver()
-
-
-    /**
-     * @param ciphertext
-     * @return decrypted plain text; unreadable stored entries fail closed.
-     */
-    private fun decryptString(ciphertext: String?): String? {
-        if (ciphertext.isNullOrEmpty()) {
-            return ciphertext
-        }
-        return configs.firstNotNullOfOrNull { config ->
-            try {
-                config.fileNameCipher.decryptName(ciphertext)
-            } catch (_: Throwable) {
-                null
+    private fun checkFormat(snapshot: Map<String, *>): Boolean {
+        val fence = fenceState()
+        if (snapshot.containsKey(HEADER)) {
+            cipher.verifyHeader(snapshot[HEADER] as? String
+                ?: throw ProtectedStorageUnavailableException("Invalid protected preference header"))
+            if (fence != PreferenceMigrationFence.COMMITTED) {
+                // Recover only a fully authenticated v3 snapshot after a process interruption.
+                names(snapshot, true).forEach { (key, physical) ->
+                    decodeObject(cipher.decryptValue(key, storedValue(snapshot, physical)))
+                }
+                if (fence == null) migrationFence.begin(snapshotDigest(snapshot))
+                migrationFence.complete()
             }
-        } ?: throw ProtectedStorageUnavailableException("Cannot decrypt protected preference name")
+            state.committed = true
+            return true
+        }
+        if (fence == PreferenceMigrationFence.COMMITTED)
+            throw ProtectedStorageUnavailableException("Protected preference downgrade rejected")
+        if (fence != null && fence != snapshotDigest(snapshot))
+            throw ProtectedStorageUnavailableException("Interrupted preference migration source changed")
+        return false
     }
 
-    private fun encryptString(cleartext: String?): String? {
-        if (cleartext.isNullOrEmpty()) {
-            return cleartext
+    private fun names(snapshot: Map<String, *>, versioned: Boolean): Map<String?, String> {
+        val result = LinkedHashMap<String?, String>()
+        for (physical in snapshot.keys) {
+            if (physical == HEADER) continue
+            val key = if (versioned) cipher.decryptName(physical) else {
+                val decoded = if (physical.isEmpty()) "" else configs.firstNotNullOfOrNull {
+                    try { it.names.decryptName(physical) } catch (_: Exception) { null }
+                } ?: throw ProtectedStorageUnavailableException("Cannot decrypt legacy preference name")
+                decoded.takeUnless { it == NULL_VALUE }
+            }
+            if (result.containsKey(key)) throw ProtectedStorageUnavailableException("Ambiguous protected preference name")
+            result[key] = physical
         }
-        return primaryConfig?.fileNameCipher?.encryptName(cleartext)
-            ?: secondaryConfig?.fileNameCipher?.encryptName(cleartext)
+        return result
     }
 
-    private fun decrypt(ciphertext: String?): ByteArray? {
-        if (ciphertext.isNullOrEmpty()) return ciphertext?.toByteArray(UTF_8)
-        return configs.firstNotNullOfOrNull { config ->
-            decryptWith(config.valueKeys, ciphertext)
+    private fun storedValue(snapshot: Map<String, *>, physical: String): String = snapshot[physical] as? String
+        ?: throw ProtectedStorageUnavailableException("Invalid protected preference value")
+
+    private fun legacyValue(snapshot: Map<String, *>, physical: String): ByteArray {
+        val value = storedValue(snapshot, physical)
+        return configs.firstNotNullOfOrNull {
+            try { AesCbcWithIntegrity.decrypt(AesCbcWithIntegrity.CipherTextIvMac(value), it.valueKeys) }
+            catch (_: Exception) { null }
+        }?.also(::decodeObject) ?: throw ProtectedStorageUnavailableException("Cannot decrypt legacy preference value")
+    }
+
+    /** One durable replacement, then an irreversible Keystore fence; no legacy plaintext escapes first. */
+    private fun migrate(snapshot: Map<String, *>, updates: Map<String?, ByteArray?> = emptyMap(), clear: Boolean = false) {
+        val values = LinkedHashMap<String?, ByteArray>()
+        if (!clear) names(snapshot, false).forEach { (key, physical) ->
+            if (!updates.containsKey(key)) values[key] = legacyValue(snapshot, physical)
+        }
+        updates.forEach { (key, bytes) -> if (bytes != null) values[key] = bytes }
+        val replacement = values.entries.associate { cipher.encryptName(it.key) to cipher.encryptValue(it.key, it.value) } +
+            (HEADER to cipher.header())
+        val fence = fenceState()
+        if (fence == null || (!clear && fence != PreferenceMigrationFence.COMMITTED))
+            migrationFence.begin(snapshotDigest(snapshot))
+        persist {
+            clear()
+            replacement.forEach { (key, value) -> putString(key, value) }
+        }
+        migrationFence.complete()
+        state.committed = true
+    }
+
+    private fun persist(action: SharedPreferences.Editor.() -> Unit) {
+        try {
+            val editor = mSharedPreferences.edit()
+            editor.action()
+            if (!editor.commit()) throw ProtectedStorageUnavailableException("Protected preference commit failed")
+        } catch (error: Exception) {
+            val failure = ProtectedStorageUnavailableException("Protected preference persistence failed; restart to reload disk state", error)
+            // A failed commit may already have modified SharedPreferences' memory map. Block every wrapper.
+            state.failure = failure
+            throw failure
         }
     }
 
-    private fun decryptWith(
-        keys: AesCbcWithIntegrity.SecretKeys,
-        ciphertext: String
-    ): ByteArray? {
-        return try {
-            val cipherTextIvMac = AesCbcWithIntegrity.CipherTextIvMac(ciphertext)
-            AesCbcWithIntegrity.decrypt(cipherTextIvMac, keys)
-        } catch (e: GeneralSecurityException) {
-            null
-        } catch (e: UnsupportedEncodingException) {
-            null
+    private fun getDecryptedObject(key: String?): Any? = locked {
+        var snapshot = mSharedPreferences.all
+        if (!checkFormat(snapshot)) {
+            migrate(snapshot)
+            snapshot = mSharedPreferences.all
+        }
+        val physical = names(snapshot, true)[key] ?: return@locked null
+        decodeObject(cipher.decryptValue(key, storedValue(snapshot, physical)))
+    }
+
+    override fun getAll(): MutableMap<String?, in Any?> = locked {
+        var snapshot = mSharedPreferences.all
+        if (!checkFormat(snapshot)) { migrate(snapshot); snapshot = mSharedPreferences.all }
+        names(snapshot, true).mapValuesTo(LinkedHashMap()) { (key, physical) ->
+            decodeObject(cipher.decryptValue(key, storedValue(snapshot, physical)))
         }
     }
 
-    private fun encrypt(cleartext: ByteArray?): String? {
-        if (cleartext == null || cleartext.isEmpty()) {
-            return String(cleartext ?: return null, UTF_8)
-        }
-        return try {
-            AesCbcWithIntegrity.encrypt(
-                cleartext,
-                primaryConfig?.valueKeys ?: secondaryConfig?.valueKeys ?: return null
-            ).toString()
-        } catch (e: GeneralSecurityException) {
-            LogCat.logException(e)
-            null
-        } catch (e: UnsupportedEncodingException) {
-            LogCat.logException(e)
-            null
-        }
+    /** Names remain available for explicit removal of corrupt values; no read-side migration here. */
+    fun keySet(): Set<String?> = locked {
+        val snapshot = mSharedPreferences.all
+        names(snapshot, checkFormat(snapshot)).keys.toSet()
     }
 
-    private inner class Editor(
-        private val mEncryptedSharedPreferences: EncryptedSharedPreferences,
-        editor: SharedPreferences.Editor
-    ) : SharedPreferences.Editor {
-        private val mEditor: SharedPreferences.Editor = editor
-        private val mKeysChanged: MutableList<String?> = CopyOnWriteArrayList()
-        private val mClearRequested = AtomicBoolean(false)
+    override fun getString(key: String?, defValue: String?): String? {
+        val value = getDecryptedObject(key)
+        return (if (value is String) value else defValue)
+    }
 
+    override fun getStringSet(key: String?, defValues: Set<String>?): Set<String>? {
+
+        val value = getDecryptedObject(key)
+        val returnValues = if (value is Set<*>) {
+            @Suppress("UNCHECKED_CAST")
+            value as Set<String>
+        } else {
+            ArraySet()
+        }
+        return returnValues.ifEmpty { defValues }
+    }
+
+    override fun getInt(key: String?, defValue: Int): Int {
+        val value = getDecryptedObject(key)
+        return (if (value is Int) value else defValue)
+    }
+
+    override fun getLong(key: String?, defValue: Long): Long {
+        val value = getDecryptedObject(key)
+        return (if (value is Long) value else defValue)
+    }
+
+    override fun getFloat(key: String?, defValue: Float): Float {
+        val value = getDecryptedObject(key)
+        return (if (value is Float) value else defValue)
+    }
+
+    override fun getBoolean(key: String?, defValue: Boolean): Boolean {
+        val value = getDecryptedObject(key)
+        return (if (value is Boolean) value else defValue)
+    }
+
+    override fun contains(key: String?): Boolean = keySet().contains(key)
+    override fun edit(): SharedPreferences.Editor = locked { Editor() }
+    override fun registerOnSharedPreferenceChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        mListeners.add(listener)
+    }
+    override fun unregisterOnSharedPreferenceChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        mListeners.remove(listener)
+    }
+
+    private inner class Editor : SharedPreferences.Editor {
+        private val updates = LinkedHashMap<String?, ByteArray?>()
+        private var clearRequested = false
         override fun putString(key: String?, value: String?): SharedPreferences.Editor {
             var outValue = value
             if (outValue == null) {
@@ -305,270 +368,64 @@ class EncryptedSharedPreferences internal constructor(
             return this
         }
 
-        override fun remove(key: String?): SharedPreferences.Editor {
-            val encryptedKey = mEncryptedSharedPreferences.findEncryptedKey(key)
-                ?: mEncryptedSharedPreferences.encryptKey(key)
-            mEditor.remove(encryptedKey)
-            mEncryptedSharedPreferences.forgetEncryptedKey(key)
-            mKeysChanged.add(key)
-            return this
-        }
-
-        override fun clear(): SharedPreferences.Editor {
-            mClearRequested.set(true)
-            return this
-        }
+        override fun remove(key: String?): SharedPreferences.Editor = apply { updates[key] = null }
+        override fun clear(): SharedPreferences.Editor = apply { clearRequested = true }
+        private fun putEncryptedObject(key: String?, value: ByteArray?) { updates[key] = value }
 
         override fun commit(): Boolean {
-            mEncryptedSharedPreferences.requireStorage()
-            clearKeysIfNeeded()
-            val result = mEditor.commit()
-            if (result) {
-                notifyListeners()
-            } else {
-                // SharedPreferences may already have changed its in-memory map on failure.
-                // Do not subsequently authenticate against unpersisted templates or lockouts.
-                mEncryptedSharedPreferences.persistenceFailure =
-                    ProtectedStorageUnavailableException("Protected preference commit failed; reopen the process to reload disk state")
-            }
-            return result
-        }
-
-        override fun apply() {
-            mEncryptedSharedPreferences.requireStorage()
-            clearKeysIfNeeded()
-            mEditor.apply()
-            notifyListeners()
-        }
-
-        private fun clearKeysIfNeeded() {
-            if (mClearRequested.getAndSet(false)) {
-                for ((key) in mEncryptedSharedPreferences.mSharedPreferences.all.entries) {
-                    if (!mKeysChanged.contains(key)) {
-                        mEditor.remove(key)
+            val changed = locked {
+                val snapshot = mSharedPreferences.all
+                // An explicit clear may recover a damaged header/name without trusting its values.
+                val versioned = if (clearRequested) false else checkFormat(snapshot)
+                if (!versioned) migrate(snapshot, updates, clearRequested)
+                else {
+                    val aliases = names(snapshot, true)
+                    val puts = updates.filterValues { it != null }.map { (key, bytes) ->
+                        (aliases[key] ?: cipher.encryptName(key)) to cipher.encryptValue(key, bytes!!)
+                    }
+                    persist {
+                        updates.filterValues { it == null }.keys.forEach { key -> aliases[key]?.let(::remove) }
+                        puts.forEach { (key, value) -> putString(key, value) }
                     }
                 }
-                mEncryptedSharedPreferences.clearEncryptedKeyCache()
+                val changed = updates.keys.toList()
+                updates.clear()
+                clearRequested = false
+                changed
             }
+            // No listener is called by migration or under the store lock.
+            mListeners.forEach { listener -> changed.forEach { listener.onSharedPreferenceChanged(this@EncryptedSharedPreferences, it) } }
+            return true
         }
 
-        private fun notifyListeners() {
-            for (listener in mEncryptedSharedPreferences.mListeners) {
-                for (key in mKeysChanged) {
-                    listener.onSharedPreferenceChanged(mEncryptedSharedPreferences, key)
-                }
-            }
+        // Protected mutations must be durable before publishing state or notifying consumers.
+        override fun apply() { commit() }
+    }
+
+    private fun decodeObject(value: ByteArray): Any? {
+        val buffer = ByteBuffer.wrap(value)
+        fun text(): String {
+            val size = buffer.int
+            require(size >= 0 && size <= buffer.remaining())
+            val bytes = ByteArray(size).also(buffer::get)
+            return Charsets.UTF_8.newDecoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString()
         }
-
-        private fun putEncryptedObject(key: String?, value: ByteArray?) {
-            try {
-                val encryptedPair = mEncryptedSharedPreferences.encryptKeyValuePair(key, value)
-                mEditor.putString(encryptedPair.first, encryptedPair.second)
-                mEncryptedSharedPreferences.rememberEncryptedKey(key, encryptedPair.first)
-                mKeysChanged.add(key)
-            } catch (e: GeneralSecurityException) {
-                throw SecurityException("Could not encrypt data: ${e.message}", e)
-            }
+        val decoded: Any? = when (buffer.int) {
+            0 -> text().takeUnless { it == NULL_VALUE }
+            1 -> LinkedHashSet<String>().apply { while (buffer.hasRemaining()) add(text()) }
+                .takeUnless { it.size == 1 && it.single() == NULL_VALUE }
+            2 -> buffer.int
+            3 -> buffer.long
+            4 -> buffer.float
+            5 -> buffer.get().also { require(it == 0.toByte() || it == 1.toByte()) } == 1.toByte()
+            else -> throw ProtectedStorageUnavailableException("Unknown protected preference value type")
         }
+        require(!buffer.hasRemaining()) { "Trailing protected preference data" }
+        return decoded
     }
 
-    override fun getAll(): MutableMap<String?, in Any?> {
-        requireStorage()
-        val allEntries: MutableMap<String?, in Any?> = HashMap()
-        for ((key) in mSharedPreferences.all.entries) {
-            val decryptedKey = decryptKey(key)
-            allEntries[decryptedKey] = getDecryptedObject(decryptedKey)
-        }
-        return allEntries
-    }
-
-    override fun getString(key: String?, defValue: String?): String? {
-        val value = getDecryptedObject(key)
-        return (if (value is String) value else defValue)
-    }
-
-    override fun getStringSet(key: String?, defValues: Set<String>?): Set<String>? {
-
-        val value = getDecryptedObject(key)
-        val returnValues = if (value is Set<*>) {
-            @Suppress("UNCHECKED_CAST")
-            value as Set<String>
-        } else {
-            ArraySet()
-        }
-        return returnValues.ifEmpty { defValues }
-    }
-
-    override fun getInt(key: String?, defValue: Int): Int {
-        val value = getDecryptedObject(key)
-        return (if (value is Int) value else defValue)
-    }
-
-    override fun getLong(key: String?, defValue: Long): Long {
-        val value = getDecryptedObject(key)
-        return (if (value is Long) value else defValue)
-    }
-
-    override fun getFloat(key: String?, defValue: Float): Float {
-        val value = getDecryptedObject(key)
-        return (if (value is Float) value else defValue)
-    }
-
-    override fun getBoolean(key: String?, defValue: Boolean): Boolean {
-        val value = getDecryptedObject(key)
-        return (if (value is Boolean) value else defValue)
-    }
-
-    override fun contains(key: String?): Boolean {
-        val encryptedKey = findEncryptedKey(key) ?: return false
-        return mSharedPreferences.contains(encryptedKey)
-    }
-
-    override fun edit(): SharedPreferences.Editor {
-        // Includes clear(): no mutation is allowed while protected storage is unavailable.
-        requireStorage()
-        return Editor(this, mSharedPreferences.edit())
-    }
-
-    override fun registerOnSharedPreferenceChangeListener(
-        listener: SharedPreferences.OnSharedPreferenceChangeListener
-    ) {
-        mListeners.add(listener)
-    }
-
-    override fun unregisterOnSharedPreferenceChangeListener(
-        listener: SharedPreferences.OnSharedPreferenceChangeListener
-    ) {
-        mListeners.remove(listener)
-    }
-
-    /**
-     * Internal enum to set the type of encrypted data.
-     */
     private enum class EncryptedType(val id: Int) {
-        STRING(0), STRING_SET(1), INT(2), LONG(3), FLOAT(4), BOOLEAN(5);
-
-        companion object {
-            fun fromId(id: Int): EncryptedType? {
-                return when (id) {
-                    0 -> STRING
-                    1 -> STRING_SET
-                    2 -> INT
-                    3 -> LONG
-                    4 -> FLOAT
-                    5 -> BOOLEAN
-                    else -> null
-                }
-            }
-        }
-    }
-
-    private fun encryptKey(key: String?): String? {
-        return encryptString(key ?: NULL_VALUE)
-    }
-
-    private fun decryptKey(encryptedKey: String?): String {
-        var key = decryptString(encryptedKey)
-        if (key == null) {
-            key = encryptedKey ?: NULL_VALUE
-        }
-        return if (key == NULL_VALUE) NULL_VALUE else key
-    }
-
-    private fun findEncryptedKey(key: String?): String? {
-        requireStorage()
-        val normalizedKey = key ?: NULL_VALUE
-        return keyResolver.resolve(
-            plainKey = normalizedKey,
-            directLookup = {
-                val direct = encryptString(normalizedKey)
-                if (direct != null && mSharedPreferences.contains(direct)) direct else null
-            },
-            scanStoredKeys = { mSharedPreferences.all.keys.asSequence().filterIsInstance<String>() },
-            decryptStoredKey = { storedKey -> decryptString(storedKey) }
-        )
-    }
-
-    @Throws(SecurityException::class)
-    private fun getDecryptedObject(key: String?): Any? {
-        var localKey = key
-        if (localKey == null) {
-            localKey = NULL_VALUE
-        }
-
-        try {
-            val encryptedKey = findEncryptedKey(localKey) ?: return null
-            val encryptedValue: String =
-                mSharedPreferences.getString(encryptedKey, null) ?: return null
-
-            val value: ByteArray = decrypt(encryptedValue)
-                ?: throw ProtectedStorageUnavailableException("Cannot decrypt protected preference value")
-
-            val buffer = ByteBuffer.wrap(value)
-            buffer.position(0)
-            val typeId = buffer.getInt()
-            val type = EncryptedType.fromId(typeId)
-                ?: throw SecurityException("Unknown type ID for encrypted pref value: $typeId")
-
-            when (type) {
-                EncryptedType.STRING -> {
-                    val stringLength = buffer.getInt()
-                    val stringSlice = buffer.slice()
-                    stringSlice.limit(stringLength)
-                    val stringValue = StandardCharsets.UTF_8.decode(stringSlice).toString()
-                    return if (stringValue == NULL_VALUE) null else stringValue
-                }
-
-                EncryptedType.INT -> return buffer.getInt()
-                EncryptedType.LONG -> return buffer.getLong()
-                EncryptedType.FLOAT -> return buffer.getFloat()
-                EncryptedType.BOOLEAN -> return buffer.get() != 0.toByte()
-                EncryptedType.STRING_SET -> {
-                    val stringSet = ArraySet<String>()
-
-                    while (buffer.hasRemaining()) {
-                        val subStringLength = buffer.getInt()
-                        val subStringSlice = buffer.slice()
-                        subStringSlice.limit(subStringLength)
-                        buffer.position(buffer.position() + subStringLength)
-                        stringSet.add(StandardCharsets.UTF_8.decode(subStringSlice).toString())
-                    }
-
-                    return if (stringSet.size == 1 && NULL_VALUE == stringSet.valueAt(0)) {
-                        null
-                    } else {
-                        stringSet
-                    }
-                }
-            }
-        } catch (ex: ProtectedStorageUnavailableException) {
-            throw ex
-        } catch (ex: Exception) {
-            throw ProtectedStorageUnavailableException("Cannot read protected preference", ex)
-        }
-    }
-
-    @Throws(GeneralSecurityException::class)
-    private fun encryptKeyValuePair(key: String?, value: ByteArray?): Pair<String, String> {
-        val encryptedKey = findEncryptedKey(key) ?: encryptKey(key)
-        val cipherText = encrypt(value)
-        if (encryptedKey == null || cipherText == null) {
-            throw GeneralSecurityException("Could not encrypt preference entry")
-        }
-        return Pair(encryptedKey, cipherText)
-    }
-
-    private fun rememberEncryptedKey(key: String?, encryptedKey: String?) {
-        val normalizedKey = key ?: NULL_VALUE
-        val normalizedEncryptedKey = encryptedKey ?: return
-        keyResolver.remember(normalizedKey, normalizedEncryptedKey)
-    }
-
-    private fun forgetEncryptedKey(key: String?) {
-        keyResolver.forget(key ?: NULL_VALUE)
-    }
-
-    private fun clearEncryptedKeyCache() {
-        keyResolver.clear()
+        STRING(0), STRING_SET(1), INT(2), LONG(3), FLOAT(4), BOOLEAN(5)
     }
 }

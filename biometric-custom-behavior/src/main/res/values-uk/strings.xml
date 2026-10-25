@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_key_space">пробіл</string>
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">Перевірка поведінки</string>
+    <string name="biometriccompat_behavior_action_restart">Почати знову</string>
 </resources>
 
 

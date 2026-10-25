@@ -4,6 +4,23 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class FaceAntiSpoofingWindowTest {
+    @Test fun spoofTerminalFrameCannotReuseEarlierLiveEvidence() {
+        val window = FaceAntiSpoofingWindow(5, 3, 0.28f)
+        window.add(0.1f)
+        window.add(0.1f)
+        assertEquals(FaceAntiSpoofingDecision.PENDING, window.add(0.8f))
+    }
+
+    @Test fun oneLiveFrameCannotAuthorizeASpoofDominatedWindow() {
+        val window = FaceAntiSpoofingWindow(5, 3, 0.28f)
+        window.add(0.8f)
+        window.add(0.8f)
+        assertEquals(FaceAntiSpoofingDecision.PENDING, window.add(0.1f))
+        assertEquals(FaceAntiSpoofingDecision.PENDING, window.add(0.1f))
+        assertEquals(FaceAntiSpoofingDecision.PENDING, window.add(0.1f))
+        assertEquals(FaceAntiSpoofingDecision.PASS, window.add(0.1f))
+    }
+
     @Test fun strictWarmupCannotAuthorizeTheThirdMatchingFrame() {
         val window = FaceAntiSpoofingWindow(6, 4, 0.28f)
         repeat(3) { assertEquals(FaceAntiSpoofingDecision.PENDING, window.add(0.1f)) }

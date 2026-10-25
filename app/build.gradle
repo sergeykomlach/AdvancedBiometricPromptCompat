@@ -76,6 +76,9 @@ android {
     buildFeatures {
         viewBinding true
     }
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
     namespace 'dev.skomlach.biometric.app'
     compileOptions {
         sourceCompatibility javaVersion
@@ -90,10 +93,13 @@ kotlin {
     jvmToolchain(javaVersion.ordinal() + 1)
 }
 dependencies {
+    testImplementation libs.junit
+    testImplementation libs.robolectric
     implementation project(":" + libArtifactId_common)
     implementation project(":" + libArtifactId_biometric)
     implementation project(":" + libArtifactId_biometric_ktx)
     implementation project(":" + libArtifactId_biometric_custom_face_tf)
+    implementation project(":" + libArtifactId_biometric_custom_behavior)
     implementation project(":" + libArtifactId_biometric_zkfinger)
     implementation project(":" + libArtifactId_biometric_sherpa_onnx)
     debugImplementation project(":" + libArtifactId_biometric_custom_voice)

@@ -1,0 +1,6 @@
+Тест AdvancedBiometricPrompt | dev.skomlach.biometric.app:id/alertTitle
+Змініть доступ цього додатка в налаштуваннях конфіденційності
+
+запис-ти аудіо | android:id/message
+Скасувати | android:id/button2
+Налаштування | android:id/button1

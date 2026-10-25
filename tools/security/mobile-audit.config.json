@@ -1,0 +1,22 @@
+{
+  "format": 1,
+  "branch": "main",
+  "scopes": [
+    "settings.gradle",
+    "build.gradle",
+    "gradle.properties",
+    "gradle",
+    "app",
+    "biometric",
+    "biometric-api",
+    "biometric-ktx",
+    "common",
+    "biometric-custom-behavior",
+    "biometric-custom-face-tf",
+    "biometric-custom-voice",
+    "biometric-sherpa-onnx",
+    "biometric-zkfinger"
+  ],
+  "task_timeout_seconds": 1800,
+  "run_timeout_seconds": 12600
+}

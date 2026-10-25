@@ -20,6 +20,9 @@ android {
     }
 
     namespace 'dev.skomlach.common'
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
     compileOptions {
         sourceCompatibility javaVersion
         targetCompatibility javaVersion
@@ -47,6 +50,7 @@ dependencies {
     implementation libs.androidx.concurrent.futures
     implementation libs.material
     testImplementation libs.junit
+    testImplementation libs.robolectric
 }
 //https://github.com/allendavis-official/gsmarena-scraper
 ext.gsmarenaScrapeAndCopy = { ->

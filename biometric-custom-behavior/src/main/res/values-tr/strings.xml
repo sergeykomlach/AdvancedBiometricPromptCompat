@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">Davranış kontrol ediliyor</string>
     <string name="biometriccompat_behavior_error_capture_invalid">Veri alımı kesintiye uğradı veya geçersizdi. Tekrar deneyin.</string>
     <string name="biometriccompat_behavior_error_accessibility">Güvenilmeyen bir erişilebilirlik hizmeti etkin. Hizmeti devre dışı bırakıp tekrar deneyin.</string>
+    <string name="biometriccompat_behavior_action_restart">Yeniden başlat</string>
 </resources>
 
 

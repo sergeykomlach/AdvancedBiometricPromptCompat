@@ -1,0 +1,21 @@
+<resources>
+    <string name="signature_system_title">Signature + system biometrics</string>
+    <string name="signature_system_description">Draw your usual signature. Behavior is an additional signal; only system biometrics can confirm this demo action.</string>
+    <string name="signature_system_enrollment_hint">For a matching signal, first enroll Signature via Dialog → Behavior. Without a profile, the signal is unavailable and system biometrics are still required. Android 9 or later is required for this demo.</string>
+    <string name="signature_system_pad_description">Draw your signature here</string>
+    <string name="signature_system_submit">Verify signature and continue</string>
+    <string name="signature_system_restart">New signature</string>
+    <string name="signature_system_cancel">Cancel</string>
+    <string name="signature_system_ready">Draw a fresh signature to begin.</string>
+    <string name="signature_system_checking">Checking the signature signal…</string>
+    <string name="signature_system_prompt">System biometric confirmation is required.</string>
+    <string name="signature_system_success">Demo action confirmed by system biometrics.</string>
+    <string name="signature_system_failed">System biometrics did not confirm the action. Check system enrollment and try again.</string>
+    <string name="signature_system_canceled">Canceled. Start a new signature to try again.</string>
+    <string name="signature_system_need_signature">Finish a clear signature with several strokes, or start a new signature.</string>
+    <string name="signature_system_input_rejected">Input interrupted or expired. Start a new signature.</string>
+    <string name="signature_system_no_signal">Behavior: no result yet.</string>
+    <string name="signature_system_matched">Behavior: matched (additional signal).</string>
+    <string name="signature_system_not_matched">Behavior: not matched (additional signal).</string>
+    <string name="signature_system_unavailable">Behavior: unavailable (additional signal).</string>
+</resources>

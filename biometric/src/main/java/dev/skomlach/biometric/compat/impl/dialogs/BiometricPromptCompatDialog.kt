@@ -44,6 +44,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.annotation.RequiresApi
@@ -55,6 +56,7 @@ import androidx.core.view.OneShotPreDrawListener
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ViewModelProvider
@@ -89,6 +91,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
     private var containerView: View? = null
     private var nativeStyle: NativeDialogStyle? = null
     private var nativeStyleSession: NativeDialogStyleApplier.Session? = null
+    private var softwareContentActive = false
     private var requestedStyleKey: String? = null
     var title: TextView? = null
         private set
@@ -240,6 +243,16 @@ class BiometricPromptCompatDialog : DialogFragment() {
         negativeButton = rootView?.findViewById(android.R.id.button1)
         fingerprintIcon = rootView?.findViewById(R.id.fingerprint_icon)
         authPreview = rootView?.findViewById(R.id.auth_preview)
+        // Child fragments are restored before OnShow. Their container must already exist.
+        rootView?.findViewById<View>(R.id.auth_content_container)?.let { auth ->
+            val parent = auth.parent as? LinearLayout ?: return@let
+            if (rootView?.findViewById<View>(R.id.software_capture_content) == null) {
+                parent.addView(FragmentContainerView(requireContext()).apply {
+                    id = R.id.software_capture_content
+                    visibility = View.GONE
+                }, parent.indexOfChild(auth), LinearLayout.LayoutParams(-1, -2))
+            }
+        }
         // Never wait for resource I/O or change the profile during the initial enter animation.
         SystemBiometricDialogResources.warmUp(requireActivity())
         // Zero means MATCH_PARENT to this helper, not a resolved pixel width.
@@ -333,6 +346,13 @@ class BiometricPromptCompatDialog : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if (savedInstanceState != null && bindInitialContent == null && onShowDialogInterface == null) {
+            // Auth owners/controllers are deliberately not serialized. Never resume an orphan UI.
+            view.post {
+                if (isAdded && this.view === view && bindInitialContent == null && onShowDialogInterface == null)
+                    dismissAllowingStateLoss()
+            }
+        }
         SystemBiometricDialogResources.updates.observe(viewLifecycleOwner) {
             val host = activity ?: return@observe
             // LiveData may coalesce completions of several concurrent configuration prefetches.
@@ -439,6 +459,10 @@ class BiometricPromptCompatDialog : DialogFragment() {
     }
 
     private fun refreshNativeStyle() {
+        if (softwareContentActive) {
+            updateDialogWindowSize()
+            return
+        }
         val host = activity ?: return
         val width = MultiWindowSupport.get(host).resolveDialogWidth(Int.MAX_VALUE)
         val style = SystemBiometricDialogResources.cached(host)?.takeIf { it.fitsWindow(width) }
@@ -447,6 +471,14 @@ class BiometricPromptCompatDialog : DialogFragment() {
             nativeStyleSession?.apply(style, arguments?.getBoolean("isInscreenLayout") == true)
             updateMonetColorsInternal(host)
         }
+        updateDialogWindowSize()
+    }
+
+    internal fun prepareSoftwareContent() {
+        softwareContentActive = true
+        requestedStyleKey = null
+        nativeStyleSession?.apply(null, arguments?.getBoolean("isInscreenLayout") == true)
+        nativeStyle = null
         updateDialogWindowSize()
     }
 

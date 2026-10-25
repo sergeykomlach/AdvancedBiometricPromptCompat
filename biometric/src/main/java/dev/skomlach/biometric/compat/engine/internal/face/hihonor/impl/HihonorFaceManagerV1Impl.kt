@@ -31,7 +31,6 @@ class HihonorFaceManagerV1Impl : HihonorFaceManagerV1() {
         private const val HIHONOR_OP_FAIL = -1
         private const val HIHONOR_OP_SUCCESS = 0
         private const val TAG = "HihonorFaceManagerV1Impl"
-        private const val REQ_ID = 0
         private const val TYPE_AUTH = FaceRecognizeManager.TYPE_CALLBACK_AUTH
     }
 
@@ -40,7 +39,6 @@ class HihonorFaceManagerV1Impl : HihonorFaceManagerV1() {
     }
 
     override fun authenticate(callback: AuthenticatorCallback?, surface: Surface?) {
-        val reqID = REQ_ID
         val type = TYPE_AUTH
         val frManager: HihonorFaceRecognizeManager? =
             HihonorFaceRecognizeManager.instance
@@ -49,7 +47,7 @@ class HihonorFaceManagerV1Impl : HihonorFaceManagerV1() {
         } else if (callback == null) {
             e(TAG, "callback empty")
         } else {
-            frManager.setAuthCallback(callback)
+            val reqID = frManager.beginAuthentication(callback)
             val str = TAG
             val stringBuilder = StringBuilder()
             stringBuilder.append("reqID is ")
@@ -64,11 +62,13 @@ class HihonorFaceManagerV1Impl : HihonorFaceManagerV1() {
                 stringBuilder2.append("init failed returning ")
                 stringBuilder2.append(ret)
                 e(str2, stringBuilder2.toString())
-                callback.onAuthenticationError(HihonorFaceRecognizeManager.HIHONOR_FACE_AUTH_ERROR_HW_UNAVAILABLE)
+                frManager.failAuthentication(reqID, HihonorFaceRecognizeManager.HIHONOR_FACE_AUTH_ERROR_HW_UNAVAILABLE)
                 return
             }
             d(TAG, "authenicating... ")
-            HihonorFaceRecognizeManager.fRManager?.authenticate(reqID, type, surface)
+            if (frManager.isAuthenticationActive(reqID)) {
+                HihonorFaceRecognizeManager.fRManager?.authenticate(reqID, type, surface)
+            }
         }
     }
 
@@ -78,7 +78,10 @@ class HihonorFaceManagerV1Impl : HihonorFaceManagerV1() {
             e(TAG, "HihonorFaceRecognizeManager is null")
             return -1
         }
-        HihonorFaceRecognizeManager.fRManager?.cancelAuthenticate(REQ_ID)
+        val requestId = HihonorFaceRecognizeManager.instance?.cancelAuthentication()
+        if (requestId != null) {
+            HihonorFaceRecognizeManager.fRManager?.cancelAuthenticate(requestId)
+        }
         HihonorFaceRecognizeManager.fRManager?.release()
         HihonorFaceRecognizeManager.createInstance()
         return HIHONOR_OP_SUCCESS

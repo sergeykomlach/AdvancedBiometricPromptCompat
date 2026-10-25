@@ -26,7 +26,6 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -89,12 +88,16 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         }
 
     @Throws(SecurityException::class)
+    @Synchronized
     override fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        if (!isAuthenticationActive(listener)) return
+        val requestListener = ownAuthenticationRequest(listener, cancellationSignal)
+        if (!isAuthenticationActive(requestListener)) return
         huawei3DFaceManager?.let {
             try {
                 // Why getCancellationSignalObject returns an Object is unexplained
@@ -102,13 +105,13 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     ?: throw IllegalArgumentException("CancellationSignal can't be null")
 
                 this.originalCancellationSignal = cancellationSignal
-                authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                authenticateInternal(biometricCryptoObject, requestListener, restartPredicate)
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(
+        requestListener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
             startAuthenticationFailureDescription()
@@ -116,11 +119,13 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         return
     }
 
+    @Synchronized
     private fun authenticateInternal(
         biometricCryptoObject: BiometricCryptoObject?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        if (!isAuthenticationActive(listener)) return
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         huawei3DFaceManager?.let {
             try {
@@ -185,6 +190,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
 
         private var selfCanceled = false
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
+            if (!isAuthenticationCurrent(listener)) return
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout)
@@ -202,6 +208,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     AuthenticationFailureReason.TIMEOUT
 
                 HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_LOCKED -> {
+                    if (!isAuthenticationCurrent(listener)) return
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -209,7 +216,8 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
-                        postCancelTask {
+                        if (!isAuthenticationCurrent(listener)) return
+                        postCancelTask(listener) {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
                                 listener?.onCanceled(
@@ -217,7 +225,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                                     AuthenticationFailureReason.CANCELED,
                                     null
                                 )
-                                Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
+                                cancelAuthentication(listener)
                             }
                         }
                     }
@@ -236,6 +244,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
+                    if (!isAuthenticationCurrent(listener)) return
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -247,15 +256,17 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                             AuthenticationFailureReason.AUTHENTICATION_FAILED
                         ).contains(failureReason)
                     ) {
+                        if (!isAuthenticationCurrent(listener)) return
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
-                    postCancelTask {
+                    if (!isAuthenticationCurrent(listener)) return
+                    postCancelTask(listener) {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
                             listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
-                            Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
+                            cancelAuthentication(listener)
                         }
                     }
                 }

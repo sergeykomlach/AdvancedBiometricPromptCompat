@@ -19,13 +19,18 @@ android {
     kotlinOptions {
         jvmTarget = javaVersion.toString()
     }
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
 }
 
 dependencies {
     implementation project(":" + libArtifactId_common)
     implementation project(":" + libArtifactId_biometric)
     implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
     testImplementation libs.junit
+    testImplementation libs.robolectric
 }
 
 ext {

@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">행동을 확인하는 중</string>
     <string name="biometriccompat_behavior_error_capture_invalid">캡처가 중단되었거나 유효하지 않습니다. 다시 시도하세요.</string>
     <string name="biometriccompat_behavior_error_accessibility">신뢰할 수 없는 접근성 서비스가 활성화되어 있습니다. 비활성화한 후 다시 시도하세요.</string>
+    <string name="biometriccompat_behavior_action_restart">다시 시작</string>
 </resources>
 
 

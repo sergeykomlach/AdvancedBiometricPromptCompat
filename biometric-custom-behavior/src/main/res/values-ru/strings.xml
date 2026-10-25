@@ -43,6 +43,7 @@
     <string name="biometriccompat_behavior_status_checking">Проверка поведения</string>
     <string name="biometriccompat_behavior_error_capture_invalid">Сбор данных был прерван или данные некорректны. Повторите попытку.</string>
     <string name="biometriccompat_behavior_error_accessibility">Активна недоверенная служба специальных возможностей. Отключите её и повторите попытку.</string>
+    <string name="biometriccompat_behavior_action_restart">Начать заново</string>
 </resources>
 
 

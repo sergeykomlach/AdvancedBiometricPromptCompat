@@ -25,6 +25,7 @@ import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BundleBuilder
+import dev.skomlach.biometric.compat.AuthenticationTrustContext
 import dev.skomlach.biometric.compat.softwareBiometricHardwareBackedCryptoUnsupportedDescription
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
@@ -50,7 +51,6 @@ import dev.skomlach.biometric.compat.custom.SoftwareBiometricTerminalState
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricRuntime
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModuleState
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -144,6 +144,7 @@ class SoftwareBiometricModule internal constructor(
         (manager?.getEnrollmentSnapshot() ?: SoftwareBiometricEnrollment.Unavailable()).requireReadable()
     }
     private var activeSessionToken: SoftwareBiometricSessionToken? = null
+    private var requestTrustContext: Bundle? = null
     private var enrollBundle: Bundle? = null
     private var enrollmentRollbackScope: EnrollmentRollbackScope? = null
 
@@ -165,7 +166,8 @@ class SoftwareBiometricModule internal constructor(
 
 
     fun rollbackLastEnroll() {
-        d("$name: rollbackLastEnroll $enrollBundle")
+        // Enrollment extras may contain phrases, traces or other provider secrets.
+        d("$name: rollbackLastEnroll")
         try {
             manager?.remove(enrollBundle ?: return)
         } catch (error: Exception) {
@@ -241,18 +243,26 @@ class SoftwareBiometricModule internal constructor(
     )
 
     @Throws(SecurityException::class)
+    @Synchronized
     override fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        if (!isAuthenticationActive(listener)) return
+        val requestListener = ownAuthenticationRequest(listener, cancellationSignal)
+        if (!isAuthenticationActive(requestListener)) return
+        var requestToken: SoftwareBiometricSessionToken? = null
+        var requestTimeout = timeoutRunnable
         manager?.let {
             try {
                 activeSessionToken?.let { previous ->
                     sessionGuard.tryTerminate(previous, SoftwareBiometricTerminalState.CANCELLED)
                 }
                 val sessionToken = sessionGuard.start()
+                requestTrustContext = AuthenticationTrustContext.snapshot(bundle)
+                requestToken = sessionToken
                 activeSessionToken = sessionToken
                 // Why getCancellationSignalObject returns an Object is unexplained
                 (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
@@ -266,7 +276,7 @@ class SoftwareBiometricModule internal constructor(
                 timeoutHandler.removeCallbacks(timeoutRunnable)
                 timeoutHandler.postDelayed(Runnable {
                     sessionGate.dispatch {
-                        listener?.onFailure(
+                        requestListener?.onFailure(
                             tag(),
                             AuthenticationFailureReason.TIMEOUT,
                             manager?.getTimeoutMessage()
@@ -279,27 +289,28 @@ class SoftwareBiometricModule internal constructor(
                     }
                 }.also {
                     timeoutRunnable = it
+                    requestTimeout = it
                 }, 30_000L)
                 authenticateInternal(
                     biometricCryptoObject,
-                    listener,
+                    requestListener,
                     restartPredicate,
                     sessionToken
                 )
                 return
             } catch (error: Throwable) {
                 e(error, "$name: authenticate failed unexpectedly")
-                timeoutHandler.removeCallbacks(timeoutRunnable)
-                activeSessionToken?.let { sessionGuard.tryTerminate(it, SoftwareBiometricTerminalState.CANCELLED) }
-                originalCancellationSignal?.cancel()
+                timeoutHandler.removeCallbacks(requestTimeout)
+                requestToken?.let { sessionGuard.tryTerminate(it, SoftwareBiometricTerminalState.CANCELLED) }
+                cancellationSignal?.cancel()
                 if (error is dev.skomlach.common.storage.ProtectedStorageUnavailableException) {
-                    listener?.onFailure(tag(), AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+                    requestListener?.onFailure(tag(), AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
                         startAuthenticationFailureDescription())
                     return
                 }
             }
         }
-        listener?.onFailure(
+        requestListener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
             startAuthenticationFailureDescription()
@@ -307,17 +318,28 @@ class SoftwareBiometricModule internal constructor(
         return
     }
 
+    @Synchronized
     private fun authenticateInternal(
         biometricCryptoObject: BiometricCryptoObject?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?,
         sessionToken: SoftwareBiometricSessionToken
     ) {
+        if (!isAuthenticationActive(listener)) return
+        val originalSignal = originalCancellationSignal
+        val sessionTimeout = timeoutRunnable
         // A delayed retry must not rebind the newer session's cancellation signal or SDK.
-        if (!sessionGuard.isActive(sessionToken) || originalCancellationSignal?.isCanceled != false) return
+        if (!sessionGuard.isActive(sessionToken) || originalSignal?.isCanceled != false) return
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+                if (!AuthenticationTrustContext.permits(requestTrustContext, it.securityProfile, it.trustedCaptureForAuthentication)) {
+                    timeoutHandler.removeCallbacks(sessionTimeout)
+                    listener?.onFailure(tag(), AuthenticationFailureReason.INSUFFICIENT_TRUST,
+                        context.getString(dev.skomlach.biometric.compat.R.string.biometriccompat_authentication_trust_required))
+                    originalSignal.cancel()
+                    return
+                }
                 // Build the provider-facing object once so the common gate and provider
                 // invocation observe the same cryptographic request.
                 val crypto = if (biometricCryptoObject == null) null else {
@@ -341,18 +363,17 @@ class SoftwareBiometricModule internal constructor(
                 if (securityDecision != SoftwareBiometricSecurityDecision.ALLOW ||
                     (biometricCryptoObject.hasUsableCrypto() && !it.supportsCryptoObject)
                 ) {
-                    timeoutHandler.removeCallbacks(timeoutRunnable)
+                    timeoutHandler.removeCallbacks(sessionTimeout)
                     listener?.onFailure(
                         tag(),
                         AuthenticationFailureReason.CRYPTO_ERROR,
                         softwareBiometricHardwareBackedCryptoUnsupportedDescription(name)
                     )
-                    originalCancellationSignal?.cancel()
+                    originalSignal.cancel()
                     return
                 }
                 val cancellationSignal = CancellationSignal()
-                val sessionTimeout = timeoutRunnable
-                originalCancellationSignal?.setOnCancelListener {
+                originalSignal.setOnCancelListener {
                     sessionGuard.tryTerminate(
                         sessionToken,
                         SoftwareBiometricTerminalState.CANCELLED
@@ -378,7 +399,9 @@ class SoftwareBiometricModule internal constructor(
                 d("$name.authenticate:  Crypto=$crypto")
                 // Recheck after preparation: unavailable templates must never reach the provider.
                 requireReadableEnrollment()
-                if (!sessionGuard.isActive(sessionToken) || cancellationSignal.isCanceled) return
+                val extras = convertBundleToCustom()
+                    ?: throw IllegalArgumentException("Bundle should be not NULL")
+                if (!isAuthenticationActive(listener) || !sessionGuard.isActive(sessionToken) || cancellationSignal.isCanceled) return
                 authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(
                     crypto,
@@ -386,15 +409,14 @@ class SoftwareBiometricModule internal constructor(
                     signalObject,
                     callback,
                     ExecutorHelper.handler,
-                    convertBundleToCustom()
-                        ?: throw IllegalArgumentException("Bundle should be not NULL")
+                    extras
                 )
                 return
             } catch (error: Throwable) {
                 e(error, "$name: authenticate failed unexpectedly")
-                timeoutHandler.removeCallbacks(timeoutRunnable)
-                activeSessionToken?.let { sessionGuard.tryTerminate(it, SoftwareBiometricTerminalState.CANCELLED) }
-                originalCancellationSignal?.cancel()
+                timeoutHandler.removeCallbacks(sessionTimeout)
+                sessionGuard.tryTerminate(sessionToken, SoftwareBiometricTerminalState.CANCELLED)
+                originalSignal.cancel()
                 if (error is dev.skomlach.common.storage.ProtectedStorageUnavailableException) {
                     listener?.onFailure(tag(), AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
                         startAuthenticationFailureDescription())
@@ -455,10 +477,11 @@ class SoftwareBiometricModule internal constructor(
         {
             timeoutHandler.removeCallbacks(sessionTimeout)
             // Teardown before notification: the listener may immediately start a new flow.
-            Core.cancelAuthentication(this@SoftwareBiometricModule)
+            cancelAuthentication(listener)
             listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
         }
     ) {
+        private val trustContextSnapshot = requestTrustContext
         private var errorTs = 0L
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
@@ -468,6 +491,7 @@ class SoftwareBiometricModule internal constructor(
         }
 
         private fun handleAuthenticationError(errMsgId: Int, errString: CharSequence?) {
+            if (!isAuthenticationCurrent(listener)) return
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout)
@@ -515,7 +539,7 @@ class SoftwareBiometricModule internal constructor(
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(tag(), failureReason, errString)
-                        postCancelTask {
+                        postCancelTask(listener) {
                             if (callbackGate.canDispatch()) {
                                 selfCanceled = true
                                 listener?.onCanceled(
@@ -523,7 +547,7 @@ class SoftwareBiometricModule internal constructor(
                                     AuthenticationFailureReason.CANCELED,
                                     null
                                 )
-                                Core.cancelAuthentication(this@SoftwareBiometricModule)
+                                cancelAuthentication(listener)
                             }
                         }
                     }
@@ -547,6 +571,7 @@ class SoftwareBiometricModule internal constructor(
                     ) == true
                 ) {
                     listener?.onFailure(tag(), failureReason, errString)
+                    if (!isAuthenticationCurrent(listener)) return
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -563,14 +588,15 @@ class SoftwareBiometricModule internal constructor(
                         manager?.getLockoutError()
                     )
                     if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
+                        if (!isAuthenticationCurrent(listener)) return
                         lockout()
                     }
                     listener?.onFailure(tag(), failureReason, errString)
-                    postCancelTask {
+                    postCancelTask(listener) {
                         if (callbackGate.canDispatch()) {
                             selfCanceled = true
                             listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
-                            Core.cancelAuthentication(this@SoftwareBiometricModule)
+                            cancelAuthentication(listener)
                         }
                     }
                 }
@@ -591,6 +617,16 @@ class SoftwareBiometricModule internal constructor(
                         SoftwareBiometricTerminalState.SUCCEEDED
                     )
                 ) {
+                    return
+                }
+                val actual = this@SoftwareBiometricModule.manager
+                val permitted = runCatching {
+                    actual != null && AuthenticationTrustContext.permits(trustContextSnapshot,
+                        actual.securityProfile, actual.trustedCaptureForAuthentication)
+                }.getOrDefault(false)
+                if (!permitted) {
+                    listener?.onFailure(tag(), AuthenticationFailureReason.INSUFFICIENT_TRUST,
+                        context.getString(dev.skomlach.biometric.compat.R.string.biometriccompat_authentication_trust_required))
                     return
                 }
                 if (result?.cryptoObject != null &&

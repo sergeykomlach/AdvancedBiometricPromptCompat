@@ -32,6 +32,8 @@
         <action
                 android:id="@+id/action_FirstFragment_to_SecondFragment"
                 app:destination="@id/SecondFragment" />
+        <action android:id="@+id/action_FirstFragment_to_SignatureSystemFragment"
+            app:destination="@id/SignatureSystemFragment" />
     </fragment>
     <fragment
             android:id="@+id/SecondFragment"
@@ -43,4 +45,7 @@
                 android:id="@+id/action_SecondFragment_to_FirstFragment"
                 app:destination="@id/FirstFragment" />
     </fragment>
+    <fragment android:id="@+id/SignatureSystemFragment"
+        android:name="dev.skomlach.biometric.app.signature.SignatureSystemFragment"
+        android:label="@string/signature_system_title" tools:layout="@layout/fragment_signature_system" />
 </navigation>

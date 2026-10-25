@@ -4,6 +4,7 @@ import math
 import os
 import random
 import time
+from pathlib import Path
 from dataclasses import dataclass
 from email.utils import parsedate_to_datetime
 from typing import Optional
@@ -160,6 +161,14 @@ class PoliteHttpClient:
 
     def get_html(self, url):
         outcome = self.get_with_retry(url)
+        diagnostics = os.environ.get("GSMARENA_DIAGNOSTICS_DIR")
+        if diagnostics and outcome.response is not None:
+            target = Path(diagnostics)
+            target.mkdir(parents=True, exist_ok=True)
+            (target / "last_response.html").write_bytes(outcome.response.content)
+            (target / "last_response.json").write_text(json.dumps({
+                "url": url, "status": outcome.response.status_code, "error": outcome.error
+            }, indent=2), encoding="utf-8")
         if outcome.error or outcome.response is None:
             raise ScrapeError(f"{url}: {outcome.error or 'No response'}")
         return outcome.response.content

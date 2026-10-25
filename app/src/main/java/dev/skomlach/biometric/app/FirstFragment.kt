@@ -169,6 +169,10 @@ class FirstFragment : Fragment() {
         binding?.buttonSecond?.setOnClickListener {
             (activity as MainActivity).showDialog()
         }
+        binding?.buttonSignatureSystem?.setOnClickListener {
+            androidx.navigation.fragment.NavHostFragment.findNavController(this)
+                .navigate(R.id.action_FirstFragment_to_SignatureSystemFragment)
+        }
 //        binding?.buttonForth?.setOnClickListener {
 //            (activity as MainActivity).startActivity(Chuck.getLaunchIntent(it.context))
 //        }

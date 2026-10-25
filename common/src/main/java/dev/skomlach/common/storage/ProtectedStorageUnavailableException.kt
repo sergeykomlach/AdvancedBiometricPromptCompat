@@ -25,3 +25,7 @@ fun SharedPreferences.editProtected(action: SharedPreferences.Editor.() -> Unit)
         throw ProtectedStorageUnavailableException("Cannot persist protected preferences")
     }
 }
+
+/** Reading/deleting enrollment names must not unnecessarily decrypt all biometric samples. */
+fun SharedPreferences.protectedKeys(): Set<String> =
+    if (this is EncryptedSharedPreferences) keySet().filterNotNull().toSet() else all.keys.toSet()

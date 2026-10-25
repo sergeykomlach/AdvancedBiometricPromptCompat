@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_authentication_trust_required">Цей спосіб автентифікації не відповідає вимогам безпеки для цієї операції.</string>
+</resources>
