@@ -18,8 +18,6 @@
  */
 package dev.skomlach.biometric.app.devtools.internal.huc;
 
-import static okhttp3.internal._UtilJvmKt.UTC;
-
 import android.net.TrafficStats;
 
 import com.chuckerteam.chucker.api.ChuckerInterceptor;
@@ -48,6 +46,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import dev.skomlach.biometric.app.devtools.internal.JavaNetHeaders;
@@ -95,7 +94,7 @@ public final class OkHttpURLConnection extends HttpURLConnection implements Call
                     // Date format specified by RFC 7231 section 7.1.1.1.
                     DateFormat rfc1123 = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.US);
                     rfc1123.setLenient(false);
-                    rfc1123.setTimeZone(UTC);
+                    rfc1123.setTimeZone(TimeZone.getTimeZone("GMT"));
                     return rfc1123;
                 }
             };
