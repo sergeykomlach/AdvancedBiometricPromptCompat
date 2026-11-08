@@ -14,11 +14,10 @@ internal enum class BehaviorAccessibilityDecision {
 @Suppress("ReturnCount")
 internal fun evaluateBehaviorAccessibility(
     strict: Boolean,
-    hasWhitelistedService: Boolean,
     hasUntrustedService: Boolean
 ): BehaviorAccessibilityDecision {
     if (!strict) return BehaviorAccessibilityDecision.ALLOW_COMPATIBILITY
-    if (hasUntrustedService && !hasWhitelistedService) {
+    if (hasUntrustedService) {
         return BehaviorAccessibilityDecision.REJECT_UNTRUSTED_SERVICE
     }
     return BehaviorAccessibilityDecision.ALLOW

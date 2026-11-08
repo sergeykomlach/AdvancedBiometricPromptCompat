@@ -8,15 +8,15 @@ class BehaviorAccessibilityPolicyTest {
     fun strictModeRejectsUntrustedAccessibilityService() {
         assertEquals(
             BehaviorAccessibilityDecision.REJECT_UNTRUSTED_SERVICE,
-            evaluateBehaviorAccessibility(strict = true, hasWhitelistedService = false, hasUntrustedService = true)
+            evaluateBehaviorAccessibility(strict = true, hasUntrustedService = true)
         )
     }
 
     @Test
-    fun whitelistedServiceIsAllowedInStrictMode() {
+    fun strictModeAllowsTrustedAccessibilityState() {
         assertEquals(
             BehaviorAccessibilityDecision.ALLOW,
-            evaluateBehaviorAccessibility(strict = true, hasWhitelistedService = true, hasUntrustedService = true)
+            evaluateBehaviorAccessibility(strict = true, hasUntrustedService = false)
         )
     }
 
@@ -24,7 +24,7 @@ class BehaviorAccessibilityPolicyTest {
     fun compatibilityModeDoesNotClaimStrictTrust() {
         assertEquals(
             BehaviorAccessibilityDecision.ALLOW_COMPATIBILITY,
-            evaluateBehaviorAccessibility(strict = false, hasWhitelistedService = false, hasUntrustedService = true)
+            evaluateBehaviorAccessibility(strict = false, hasUntrustedService = true)
         )
     }
 }

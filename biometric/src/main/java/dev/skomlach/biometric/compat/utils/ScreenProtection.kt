@@ -21,20 +21,27 @@ package dev.skomlach.biometric.compat.utils
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
+import android.database.ContentObserver
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityManager
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider
 import androidx.core.view.ViewCompat
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.protection.A11yDetection
+import java.util.WeakHashMap
 
 object ScreenProtection {
     private data class ProtectedViewState(
@@ -43,6 +50,44 @@ object ScreenProtection {
         val originalAccessibilityDelegate: View.AccessibilityDelegate?,
         val accessibilityDataSensitive: Int?
     )
+
+    // Main-thread state. The process observer never owns a View or Activity.
+    private val protectedViews = WeakHashMap<View, Unit>()
+    private var readerCheck = 0L
+    private val observeSettings by lazy {
+        val context = AndroidContext.appContext
+        val resolver = context.contentResolver
+        val observer = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                onServicesChanged(context)
+            }
+        }
+        runCatching {
+            resolver.registerContentObserver(
+                Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_ENABLED), false, observer
+            )
+            resolver.registerContentObserver(
+                Settings.Secure.getUriFor(Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES), false, observer
+            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.getSystemService(AccessibilityManager::class.java)
+                    ?.addAccessibilityServicesStateChangeListener(ExecutorHelper.executor) {
+                        onServicesChanged(context)
+                    }
+            }
+        }.onFailure {
+            runCatching { resolver.unregisterContentObserver(observer) }
+            BiometricLoggerImpl.e("ScreenProtection", "Unable to observe accessibility settings")
+        }.isSuccess
+    }
+
+    private fun onServicesChanged(context: Context) {
+        A11yDetection.clearCache()
+        ExecutorHelper.post {
+            protectedViews.keys.forEach(::restrictAccessibility)
+            refreshReaderAccess(context)
+        }
+    }
 
     private val blockingDelegate = object : View.AccessibilityDelegate() {
         override fun sendAccessibilityEvent(host: View, eventType: Int) = Unit
@@ -185,27 +230,58 @@ object ScreenProtection {
         disableView: Boolean = true
     ) {
         try {
-            if (A11yDetection.hasWhiteListedService(view.context)) {
-                BiometricLoggerImpl.e("ScreenProtection", "View protection disabled due to WL a11y")
-                rollbackView(view)
-                return
+            if (disableView) {
+                protectView(view)
+                protectedViews[view] = Unit
+                refreshReaderAccess(view.context.applicationContext)
             } else {
-                BiometricLoggerImpl.d(
-                    "ScreenProtection",
-                    "View protection applied with flag=$disableView"
-                )
-
-                if (disableView) {
-                    protectView(view)
-                } else {
-                    rollbackView(view)
-                }
+                protectedViews.remove(view)
+                rollbackView(view)
             }
         } catch (e: Exception) {
             //not sure is exception can happen, but better to track at least
             BiometricLoggerImpl.e("ScreenProtection", e)
         }
     }
+
+    private fun refreshReaderAccess(context: Context, legacyRetries: Int = 2) {
+        val check = ++readerCheck
+        val generation = A11yDetection.settingsGeneration
+        if (protectedViews.isEmpty()) return
+        ExecutorHelper.startOnBackground {
+            if (!observeSettings) return@startOnBackground
+            val allowed = A11yDetection.hasWhiteListedService(context)
+            val retry = !allowed && legacyRetries > 0 && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU &&
+                !Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES).isNullOrEmpty()
+            ExecutorHelper.post {
+                if (check != readerCheck) return@post
+                if (generation != A11yDetection.settingsGeneration) {
+                    protectedViews.keys.forEach(::restrictAccessibility)
+                    refreshReaderAccess(context, legacyRetries)
+                    return@post
+                }
+                if (allowed) {
+                    protectedViews.keys.forEach { view ->
+                        val state = view.getTag(R.id.bio_tag_screen_protection_state) as? ProtectedViewState
+                            ?: return@forEach
+                        ViewCompat.setImportantForAccessibility(view, state.importantForAccessibility)
+                        view.accessibilityDelegate = state.originalAccessibilityDelegate
+                    }
+                } else {
+                    protectedViews.keys.forEach(::restrictAccessibility)
+                    if (retry) {
+                        ExecutorHelper.postDelayed({
+                            if (check == readerCheck) {
+                                refreshReaderAccess(context, legacyRetries - 1)
+                            }
+                        }, LEGACY_SERVICE_BIND_RETRY_MS)
+                    }
+                }
+            }
+        }
+    }
+
+    private const val LEGACY_SERVICE_BIND_RETRY_MS = 750L
 
     private fun protectView(view: View) {
         val alreadyApplied =
@@ -222,17 +298,18 @@ object ScreenProtection {
             )
         }
 
-        ViewCompat.setImportantForAccessibility(
-            view,
-            ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-        )
+        restrictAccessibility(view)
 
         invokeAccessibilityDataSensitiveApiOrNull(supportsAccessibilityDataSensitiveApi()) {
             view.setAccessibilityDataSensitive(View.ACCESSIBILITY_DATA_SENSITIVE_YES)
         }
 
-        view.accessibilityDelegate = blockingDelegate
         view.setTag(R.id.bio_tag_screen_protection_applied, true)
+    }
+
+    private fun restrictAccessibility(view: View) {
+        ViewCompat.setImportantForAccessibility(view, ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS)
+        view.accessibilityDelegate = blockingDelegate
     }
 
     private fun rollbackView(view: View) {

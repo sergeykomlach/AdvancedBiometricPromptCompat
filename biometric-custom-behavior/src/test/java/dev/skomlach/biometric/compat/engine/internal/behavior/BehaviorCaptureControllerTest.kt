@@ -3,6 +3,7 @@ package dev.skomlach.biometric.compat.engine.internal.behavior
 import android.app.Activity
 import android.os.Bundle
 import android.os.SystemClock
+import android.provider.Settings
 import android.text.InputType
 import android.view.InputDevice
 import android.view.MotionEvent
@@ -13,6 +14,7 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.biometric.custom.behavior.R
+import dev.skomlach.common.protection.A11yDetection
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Test
@@ -208,14 +210,7 @@ class BehaviorCaptureControllerTest {
     @Test fun validTypingSubmitsOnceAndDisposalClearsOnlyOwnedPayload() {
         builder.setExtras(Bundle().apply { putString("caller", "preserved") })
         install()
-        views().filterIsInstance<RadioButton>().first { it.text.toString() == "Typing" }.performClick()
-        "abcde".forEachIndexed { index, char ->
-            val key = key(char.toString())
-            touch(key, MotionEvent.ACTION_DOWN)
-            ShadowSystemClock.advanceBy(Duration.ofMillis(60L + index * 7L))
-            touch(key, MotionEvent.ACTION_UP)
-            ShadowSystemClock.advanceBy(Duration.ofMillis(80L + index * 11L))
-        }
+        enterValidTypingSample()
         val submit = views().filterIsInstance<Button>().first { it.text.toString() == "Verify" }
         submit.performClick()
         submit.performClick()
@@ -235,6 +230,44 @@ class BehaviorCaptureControllerTest {
         // Retained core/caller extras cannot recover a consumed or cancelled raw sample.
         assertNull(BehaviorSample.fromBundle(payload))
         assertNull(BehaviorCaptureSessionRegistry.consumeSample(nonce, SystemClock.elapsedRealtime(), false))
+    }
+
+    @Test fun serviceEnabledDuringStrictCapturePreventsSubmission() {
+        install()
+        enterValidTypingSample()
+
+        val setting = Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        val previous = Settings.Secure.getString(context.contentResolver, setting)
+        try {
+            // The setting can change before the new service appears in AccessibilityManager.
+            Settings.Secure.putString(context.contentResolver, setting, "test.accessibility/.UntrustedService")
+            views().filterIsInstance<Button>().first { it.text.toString() == "Verify" }.performClick()
+            assertEquals(0, readyCount)
+            assertFalse(builder.getExtras()?.containsKey(EXTRA_BEHAVIOR_SESSION_NONCE) ?: false)
+        } finally {
+            Settings.Secure.putString(context.contentResolver, setting, previous)
+        }
+    }
+
+    @Test fun serviceChangeInvalidatesStrictCaptureEvenAfterSettingsAreRestored() {
+        install()
+        enterValidTypingSample()
+        // The observer can deliver an enable/disable cycle before the next UI input.
+        A11yDetection.clearCache()
+        views().filterIsInstance<Button>().first { it.text.toString() == "Verify" }.performClick()
+        assertEquals(0, readyCount)
+        assertFalse(builder.getExtras()?.containsKey(EXTRA_BEHAVIOR_SESSION_NONCE) ?: false)
+    }
+
+    private fun enterValidTypingSample() {
+        views().filterIsInstance<RadioButton>().first { it.text.toString() == "Typing" }.performClick()
+        "abcde".forEachIndexed { index, char ->
+            val key = key(char.toString())
+            touch(key, MotionEvent.ACTION_DOWN)
+            ShadowSystemClock.advanceBy(Duration.ofMillis(60L + index * 7L))
+            touch(key, MotionEvent.ACTION_UP)
+            ShadowSystemClock.advanceBy(Duration.ofMillis(80L + index * 11L))
+        }
     }
 
     @Test fun disposeRestoresCallerTouchFilterAndPreservesExistingProtection() {

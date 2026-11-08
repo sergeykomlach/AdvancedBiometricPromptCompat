@@ -24,7 +24,7 @@ import dev.skomlach.common.BuildConfig
 
 
 object LogCat {
-    var DEBUG = BuildConfig.DEBUG
+    @Volatile var DEBUG = BuildConfig.DEBUG
     fun logError(vararg msgs: Any?) {
         if (DEBUG) Log.e("LogCat", "${listOf(*msgs)}")
     }

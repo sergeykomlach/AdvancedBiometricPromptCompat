@@ -1,5 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
+import android.content.Context
+
 import android.os.Bundle
 
 import android.graphics.Canvas
@@ -77,6 +79,7 @@ internal class BehaviorCaptureController(
     private var typingPolicy: BehaviorTypingInputPolicy? = null
     private var sessionToken: BehaviorCaptureSessionToken? = null
     private var accessibilityPending = false
+    private var accessibilityGeneration: Long? = null
     private var submissionPending = false
     private var captureInvalidated = false
     private val protectedOverlayViews = ArrayList<View>()
@@ -211,26 +214,34 @@ internal class BehaviorCaptureController(
         val token = BehaviorCaptureSessionRegistry.start(SystemClock.elapsedRealtime(), SystemClock.uptimeMillis())
         sessionToken = token
         accessibilityPending = false
+        accessibilityGeneration = null
         submissionPending = false
         if (!runtimeCaptureAllowed()) return
         if (!isStrictBuiltInCapture()) return
         accessibilityPending = true
         val context = rootView.context.applicationContext
         dispatchBackground(Runnable {
-            val decision = evaluateBehaviorAccessibility(
-                strict = true,
-                hasWhitelistedService = A11yDetection.hasWhiteListedService(context),
-                hasUntrustedService = !A11yDetection.shouldWeTrustA11y(context)
-            )
+            val generation = A11yDetection.settingsGeneration
+            val trusted = isCaptureAccessibilityTrusted(context)
             dispatchMain(Runnable {
                 if (disposed || sessionToken !== token) return@Runnable
                 accessibilityPending = false
-                if (decision == BehaviorAccessibilityDecision.REJECT_UNTRUSTED_SERVICE) {
-                    invalidateCapture()
-                    showInputError(localized(R.string.biometriccompat_behavior_error_accessibility))
+                if (!trusted || generation != A11yDetection.settingsGeneration) {
+                    rejectCaptureForAccessibility()
+                } else {
+                    accessibilityGeneration = generation
                 }
             })
         })
+    }
+
+    private fun isCaptureAccessibilityTrusted(context: Context): Boolean =
+        evaluateBehaviorAccessibility(strict = true, hasUntrustedService = !A11yDetection.shouldWeTrustA11y(context)) ==
+            BehaviorAccessibilityDecision.ALLOW
+
+    private fun rejectCaptureForAccessibility() {
+        invalidateCapture()
+        showInputError(localized(R.string.biometriccompat_behavior_error_accessibility))
     }
 
     private fun createContent(container: FrameLayout): View {
@@ -638,6 +649,10 @@ internal class BehaviorCaptureController(
 
     private fun runtimeCaptureAllowed(): Boolean {
         if (accessibilityPending || submissionPending) return false
+        if (accessibilityGeneration?.let { it != A11yDetection.settingsGeneration } == true) {
+            rejectCaptureForAccessibility()
+            return false
+        }
         if (!BiometricPromptCompat.hasDetectedRuntimeHooks()) return true
         invalidateCapture()
         showInputError(localized(R.string.biometriccompat_behavior_help_unavailable))
@@ -689,22 +704,29 @@ internal class BehaviorCaptureController(
         val strokeData = points.toFloatArray()
         val latestEvent = token.relativeUptime(SystemClock.uptimeMillis())
         val existingExtras = builder.getExtras()
+        val strictContext = rootView.context.applicationContext.takeIf { isStrictBuiltInCapture() }
+        val generation = accessibilityGeneration
         val work = Runnable {
-            val extras = runCatching {
+            val accessibilityTrusted = strictContext == null ||
+                (generation == A11yDetection.settingsGeneration && isCaptureAccessibilityTrusted(strictContext))
+            val extras = if (accessibilityTrusted) runCatching {
                 val sample = BehaviorSample(mode, phrase.trim(), downs, ups, decodeCapturedPoints(strokeData))
                     .normalizedForMode()
                 val decision = evaluateBehaviorSampleIntegrity(sample, 0L, latestEvent, MAX_INTER_EVENT_GAP_MS)
                 if (decision == BehaviorInputIntegrityDecision.ACCEPT) {
                     sealBehaviorExtras(existingExtras, sample, enroll, token, SystemClock.elapsedRealtime())
                 } else null
-            }.getOrNull()
+            }.getOrNull() else null
             strokeData.fill(0f)
             val publish = Runnable {
                 if (disposed || sessionToken !== token) return@Runnable
                 submissionPending = false
                 if (!runtimeCaptureAllowed()) return@Runnable
-                if (extras == null) showInputError(localized(R.string.biometriccompat_behavior_error_capture_invalid))
-                else publishSample(token, extras)
+                when {
+                    !accessibilityTrusted -> rejectCaptureForAccessibility()
+                    extras == null -> showInputError(localized(R.string.biometriccompat_behavior_error_capture_invalid))
+                    else -> publishSample(token, extras)
+                }
             }
             if (synchronous) publish.run() else dispatchMain(publish)
         }

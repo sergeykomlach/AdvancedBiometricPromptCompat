@@ -136,8 +136,7 @@ flag values keep library networking disabled for the process. Use literal Boolea
 `android:value` settings. Setting a flag in `Application.onCreate()` would be too late for
 automatic ContentProvider initialization.
 
-Localhost socket checks used for hook detection remain active; this setting does not disable
-that security heuristic. The policy does not change another SDK's or the application's own network traffic. Library
+Hook detection runs locally using process information. The network policy applies to this library's own traffic. Library
 permissions remain declared for compatibility; see [consumer manifest overrides](../docs/consumer-manifest.md)
 to remove declarations for unused features.
 

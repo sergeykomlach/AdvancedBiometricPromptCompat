@@ -43,7 +43,7 @@ class BehaviorAttackMatrixTest {
         )
         assertEquals(
             BehaviorAccessibilityDecision.REJECT_UNTRUSTED_SERVICE,
-            evaluateBehaviorAccessibility(true, false, true)
+            evaluateBehaviorAccessibility(strict = true, hasUntrustedService = true)
         )
     }
 

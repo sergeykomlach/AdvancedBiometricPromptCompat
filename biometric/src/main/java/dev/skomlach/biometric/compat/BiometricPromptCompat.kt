@@ -113,6 +113,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         /** Best-effort local signal, not attestation. A positive detection lasts for this process. */
         @JvmStatic
         fun hasDetectedRuntimeHooks(): Boolean = reference.get()
+
+        private fun scanRuntimeHooks(onComplete: () -> Unit = {}) {
+            HookDetection.detect(object : HookDetection.HookDetectionListener {
+                override fun onDetected(flag: Boolean) {
+                    if (flag) reference.set(true)
+                    onComplete()
+                }
+            })
+        }
         var API_ENABLED = true
             private set
 
@@ -254,11 +263,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     initInProgress.set(true)
                     pendingTasks.add(execute)
                     BiometricLoggerImpl.d("BiometricPromptCompat.init() for ${AndroidContext.appContext.packageName}")
-                    HookDetection.detect(object : HookDetection.HookDetectionListener {
-                        override fun onDetected(flag: Boolean) {
-                            if (flag) reference.set(true)
-                        }
-                    })
+                    scanRuntimeHooks()
                     startBiometricInit()
                     ExecutorHelper.startOnBackground {
                         DeviceUnlockedReceiver.registerDeviceUnlockListener()
@@ -573,23 +578,29 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 terminal = true
             )
         }) { outcome ->
-            val hookFailure = if (outcome.status == EnrollTerminalStatus.SUCCEEDED) {
-                callback.hookFailureOrNull(outcome.results)
-            } else null
-            dispatchAfterFlowFinished(
-                finishFlow = { finishAuthFlow(authFlowId) },
-                dispatch = {
-                    when (outcome.status) {
-                        EnrollTerminalStatus.SUCCEEDED -> {
-                            if (hookFailure != null) callback.onFailed(hookFailure)
-                            else callback.onSucceeded(outcome.results)
+            val dispatchOutcome = {
+                if (isCurrentAuthFlow(authFlowId)) {
+                    val hookFailure = if (outcome.status == EnrollTerminalStatus.SUCCEEDED) {
+                        callback.hookFailureOrNull(outcome.results)
+                    } else null
+                    dispatchAfterFlowFinished(
+                        finishFlow = { finishAuthFlow(authFlowId) },
+                        dispatch = {
+                            when (outcome.status) {
+                                EnrollTerminalStatus.SUCCEEDED -> {
+                                    if (hookFailure != null) callback.onFailed(hookFailure)
+                                    else callback.onSucceeded(outcome.results)
+                                }
+                                EnrollTerminalStatus.FAILED -> callback.onFailed(outcome.results)
+                                EnrollTerminalStatus.CANCELED -> callback.onCanceled(outcome.results)
+                                EnrollTerminalStatus.CONTINUE -> callback.onFailed(canceledResults)
+                            }
                         }
-                        EnrollTerminalStatus.FAILED -> callback.onFailed(outcome.results)
-                        EnrollTerminalStatus.CANCELED -> callback.onCanceled(outcome.results)
-                        EnrollTerminalStatus.CONTINUE -> callback.onFailed(canceledResults)
-                    }
+                    )
                 }
-            )
+            }
+            if (outcome.status == EnrollTerminalStatus.SUCCEEDED) scanRuntimeHooks(dispatchOutcome)
+            else dispatchOutcome()
         }
     }
 
@@ -1093,6 +1104,18 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                     override fun onSucceeded(result: Set<AuthenticationResult>) {
                         if (!isCurrentAuthFlow(authFlowId) || completion.isFinishing() || restarting) return
+                        val confirmed = result.toSet()
+                        // The platform can close its prompt before the off-main check returns.
+                        restarting = true
+                        appBackgroundDetector.pauseFragmentDismiss()
+                        scanRuntimeHooks {
+                            if (!isCurrentAuthFlow(authFlowId) || completion.isFinishing()) return@scanRuntimeHooks
+                            restarting = false
+                            acceptSuccess(confirmed)
+                        }
+                    }
+
+                    private fun acceptSuccess(result: Set<AuthenticationResult>) {
                         hookFailureOrNull(result)?.let { failure ->
                             // Terminal rejection, before enrollment commit or crypto use. Do not
                             // route through onFailed's device-credential restart heuristic.
@@ -1158,6 +1181,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             // The old fragment can also stop during the retry animation.
                             restartWithCurrentFlow {
                                 detector.cancelPendingFragmentDismiss()
+                                detector.resumeFragmentDismiss()
                                 rebindActivityViewWatcher()
                             }
                             return
@@ -2377,11 +2401,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         init {
 
-            HookDetection.detect(object : HookDetection.HookDetectionListener {
-                override fun onDetected(flag: Boolean) {
-                    if (flag) reference.set(true)
-                }
-            })
+            scanRuntimeHooks()
             getActivity()?.let { context ->
                 this.colorNavBar = context.window.navigationBarColor
                 this.colorStatusBar = context.window.statusBarColor
