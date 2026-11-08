@@ -31,7 +31,6 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.os.Messenger
-import android.os.RemoteException
 import dev.skomlach.biometric.compat.engine.internal.ServiceBindingState
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.BiometricConnect
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
@@ -45,21 +44,7 @@ import kotlin.concurrent.withLock
 class BiometricClient {
     companion object {
         private const val LOG_TAG = "BiometricClient"
-        private const val MSG_GET_VERSION = 5002
-        private const val MSG_RELEASE_SERVICE = 5001
-        private const val MSG_RELEASE_TIMEOUT = 5
-        private const val MSG_REPLAY_TIMEOUT = 2
-        private const val MSG_SEND_SERVEICE = 5003
-        private const val MSG_START_SERVICE = 5000
-        private const val SERVICE_READY_TIMEOUT = 2
-        private const val SERVICE_STATUS_CONNECTED = 2
-        private const val SERVICE_STATUS_CONNECTING = 1
         private const val SERVICE_STATUS_CONNECTING_ERROR = 12
-        private const val SERVICE_STATUS_CONNECTING_TIME_OUT = 11
-        private const val SERVICE_STATUS_DISCONNECT = 5
-        private const val SERVICE_STATUS_DISCONNECTING = 3
-        private const val SERVICE_STATUS_NONE = 0
-        private const val SERVICE_STATUS_UNBIND = 4
     }
 
     private val accessLock_ = ReentrantLock()

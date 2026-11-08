@@ -16,8 +16,7 @@ internal class VoiceStreamingDetector(
     private val noiseMultiplier: Float = 2.5f,
     private val speechStartFrames: Int = 3,
     private val shortPauseFrames: Int = 4,
-    private val endSilenceFrames: Int = 12,
-    private val minimumSampleMs: Long = 900L
+    private val endSilenceFrames: Int = 12
 ) {
     private val conditioner = VoiceSignalConditioner()
     private val cachedChunks = ArrayList<FloatArray>()
@@ -276,10 +275,6 @@ internal class VoiceStreamingDetector(
             offset += chunk.size
         }
         return flattened
-    }
-
-    private fun minimumSampleCount(): Int {
-        return ((sampleRateHz * minimumSampleMs) / 1000L).toInt()
     }
 
     private fun stableSpeechFrames(): Int {

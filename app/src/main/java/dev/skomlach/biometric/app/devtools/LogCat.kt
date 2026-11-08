@@ -67,8 +67,7 @@ object LogCat {
                 val process = Runtime.getRuntime().exec("logcat -v brief -b main")
                 try {
                     BufferedReader(InputStreamReader(process.inputStream)).use { stream ->
-                        while (started.get()) {
-                            val line = stream.readLine() ?: break
+                        for (line in stream.lineSequence()) {
                             remember(truncate(line).take(MAX_LINE_LENGTH))
                         }
                     }
@@ -109,10 +108,6 @@ object LogCat {
 
     private fun truncate(log: String): String {
         return log.replaceFirst("([\\d-\\s:.]*)".toRegex(), "")
-    }
-
-    fun stop() {
-        started.set(false)
     }
 
     interface Log2ViewCallback {

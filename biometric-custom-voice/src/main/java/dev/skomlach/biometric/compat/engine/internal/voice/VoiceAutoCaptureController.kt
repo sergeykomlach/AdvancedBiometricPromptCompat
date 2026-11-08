@@ -4,13 +4,11 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
-import dev.skomlach.biometric.custom.voice.R
 import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -42,8 +40,7 @@ internal class VoiceAutoCaptureController(
         sampleRateHz = SAMPLE_RATE_HZ,
         mainHandler = mainHandler,
         isPromptActive = callback::isPromptActive,
-        onOutcome = ::onCaptureOutcome,
-        recorderUnavailableMessage = localized(R.string.biometriccompat_voice_error_recorder_unavailable)
+        onOutcome = ::onCaptureOutcome
     )
 
     fun shouldAutoCapture(): Boolean = session.shouldAutoCapture()
@@ -76,7 +73,6 @@ internal class VoiceAutoCaptureController(
             return
         }
         Vibro.start()
-        val state = session.currentPromptState()
         orchestrator.start()
     }
 
@@ -90,10 +86,6 @@ internal class VoiceAutoCaptureController(
                     "quality=${outcome.decision.qualityIssue} speech=${outcome.decision.hadSpeechActivity}"
             )
         }
-        if (outcome is VoiceCaptureOutcome.Fatal) {
-            session.onCaptureOutcome(outcome, nowMs = SystemClock.elapsedRealtime())
-            return
-        }
         if (outcome is VoiceCaptureOutcome.Timeout) {
             session.onCaptureOutcome(outcome, nowMs = SystemClock.elapsedRealtime())
             return
@@ -106,20 +98,6 @@ internal class VoiceAutoCaptureController(
 
     private fun localized(id: Int, vararg formatArgs: Any?): String {
         return LocalizationHelper.getLocalizedString(context, id, *formatArgs)
-    }
-
-    private fun VoicePromptState?.currentStepOrNull(): Int? {
-        return when (this) {
-            is VoicePromptState.EnrollInstruction -> step
-            else -> null
-        }
-    }
-
-    private fun VoicePromptState?.totalStepsOrDefault(): Int {
-        return when (this) {
-            is VoicePromptState.EnrollInstruction -> total
-            else -> 1
-        }
     }
 
     private companion object {

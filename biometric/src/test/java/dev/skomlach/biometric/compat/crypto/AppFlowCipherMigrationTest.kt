@@ -91,19 +91,18 @@ class AppFlowCipherMigrationTest {
         assertArrayEquals(ByteArray(output.size) { 0x55 }, output)
     }
 
-    @Test fun explicitAppSecretAndConsumedSessionsCannotEnableLegacyFallback() {
+    @Test fun explicitAppSecretIsConsumedOnceAndCannotEnableLegacyFallback() {
+        val secret = "external secret".toCharArray()
         try {
-            AppFlowSessionStore.unlock(name, "external secret".toCharArray())
-            assertFalse(AppFlowSessionStore.consumeUnlockOrNull(name)!!.allowLegacyDecryption)
-            assertNull(AppFlowSessionStore.consumeUnlockOrNull(name))
-            AppFlowSessionStore.unlock(name, "protected key".toCharArray(), true)
-            assertTrue(AppFlowSessionStore.consumeUnlockOrNull(name)!!.allowLegacyDecryption)
-            assertNull(AppFlowSessionStore.consumeUnlockOrNull(name))
+            AppFlowSessionStore.unlock(name, secret)
+            val consumed = AppFlowSessionStore.consumeSecretOrNull(name)!!
+            assertArrayEquals(secret, consumed)
+            assertNull(AppFlowSessionStore.consumeSecretOrNull(name))
+            val (data, iv) = historical(legacy)
+            assertThrows(AEADBadTagException::class.java) {
+                AppFlowCipherFactory.decrypt(consumed, salt, iv).doFinal(data)
+            }
         } finally { AppFlowSessionStore.closeAll() }
-        val (data, iv) = historical(legacy)
-        assertThrows(AEADBadTagException::class.java) {
-            AppFlowCipherFactory.decrypt("external secret".toCharArray(), salt, iv).doFinal(data)
-        }
     }
 
     @Test fun unknownIvFormatsAreRejected() {

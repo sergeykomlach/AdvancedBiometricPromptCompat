@@ -122,24 +122,9 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         const val TABLE_TEMPLATE_COLUMN_NAME = "template_name"
         const val TABLE_TEMPLATE_COLUMN_VALID = "valid"
         const val TABLE_TEMPLATE_NAME = "_template"
-        private const val CANCEL_STATUS_DONE = 1
-        private const val CANCEL_STATUS_NONE = 0
-        private const val DB_STATUS_NONE = 0
-        private const val DB_STATUS_PREPARED = 2
-        private const val DB_STATUS_PREPARING = 1
-        private const val FACEUNLOCK_SUPPORT_SUPERPOWER = "faceunlock_support_superpower"
         private const val FACE_UNLOCK_HAS_FEATURE = "face_unlock_has_feature_sl"
-        private const val FACE_UNLOCK_HAS_FEATURE_URI =
-            "content://settings/secure/face_unlock_has_feature_sl"
         private const val POWERMODE_SUPERSAVE_OPEN = "power_supersave_mode_open"
-        private const val POWERMODE_SUPERSAVE_OPEN_URI =
-            "content://settings/secure/power_supersave_mode_open"
-        private const val RECEIVER_ON_AUTHENTICATION_TIMEOUT = 1
-        private const val RECEIVER_ON_ENROLL_TIMEOUT = 0
         private const val TEMPLATE_PATH = "/data/user/0/com.xiaomi.biometric/files/"
-        private const val VERSION_1 = 1
-        private const val height = 4
-        private const val width = 3
         private const val DEBUG = true
         private const val LOG_TAG = "3DFaceManagerImpl"
 
@@ -166,12 +151,9 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         }
     }
 
-    private val hasEnrollFace = 0
-    private val mBinderLock = Any()
     private val mEnrollParam = EnrollParam()
     private lateinit var mSuperPowerOpenObserver: ContentObserver
     private lateinit var mHasFaceDataObserver: ContentObserver
-    private val mMiuifaceList: List<Miuiface>? = null
     private var boostFramework: Any? = null
     private val authenticationEvents = Miui3DAuthenticationEvents()
     private var authentication: AuthenticationOperation? = null
@@ -192,7 +174,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
     private var mFaceInfo: FaceInfo? = null
     private var mGroupIdMax = 0
     private var mGroupItemList: MutableList<GroupItem?>? = null
-    private var mHandler: Handler
+    private val mHandler: Handler
     private var mHasFaceData = false
     private var mIsSuperPower = false
     override var isReleased = false
@@ -459,7 +441,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                             if (removalCallback != null) {
                                                 removalCallback.onRemovalSucceeded(
                                                     mRemovalMiuiface,
-                                                    mMiuifaceList?.size ?: 0
+                                                    0
                                                 )
                                                 mRemovalCallback = null
                                                 mRemovalMiuiface = null
@@ -646,16 +628,6 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         mBiometricClient?.sendCommand(9)
     }
 
-    private fun resetDatabase() {
-        if (mDatabaseStatus != 2) {
-            e(LOG_TAG, "resetDatabase ignore!")
-            return
-        }
-        d(LOG_TAG, "resetDatabase")
-        mDatabaseStatus = 1
-        mBiometricClient?.sendCommand(10)
-    }
-
     private fun commitDatabase() {
         if (isReleased) {
             e(LOG_TAG, "commitDatabase ignore!")
@@ -829,19 +801,6 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             d(LOG_TAG, "getTemplatepath faild")
             return 0
         }
-
-    private fun getMessageInfo(msgId: Int): String {
-        val msg = "define by 3dclient"
-        if (msgId == 34) {
-            return "Be cancel"
-        }
-        val str = LOG_TAG
-        val stringBuilder = StringBuilder()
-        stringBuilder.append("default msgId: ")
-        stringBuilder.append(msgId)
-        d(str, stringBuilder.toString())
-        return msg
-    }
 
     private fun tryConnectService() {
         if (mDisonnected) {
@@ -1246,16 +1205,6 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         mBiometricClient?.sendCommand(7)
         val handler = mHandler
         handler.sendMessageDelayed(handler.obtainMessage(i), timeout2.toLong())
-    }
-
-    private fun useHandler(handler: Handler?) {
-        if (handler != null) {
-            mHandler = ClientHandler(handler.looper)
-        } else if (mHandler.looper != context.mainLooper) {
-            mHandler = ClientHandler(
-                context.mainLooper
-            )
-        }
     }
 
     override fun extCmd(cmd: Int, param: Int): Int {

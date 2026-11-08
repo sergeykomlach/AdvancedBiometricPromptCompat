@@ -57,7 +57,7 @@ object BiometricCryptoObjectHelper {
         lock.lock()
         try {
             val cipher = when (purpose.purpose) {
-                BiometricCryptographyPurpose.ENCRYPT -> getCipherForEncryption(name, true)
+                BiometricCryptographyPurpose.ENCRYPT -> getCipherForEncryption(name)
                 BiometricCryptographyPurpose.DECRYPT ->
                     biometricDelegate.getInitializedCipherForDecryption(name, true, purpose.initVector)
                 else -> throw IllegalArgumentException("Unsupported cryptography purpose")
@@ -75,20 +75,14 @@ object BiometricCryptoObjectHelper {
         }
     }
 
-    private fun getCipherForEncryption(
-        name: String,
-        isUserAuthRequired: Boolean
-    ) = try {
-        biometricDelegate.getInitializedCipherForEncryption(
-            name,
-            isUserAuthRequired
-        )
+    private fun getCipherForEncryption(name: String) = try {
+        biometricDelegate.getInitializedCipherForEncryption(name, true)
     } catch (error: Throwable) {
         // Only a permanently invalidated auth key may be replaced for new encryption.
         // Provider outages, locked devices and storage failures must preserve existing keys.
-        if (!isUserAuthRequired || !isPermanentlyInvalidatedKey(error)) throw error
+        if (!isPermanentlyInvalidatedKey(error)) throw error
         biometricDelegate.deleteKey(name)
-        biometricDelegate.getInitializedCipherForEncryption(name, isUserAuthRequired)
+        biometricDelegate.getInitializedCipherForEncryption(name, true)
     }
 
     /** Prepare an operation-local cipher without changing routing or holding the biometric key lock. */

@@ -36,7 +36,6 @@ import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptRegistry
 import dev.skomlach.biometric.compat.engine.core.Core
-import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.StatusAuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModuleState

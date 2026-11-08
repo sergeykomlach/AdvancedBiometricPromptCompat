@@ -37,16 +37,13 @@ class AppFlowCryptographyManagerInterface : CryptographyManagerInterface {
         try {
             val iv = initializationVector
                 ?: throw IllegalArgumentException("Initialization vector is required for decryption")
-            val unlock = AppFlowSessionStore.consumeUnlockOrNull(keyName)
+            val secret = AppFlowSessionStore.consumeSecretOrNull(keyName)
                 ?: throw IllegalStateException("App-flow session is not unlocked for key: $keyName")
-            val secret = unlock.secret
-            val legacySecret = if (unlock.allowLegacyDecryption) keyName.toCharArray().reversedArray() else null
             try {
                 val salt = AppFlowCryptoStorage.requireSalt(keyName)
-                return AppFlowCipherFactory.decrypt(secret, salt, iv, legacySecret)
+                return AppFlowCipherFactory.decrypt(secret, salt, iv)
             } finally {
                 secret.fill('\u0000')
-                legacySecret?.fill('\u0000')
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e, "AppFlow decryption init failed. KeyName=$keyName")

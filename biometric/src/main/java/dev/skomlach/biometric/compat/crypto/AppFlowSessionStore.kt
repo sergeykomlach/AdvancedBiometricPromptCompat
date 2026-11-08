@@ -8,8 +8,7 @@ object AppFlowSessionStore {
 
     private class Session(
         val secret: CharArray,
-        val createdAt: Long,
-        val allowLegacyDecryption: Boolean
+        val createdAt: Long
     ) {
         var expiry: ScheduledFuture<*>? = null
 
@@ -19,21 +18,15 @@ object AppFlowSessionStore {
         }
     }
 
-    internal data class Unlock(val secret: CharArray, val allowLegacyDecryption: Boolean)
-
     private val sessions = HashMap<String, Session>()
     private const val SESSION_TTL_SECONDS = 15L
     private val expiryExecutor = ScheduledThreadPoolExecutor(1) { task ->
         Thread(task, "BiometricCompat-app-flow-expiry").apply { isDaemon = true }
     }.apply { removeOnCancelPolicy = true }
 
-    fun unlock(keyName: String, secret: CharArray) {
-        unlock(keyName, secret, false)
-    }
-
     @Synchronized
-    internal fun unlock(keyName: String, secret: CharArray, allowLegacyDecryption: Boolean) {
-        val session = Session(secret.copyOf(), System.nanoTime(), allowLegacyDecryption)
+    fun unlock(keyName: String, secret: CharArray) {
+        val session = Session(secret.copyOf(), System.nanoTime())
         sessions.put(keyName, session)?.clear()
         session.expiry = expiryExecutor.schedule({
             synchronized(this) {
@@ -45,14 +38,12 @@ object AppFlowSessionStore {
     /**
      * One-shot consumption for production safety.
      */
-    fun consumeSecretOrNull(keyName: String): CharArray? = consumeUnlockOrNull(keyName)?.secret
-
     @Synchronized
-    internal fun consumeUnlockOrNull(keyName: String): Unlock? {
+    fun consumeSecretOrNull(keyName: String): CharArray? {
         val session = sessions.remove(keyName) ?: return null
         return try {
             val expired = System.nanoTime() - session.createdAt >= TimeUnit.SECONDS.toNanos(SESSION_TTL_SECONDS)
-            if (expired) null else Unlock(session.secret.copyOf(), session.allowLegacyDecryption)
+            if (expired) null else session.secret.copyOf()
         } finally {
             session.clear()
         }

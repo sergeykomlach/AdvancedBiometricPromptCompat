@@ -21,10 +21,6 @@ internal sealed interface VoiceCaptureOutcome {
     ) : VoiceCaptureOutcome
 
     data object Timeout : VoiceCaptureOutcome
-
-    data class Fatal(
-        val message: CharSequence
-    ) : VoiceCaptureOutcome
 }
 
 internal class VoiceCaptureOrchestrator(
@@ -32,7 +28,6 @@ internal class VoiceCaptureOrchestrator(
     private val mainHandler: Handler,
     private val isPromptActive: () -> Boolean,
     private val onOutcome: (VoiceCaptureOutcome) -> Unit,
-    private val recorderUnavailableMessage: CharSequence,
     private val streamChunkSize: Int = DEFAULT_STREAM_CHUNK_SIZE,
     private val maxCaptureWindowMs: Long = DEFAULT_MAX_CAPTURE_WINDOW_MS
 ) {

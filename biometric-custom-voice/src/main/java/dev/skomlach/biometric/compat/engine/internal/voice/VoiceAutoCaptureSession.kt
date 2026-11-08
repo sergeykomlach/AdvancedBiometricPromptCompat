@@ -59,7 +59,6 @@ internal class VoiceAutoCaptureSession(
     private val preservedExtras = Bundle(existingExtras ?: Bundle())
     private val capturedSamples = ArrayList<FloatArray>()
     private var preparedExtras: Bundle? = null
-    private var currentState: VoicePromptState? = null
     private var progress = VoiceOutcomeProgress(
         suspiciousCaptureAttempts = 0,
         lastProgressAtMs = 0L
@@ -88,16 +87,6 @@ internal class VoiceAutoCaptureSession(
             is VoiceCaptureOutcome.Accepted -> handleAccepted(outcome, nowMs)
             is VoiceCaptureOutcome.Rejected -> handleRejected(outcome.decision, nowMs)
             VoiceCaptureOutcome.Timeout -> handleTimeout()
-            is VoiceCaptureOutcome.Fatal -> {
-                emitTerminalError(
-                    state = null,
-                    result = AuthenticationResult(
-                        type = BiometricType.BIOMETRIC_VOICE,
-                        reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                        description = outcome.message
-                    )
-                )
-            }
         }
     }
 
@@ -112,8 +101,6 @@ internal class VoiceAutoCaptureSession(
     fun collectedSampleCount(): Int = capturedSamples.size
 
     fun preparedExtras(): Bundle? = preparedExtras?.let { Bundle(it) }
-
-    fun currentPromptState(): VoicePromptState? = currentState
 
     fun dispose() {
         clearTransientState()
@@ -194,7 +181,6 @@ internal class VoiceAutoCaptureSession(
     }
 
     private fun emitState(state: VoicePromptState): VoicePromptRender {
-        currentState = state
         val render = promptMessageResolver(state, phrase)
         callback.onPromptUpdated(state, render)
         return render
@@ -203,7 +189,6 @@ internal class VoiceAutoCaptureSession(
     private fun clearTransientState() {
         capturedSamples.clear()
         preparedExtras = null
-        currentState = null
         progress = VoiceOutcomeProgress(
             suspiciousCaptureAttempts = 0,
             lastProgressAtMs = 0L

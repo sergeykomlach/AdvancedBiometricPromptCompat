@@ -475,7 +475,6 @@
     <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1.06f</ID>
     <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1.16f</ID>
     <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1.18f</ID>
-    <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$10</ID>
     <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$10.0f</ID>
     <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1082130432</ID>
     <ID>MagicNumber:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$1086324736</ID>
@@ -860,7 +859,6 @@
     <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$private fun authenticateInternal( callback: AuthenticationCallback )</ID>
     <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$private fun checkHardware(): AuthenticationFailureReason</ID>
     <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$private fun checkPermissions(callback: AuthenticationCallback, authTask: () -&gt; Unit)</ID>
-    <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$private fun isBiometricPromptHardwareAvailable(type: BiometricType): Boolean</ID>
     <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat$private fun shouldUseBiometricPromptImpl(): Boolean</ID>
     <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$internal fun disableBiometricForPermissionFailure(result: AuthenticationResult): Boolean</ID>
     <ID>ReturnCount:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$private fun fallbackRoute(type: BiometricType): SelectedBiometricRoute?</ID>
@@ -1082,53 +1080,19 @@
     <ID>UnusedParameter:BiometricClient.kt$BiometricClient$cb: ServiceCallback?</ID>
     <ID>UnusedParameter:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$deviceId: Long</ID>
     <ID>UnusedParameter:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$userId: Int</ID>
-    <ID>UnusedPrivateMember:BiometricPromptCompat.kt$BiometricPromptCompat$private fun getProviderForSelectedModule(type: BiometricType): BiometricProviderType</ID>
-    <ID>UnusedPrivateMember:BiometricPromptCompat.kt$BiometricPromptCompat$private fun isBiometricPromptHardwareAvailable(type: BiometricType): Boolean</ID>
-    <ID>UnusedPrivateMember:BiometricPromptCompat.kt$BiometricPromptCompat$private fun isPrimaryBiometricPromptHardwareType(type: BiometricType): Boolean</ID>
     <ID>UnusedPrivateMember:BiometricPromptCompatDialog.kt$BiometricPromptCompatDialog$@RequiresApi(Build.VERSION_CODES.S) private fun findNearestColor(name: String, color: Int)</ID>
     <ID>UnusedPrivateMember:BiometricPromptHardware.kt$BiometricPromptHardware.BiometricModalityDetector$private fun containsWord(value: String, token: String): Boolean</ID>
-    <ID>UnusedPrivateMember:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private fun resetDatabase()</ID>
     <ID>UnusedPrivateMember:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$@Throws(RemoteException::class) private fun binderCallAuthenticatorId(service: IBinder, packName: String): Long</ID>
     <ID>UnusedPrivateMember:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$@Throws(RemoteException::class) private fun binderCallHasEnrolledFaces(service: IBinder, groupId: Int, packName: String): Int</ID>
     <ID>UnusedPrivateMember:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$@Throws(RemoteException::class) private fun binderCallPostEnroll(service: IBinder, token: IBinder)</ID>
     <ID>UnusedPrivateMember:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$@Throws(RemoteException::class) private fun binderCallPreEnroll(service: IBinder, token: IBinder)</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_GET_VERSION = 5002</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_RELEASE_SERVICE = 5001</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_RELEASE_TIMEOUT = 5</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_REPLAY_TIMEOUT = 2</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_SEND_SERVEICE = 5003</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val MSG_START_SERVICE = 5000</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_READY_TIMEOUT = 2</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_CONNECTED = 2</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_CONNECTING = 1</ID>
     <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_CONNECTING_ERROR = 12</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_CONNECTING_TIME_OUT = 11</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_DISCONNECT = 5</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_DISCONNECTING = 3</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_NONE = 0</ID>
-    <ID>UnusedPrivateProperty:BiometricClient.kt$BiometricClient.Companion$private const val SERVICE_STATUS_UNBIND = 4</ID>
     <ID>UnusedPrivateProperty:BiometricManagerCompat.kt$BiometricManagerCompat$private const val TAG = "BiometricManagerCompat"</ID>
-    <ID>UnusedPrivateProperty:BiometricPromptCompat.kt$BiometricPromptCompat.Builder$private val allAvailableTypes: HashSet&lt;BiometricType&gt; by lazy { val types = HashSet&lt;BiometricType&gt;() types.addAll(primaryAvailableTypes) types.addAll(secondaryAvailableTypes) types }</ID>
     <ID>UnusedPrivateProperty:BiometricPromptHardware.kt$BiometricPromptHardware$private val isAnyLockedOut: Boolean get() { if (canAuthenticate == BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE) return true for (type in BiometricType.entries) { if (BiometricLockoutFix.isLockOut(type)) return true } return false }//legacy</ID>
     <ID>UnusedPrivateProperty:FaceManager.kt$FaceManager.Companion$private const val TAG = "Facerecognition.FaceManager"</ID>
     <ID>UnusedPrivateProperty:FingerprintIconView.kt$FingerprintIconView.Companion$//fix java.lang.IllegalStateException: Software rendering doesn't support hardware bitmaps //solution from https://stackoverflow.com/a/50015989 @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O) private val isAndroidO = Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O</ID>
     <ID>UnusedPrivateProperty:HihonorFaceManagerV1Impl.kt$HihonorFaceManagerV1Impl.Companion$private const val HIHONOR_OP_FAIL = -1</ID>
     <ID>UnusedPrivateProperty:HuaweiFaceManagerV1Impl.kt$HuaweiFaceManagerV1Impl.Companion$private const val HUAWEI_OP_FAIL = -1</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private val hasEnrollFace = 0</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl$private val mBinderLock = Any()</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val CANCEL_STATUS_DONE = 1</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val CANCEL_STATUS_NONE = 0</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val DB_STATUS_NONE = 0</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val DB_STATUS_PREPARED = 2</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val DB_STATUS_PREPARING = 1</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val FACEUNLOCK_SUPPORT_SUPERPOWER = "faceunlock_support_superpower"</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val FACE_UNLOCK_HAS_FEATURE_URI = "content://settings/secure/face_unlock_has_feature_sl"</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val POWERMODE_SUPERSAVE_OPEN_URI = "content://settings/secure/power_supersave_mode_open"</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val RECEIVER_ON_AUTHENTICATION_TIMEOUT = 1</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val RECEIVER_ON_ENROLL_TIMEOUT = 0</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val VERSION_1 = 1</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val height = 4</ID>
-    <ID>UnusedPrivateProperty:Miui3DFaceManagerImpl.kt$Miui3DFaceManagerImpl.Companion$private const val width = 3</ID>
     <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$private val mBinderLock = Any()</ID>
     <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl$private val mFaceUnlockModel = 0</ID>
     <ID>UnusedPrivateProperty:MiuiFaceManagerImpl.kt$MiuiFaceManagerImpl.Companion$private const val CODE_ADD_LOCKOUT_RESET_CALLBACK = 16</ID>

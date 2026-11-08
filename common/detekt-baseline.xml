@@ -349,7 +349,6 @@
     <ID>ReturnCount:PermissionUtils.kt$PermissionUtils$fun isAllowedNotificationsChannelPermission(channelId: String?): Boolean</ID>
     <ID>ReturnCount:PermissionUtils.kt$PermissionUtils$fun verifyPermissions(vararg grantResults: Int): Boolean</ID>
     <ID>ReturnCount:PermissionUtils.kt$PermissionUtils$private fun isPermissionGranted(permission: String): Boolean</ID>
-    <ID>ReturnCount:PreferenceKeyResolver.kt$PreferenceKeyResolver$fun resolve( plainKey: String, directLookup: () -&gt; String?, scanStoredKeys: () -&gt; Sequence&lt;String&gt;, decryptStoredKey: (String) -&gt; String? ): String?</ID>
     <ID>ReturnCount:ReflectionTools.kt$ReflectionTools$fun callGetOrCreateInstance(target: Class&lt;*&gt;): Any?</ID>
     <ID>ReturnCount:SettingsHelper.kt$SettingsHelper$fun getString( context: Context, secureSettingKey: String?, defaultValue: String? = null ): String?</ID>
     <ID>ReturnCount:SettingsHelper.kt$SettingsHelper$private fun getFloatInternal( context: Context, secureSettingKey: String?, defaultValue: Float ): Float</ID>

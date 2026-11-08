@@ -25,7 +25,7 @@
     <ID>LongMethod:VoiceAutoCaptureController.kt$VoiceAutoCaptureController$private fun startNextAttempt()</ID>
     <ID>LongMethod:VoiceBiometricManager.kt$VoiceBiometricManager$override fun authenticate( crypto: CryptoObject?, flags: Int, cancel: CancellationSignal?, callback: AuthenticationCallback?, handler: Handler?, extra: Bundle? )</ID>
     <ID>LongMethod:VoiceStreamingDetector.kt$VoiceStreamingDetector$private fun detectSpeechWindow(voiced: BooleanArray): SpeechWindow?</ID>
-    <ID>LongParameterList:VoiceStreamingDetector.kt$VoiceStreamingDetector$( private val sampleRateHz: Int, private val minVoiceRms: Float = 0.012f, private val noiseMultiplier: Float = 2.5f, private val speechStartFrames: Int = 3, private val shortPauseFrames: Int = 4, private val endSilenceFrames: Int = 12, private val minimumSampleMs: Long = 900L )</ID>
+    <ID>LongParameterList:VoiceStreamingDetector.kt$VoiceStreamingDetector$( private val sampleRateHz: Int, private val minVoiceRms: Float = 0.012f, private val noiseMultiplier: Float = 2.5f, private val speechStartFrames: Int = 3, private val shortPauseFrames: Int = 4, private val endSilenceFrames: Int = 12 )</ID>
     <ID>LoopWithTooManyJumpStatements:VoiceAutoCaptureController.kt$VoiceAutoCaptureController$while</ID>
     <ID>LoopWithTooManyJumpStatements:VoiceStreamingDetector.kt$VoiceStreamingDetector$for</ID>
     <ID>MagicNumber:BasicVoiceEngine.kt$BasicVoiceEngine$3</ID>
@@ -86,6 +86,5 @@
     <ID>TooManyFunctions:VoiceBiometricManager.kt$VoiceBiometricManager : AbstractSoftwareBiometricManager</ID>
     <ID>TooManyFunctions:VoiceStreamingDetector.kt$VoiceStreamingDetector</ID>
     <ID>TooManyFunctions:VoiceTemplateStore.kt$VoiceTemplateStore</ID>
-    <ID>UnusedPrivateMember:VoiceStreamingDetector.kt$VoiceStreamingDetector$private fun minimumSampleCount(): Int</ID>
   </CurrentIssues>
 </SmellBaseline>

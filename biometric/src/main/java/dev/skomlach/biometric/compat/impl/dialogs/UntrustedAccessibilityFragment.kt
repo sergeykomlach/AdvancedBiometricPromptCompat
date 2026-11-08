@@ -26,7 +26,6 @@ import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.R
-import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.permissionui.OwnedResultFragment
 import dev.skomlach.common.permissionui.resolveApplicationTitle
 import dev.skomlach.common.themes.SystemMonetDialogs
