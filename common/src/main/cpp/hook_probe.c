@@ -2,6 +2,12 @@
 #include <link.h>
 #include <string.h>
 
+static int matches_library(const char *name, const char *expected) {
+    const size_t length = strlen(expected);
+    return strncmp(name, expected, length) == 0 &&
+           (name[length] == '\0' || strcmp(name + length, " (deleted)") == 0);
+}
+
 static int find_instrumentation(struct dl_phdr_info *info, size_t size, void *data) {
     (void)size;
     (void)data;
@@ -13,12 +19,12 @@ static int find_instrumentation(struct dl_phdr_info *info, size_t size, void *da
 
     if (strncmp(name, "memfd:", 6) == 0) name += 6;
     if (strncmp(name, "lib", 3) == 0) name += 3;
-    return strcmp(name, "frida-gadget.so") == 0 ||
-           strcmp(name, "frida-agent.so") == 0 ||
-           strcmp(name, "frida-agent-32.so") == 0 ||
-           strcmp(name, "frida-agent-64.so") == 0 ||
-           strcmp(name, "frida-agent-arm.so") == 0 ||
-           strcmp(name, "frida-agent-arm64.so") == 0;
+    return matches_library(name, "frida-gadget.so") ||
+           matches_library(name, "frida-agent.so") ||
+           matches_library(name, "frida-agent-32.so") ||
+           matches_library(name, "frida-agent-64.so") ||
+           matches_library(name, "frida-agent-arm.so") ||
+           matches_library(name, "frida-agent-arm64.so");
 }
 
 JNIEXPORT jboolean JNICALL
