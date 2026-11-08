@@ -93,6 +93,7 @@ class BehaviorBiometricManager internal constructor(
         handler: Handler?,
         extra: Bundle?
     ) {
+        if (cancel?.isCanceled == true) return
         activeSession?.cancel()
         val resultHandler = handler ?: Handler(Looper.getMainLooper())
         val session = store.newWorkSession().also { activeSession = it }
@@ -225,10 +226,11 @@ class BehaviorBiometricManager internal constructor(
 
         var templateCount = 0
         var bestMatch = TemplateMatch(0f)
+        val score = BehaviorScorer.prepareProbe(sample)
         store.visitProfiles { _, samples ->
             if (!session.isActive) return@visitProfiles false
             templateCount += samples.size
-            val match = matchTemplates(samples, sample)
+            val match = matchTemplates(samples, score)
             if (match.score > bestMatch.score) bestMatch = match
             true
         }
@@ -277,10 +279,10 @@ class BehaviorBiometricManager internal constructor(
 
     private fun matchTemplates(
         enrolledSamples: List<BehaviorSample>,
-        probe: BehaviorSample
+        score: (BehaviorSample) -> BehaviorScore
     ): TemplateMatch {
         val scores = enrolledSamples
-            .map { BehaviorScorer.scoreDetails(it, probe) }
+            .map(score)
             .filter { it.reason == BehaviorScoreReason.OK || it.total > 0f }
             .map { it.total }
             .sortedDescending()

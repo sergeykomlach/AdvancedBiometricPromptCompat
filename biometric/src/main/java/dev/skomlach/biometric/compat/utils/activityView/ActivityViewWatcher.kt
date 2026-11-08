@@ -25,16 +25,22 @@ import android.view.Window
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
-class ActivityViewWatcher(
+class ActivityViewWatcher internal constructor(
     private val compatBuilder: BiometricPromptCompat.Builder,
-    private val forceToCloseCallback: ForceToCloseCallback
+    private val forceToCloseCallback: ForceToCloseCallback,
+    hostWindow: View?
 ) {
+    constructor(
+        compatBuilder: BiometricPromptCompat.Builder,
+        forceToCloseCallback: ForceToCloseCallback
+    ) : this(compatBuilder, forceToCloseCallback, null)
+
     private fun contentRoot(view: View): ViewGroup? =
         view.findViewById<View>(Window.ID_ANDROID_CONTENT) as? ViewGroup ?: view as? ViewGroup
 
-    private val views = ActiveWindow.getActiveWindows(compatBuilder.getActivity())
+    private val views = (hostWindow?.let(::listOf) ?: ActiveWindow.getActiveWindows(compatBuilder.getActivity()))
         .filter { contentRoot(it) != null }.toMutableList()
-    private val activeView = ActiveWindow.getActiveWindow(views)
+    private val activeView = hostWindow ?: ActiveWindow.getActiveWindow(views)
     private val windowForegroundBlurring: WindowForegroundBlurring? =
         if (activeView == null) null else
             WindowForegroundBlurring(

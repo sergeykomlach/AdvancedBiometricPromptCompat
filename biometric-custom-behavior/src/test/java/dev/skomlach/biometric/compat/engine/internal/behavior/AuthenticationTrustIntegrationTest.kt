@@ -37,7 +37,9 @@ class AuthenticationTrustIntegrationTest {
             Boolean::class.javaPrimitiveType).invoke(context, bundle, profile, trusted) as Boolean
 
     private fun flow(method: String, id: Long) {
-        builder.javaClass.declaredMethods.single { it.name.substringBefore('$') == method }
+        builder.javaClass.declaredMethods.single {
+            it.name.substringBefore('$') == method && it.parameterTypes.contentEquals(arrayOf(Long::class.javaPrimitiveType))
+        }
             .apply { isAccessible = true }.invoke(builder, id)
     }
 
@@ -198,8 +200,9 @@ class AuthenticationTrustIntegrationTest {
         val runtimeClass = Class.forName("dev.skomlach.biometric.compat.custom.SoftwareBiometricRuntime")
         val runtime = runtimeClass.declaredConstructors.single { it.parameterCount == 4 }
             .apply { isAccessible = true }.newInstance(977001, manager, null, 0)
-        return SoftwareBiometricModule::class.java.declaredConstructors.single { it.parameterCount == 3 }
-            .apply { isAccessible = true }.newInstance(BiometricMethod.CUSTOM_FACE, runtime, null) as SoftwareBiometricModule
+        val run: (Runnable) -> Unit = Runnable::run
+        return SoftwareBiometricModule::class.java.declaredConstructors.single { it.parameterCount == 5 }
+            .apply { isAccessible = true }.newInstance(BiometricMethod.CUSTOM_FACE, runtime, null, run, run) as SoftwareBiometricModule
     }
 
     private class MutableManager(var profile: SoftwareBiometricSecurityProfile) : AbstractSoftwareBiometricManager() {

@@ -4,9 +4,76 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AuthFlowGateTest {
+
+    @Test
+    fun statusReadRunsBeforeMainDeliveryAndDropsReplacedFlow() {
+        val background = mutableListOf<Runnable>()
+        val main = mutableListOf<Runnable>()
+        var active = true
+        var reads = 0
+        var delivered: Int? = null
+        readOwnedAuthStatus(background::add, main::add, { active }, { ++reads }) {
+            delivered = it.getOrThrow()
+        }
+
+        assertEquals(0, reads)
+        assertTrue(main.isEmpty())
+        background.single().run()
+        assertEquals(1, reads)
+        assertEquals(null, delivered)
+        active = false
+        main.single().run()
+        assertEquals(null, delivered)
+    }
+
+    @Test
+    fun statusFailureReachesTheOwningFlow() {
+        val main = mutableListOf<Runnable>()
+        val failure = IllegalStateException("probe failed")
+        var delivered: Throwable? = null
+        readOwnedAuthStatus(Runnable::run, main::add, { true }, { throw failure }) {
+            delivered = it.exceptionOrNull()
+        }
+
+        main.single().run()
+        assertTrue(delivered === failure)
+    }
+
+    @Test
+    fun flowReplacementDoesNotWaitForSlowRouteReadOrCacheItsResult() {
+        val cache = AuthFlowRouteCache<String, String?>(serializeCalculation = false)
+        val reading = CountDownLatch(1)
+        val allowResult = CountDownLatch(1)
+        val workers = Executors.newFixedThreadPool(2)
+        try {
+            cache.beginFlow(1)
+            val old = workers.submit<String?> {
+                cache.getOrPut("fingerprint") {
+                    reading.countDown()
+                    check(allowResult.await(5, TimeUnit.SECONDS))
+                    "old route"
+                }
+            }
+            assertTrue(reading.await(5, TimeUnit.SECONDS))
+            workers.submit {
+                cache.endFlow(1)
+                cache.beginFlow(2)
+            }.get(2, TimeUnit.SECONDS)
+            allowResult.countDown()
+            assertEquals("old route", old.get(5, TimeUnit.SECONDS))
+            assertEquals(null, cache.getOrPut("fingerprint") { null })
+            assertEquals(null, cache.getOrPut("fingerprint") { "unexpected route" })
+        } finally {
+            allowResult.countDown()
+            workers.shutdownNow()
+        }
+    }
 
     @Test
     fun tryStartAuthFlowAllowsOnlyFirstCaller() {

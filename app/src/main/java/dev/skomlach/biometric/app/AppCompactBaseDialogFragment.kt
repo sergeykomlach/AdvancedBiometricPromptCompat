@@ -35,7 +35,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import dev.skomlach.biometric.app.utils.startBiometric
-import dev.skomlach.biometric.compat.BiometricManagerCompat
+import dev.skomlach.biometric.app.utils.bindDeviceCredentials
 import dev.skomlach.common.blur.BlurUtil
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceInfo
@@ -50,6 +50,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
     private var networkListener: Connection.NetworkListener? = null
     private var blurBackgroundView: ImageView? = null
     private var blurScrimView: View? = null
+    private var blurSession: BlurUtil.BlurSession? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,19 +112,6 @@ class AppCompactBaseDialogFragment : DialogFragment() {
             }
 
         }
-        view.findViewById<CheckBox>(R.id.allowDeviceCredentials)?.let {
-            it.isChecked =
-                SharedPreferenceProvider.getPreferences("app_settings")
-                    .getBoolean(
-                        "allowDeviceCredentials",
-                        BiometricManagerCompat.isDeviceSecureAvailable()
-                    )
-            it.setOnCheckedChangeListener { buttonView, isChecked ->
-                SharedPreferenceProvider.getPreferences("app_settings").edit()
-                    .putBoolean("allowDeviceCredentials", isChecked).apply()
-            }
-
-        }
         view.findViewById<CheckBox>(R.id.checkboxSilent)?.let {
             it.isChecked =
                 SharedPreferenceProvider.getPreferences("app_settings")
@@ -169,10 +157,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                     SharedPreferenceProvider.getPreferences("app_settings")
                         .getBoolean("crypto", false),
                     SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean(
-                            "allowDeviceCredentials",
-                            BiometricManagerCompat.isDeviceSecureAvailable()
-                        ), true
+                        .getBoolean("allowDeviceCredentials", true), true
                 )
             }
             buttonsList.addView(container)
@@ -200,20 +185,22 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         rootGroup.addView(scrimView, 1)
         blurBackgroundView = backgroundView
         blurScrimView = scrimView
+        val session = BlurUtil.BlurSession(768)
+        blurSession = session
         root.post {
+            if (blurSession !== session) return@post
             val activityContent = activity?.findViewById<View>(android.R.id.content) ?: return@post
-            BlurUtil.takeScreenshotAndBlur(activityContent) { originalBitmap, blurredBitmap ->
-                backgroundView.post {
-                    backgroundView.setImageBitmap(blurredBitmap ?: originalBitmap)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        backgroundView.setRenderEffect(
-                            RenderEffect.createBlurEffect(
-                                20f,
-                                20f,
-                                Shader.TileMode.DECAL
-                            )
+            session.takeScreenshotAndBlur(activityContent) { originalBitmap, blurredBitmap ->
+                backgroundView.setImageBitmap(blurredBitmap ?: originalBitmap)
+                if (blurredBitmap != null && blurredBitmap !== originalBitmap) originalBitmap.recycle()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    backgroundView.setRenderEffect(
+                        RenderEffect.createBlurEffect(
+                            20f,
+                            20f,
+                            Shader.TileMode.DECAL
                         )
-                    }
+                    )
                 }
             }
         }
@@ -229,6 +216,11 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         )
     }
 
+    override fun onResume() {
+        super.onResume()
+        view?.findViewById<CheckBox>(R.id.allowDeviceCredentials)?.let { bindDeviceCredentials(it) }
+    }
+
     override fun onDestroyView() {
         initListener?.let {
             App.onInitListeners.remove(it)
@@ -238,6 +230,8 @@ class AppCompactBaseDialogFragment : DialogFragment() {
             Connection.removeNetworkListener(it)
             networkListener = null
         }
+        blurSession?.close()
+        blurSession = null
         blurBackgroundView?.setImageDrawable(null)
         blurBackgroundView = null
         blurScrimView = null

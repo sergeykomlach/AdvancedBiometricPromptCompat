@@ -19,31 +19,27 @@
 
 package dev.skomlach.biometric.app.utils
 
-import android.app.Activity
 import android.content.Context
-import android.net.Uri
-import android.os.AsyncTask
+import android.content.ActivityNotFoundException
 import android.os.Build
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.app.R
-import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.device.DeviceInfoManager
-import dev.skomlach.common.device.DeviceModelManager
 import dev.skomlach.common.logging.LogCat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.nio.ByteBuffer
-import java.nio.channels.Channels
-import java.nio.channels.ReadableByteChannel
-import java.nio.channels.WritableByteChannel
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -51,38 +47,24 @@ import java.util.zip.ZipOutputStream
 object MailTo {
     private val BUFFER = 1024 * 1024 * 8
 
-    private fun zip(_files: Array<String>, zipFileName: File) {
-        try {
-            zipFileName.delete()
-            zipFileName.createNewFile()
-            val dest = FileOutputStream(zipFileName)
-            val out = ZipOutputStream(
-                BufferedOutputStream(
-                    dest
-                )
-            )
-            for (i in _files.indices) {
-                val file = File(_files[i])
-
-                val fi = FileInputStream(file)
-                val origin = BufferedInputStream(fi, BUFFER)
-                val entry = ZipEntry(file.name)
-                out.putNextEntry(entry)
-                var count: Int
-                val data = ByteArray(BUFFER)
-                while (origin.read(data, 0, BUFFER).also { count = it } != -1) {
-                    out.write(data, 0, count)
+    private fun zip(files: List<File>, destination: File, checkActive: () -> Unit) {
+        val buffer = ByteArray(BUFFER)
+        val entryNames = HashSet<String>()
+        ZipOutputStream(BufferedOutputStream(FileOutputStream(destination))).use { output ->
+            for ((index, file) in files.withIndex()) {
+                checkActive()
+                BufferedInputStream(FileInputStream(file)).use { input ->
+                    val entryName = if (entryNames.add(file.name)) file.name else "$index/${file.name}"
+                    output.putNextEntry(ZipEntry(entryName))
+                    var count = input.read(buffer)
+                    while (count != -1) {
+                        checkActive()
+                        output.write(buffer, 0, count)
+                        count = input.read(buffer)
+                    }
+                    output.closeEntry()
                 }
-                origin.close()
-                fi.close()
-
             }
-            out.flush()
-            out.close()
-            dest.close()
-        } catch (e: Exception) {
-            zipFileName.delete()
-            e.printStackTrace()
         }
     }
 
@@ -134,48 +116,40 @@ object MailTo {
         return list
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun startMailClient(
-        ctx: Activity,
+        ctx: FragmentActivity,
         to: String,
         subject: String,
         logData: String
     ) {
-        AsyncTask.THREAD_POOL_EXECUTOR.execute {
-            val list = findServices(ctx).toMutableList()
-            list.add(File(ctx.cacheDir, "deviceapi.log"))
-            startMailClient(ctx, to, subject, list)
-        }
-
-    }
-
-    private fun startMailClient(
-        ctx: Activity,
-        to: String,
-        subject: String,
-        list: List<File>
-    ) {
-
-        try {
-            val dir = File(ctx.filesDir, "zipfiles").also {
-                if (!it.exists()) it.mkdirs()
-            }
-            val file = File(dir, (BiometricPromptCompat.deviceInfo?.model?:DeviceModelManager.getDeviceModel().deviceName) + "_biometric_log.zip")
-            zip(list.map { it.absolutePath }.toTypedArray(), file)
-            val fileUri: Uri? = try {
-                FileProvider.getUriForFile(
-                    ctx,
-                    "dev.skomlach.biometric.fileprovider",
-                    file
-                )
-            } catch (e: IllegalArgumentException) {
-                LogCat.logException(
-                    e,
-                    ctx.getString(R.string.file_selector),
-                    ctx.getString(R.string.selected_file_cant_be_shared, file)
-                )
-                null
-            }
-            // or
+        val appContext = ctx.applicationContext
+        ctx.lifecycleScope.launch {
+            val fileUri = withContext(Dispatchers.IO) {
+                val report = File(appContext.cacheDir, "deviceapi.log")
+                val list = findServices(appContext).toMutableList()
+                if (report.isFile) list.add(report)
+                val dir = File(appContext.cacheDir, "zipfiles").apply { mkdirs() }
+                var archive: File? = null
+                var prepared = false
+                try {
+                    val file = File.createTempFile("biometric-", ".zip", dir)
+                    archive = file
+                    zip(list, file) { ensureActive() }
+                    ensureActive()
+                    FileProvider.getUriForFile(appContext, "dev.skomlach.biometric.fileprovider", file)
+                        .also { prepared = true }
+                } catch (e: IOException) {
+                    LogCat.logException(e, "Preparing biometric report")
+                    null
+                } catch (e: IllegalArgumentException) {
+                    LogCat.logException(e, "Preparing biometric report")
+                    null
+                } finally {
+                    if (!prepared) archive?.delete()
+                }
+            } ?: return@launch
+            if (ctx.isFinishing || !ctx.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@launch
             val builder: ShareCompat.IntentBuilder = ShareCompat.IntentBuilder(ctx)
             builder.setType("message/rfc822")
             builder.addEmailTo(to)
@@ -185,35 +159,13 @@ object MailTo {
 
             builder.setChooserTitle(ctx.getString(R.string.send_email))
 
-            if (ctx.packageManager.queryIntentActivities(builder.intent, 0).isNotEmpty()) {
-                builder.startChooser()
+            try {
+                if (ctx.packageManager.queryIntentActivities(builder.intent, 0).isNotEmpty()) {
+                    builder.startChooser()
+                }
+            } catch (e: ActivityNotFoundException) {
+                LogCat.logException(e, "Opening report chooser")
             }
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
-
-    }
-
-    @Throws(IOException::class)
-    private fun fastCopy(src: InputStream?, dest: OutputStream?) {
-        val inputChannel = Channels.newChannel(src)
-        val outputChannel = Channels.newChannel(dest)
-        fastCopy(inputChannel, outputChannel)
-        inputChannel.close()
-        outputChannel.close()
-    }
-
-    @Throws(IOException::class)
-    private fun fastCopy(src: ReadableByteChannel, dest: WritableByteChannel) {
-        val buffer = ByteBuffer.allocateDirect(16 * 1024)
-        while (src.read(buffer) != -1) {
-            buffer.flip()
-            dest.write(buffer)
-            buffer.compact()
-        }
-        buffer.flip()
-        while (buffer.hasRemaining()) {
-            dest.write(buffer)
         }
     }
 }

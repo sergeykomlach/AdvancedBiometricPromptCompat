@@ -41,6 +41,10 @@ import java.util.UUID
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlin.Array
 import kotlin.Boolean
 import kotlin.ByteArray
@@ -55,17 +59,14 @@ import kotlin.plus
 
 class Scan4Apis {
     @WorkerThread
-    fun getList(): String? {
+    suspend fun getList(): String? {
+        val scanContext = currentCoroutineContext()
         try {
             val context = AndroidContext.appContext
             val file = File(context.cacheDir, "deviceapi.log")
-            if (file.exists())
-                file.delete()
-
             val cache = File(context.cacheDir, UUID.randomUUID().toString())
-            val fileWriter = FileWriter(file)
             val writer = StringWriter()
-            cache.mkdirs()
+            check(cache.mkdir()) { "Could not create diagnostic scratch directory" }
             try {
                 val paths = HashSet<String>()
                 val bootPath = splitString(System.getProperty("java.boot.class.path"), ":/")
@@ -90,16 +91,19 @@ class Scan4Apis {
                 }
 
                 val jars = HashSet<String>()
+                val visitedDirectories = HashSet<String>()
                 for (r in path) {
+                    scanContext.ensureActive()
                     if (r.isDirectory) {
                         BiometricLoggerImpl.d("Scan4Apis.check path $r")
-                        scanRecursivly(r, jars)
+                        scanRecursively(r, jars, visitedDirectories, scanContext)
                     } else
                         if (r.isFile)
                             jars.add(r.absolutePath)
                 }
                 val stringBuilder = StringBuilder("\n\n")
                 for (s in jars) {
+                    scanContext.ensureActive()
                     val dexInternalStoragePath = File(
                         cache,
                         File(s).name
@@ -128,6 +132,7 @@ class Scan4Apis {
                             val dexBackedDexFile =
                                 DexFileFactory.loadDexFile(f, Opcodes.getDefault())
                             for (d in dexBackedDexFile.classes) {
+                                scanContext.ensureActive()
                                 val type = d.type
                                 val typeCopy = type.lowercase(Locale.ROOT)
                                 if (typeCopy.contains("/fingerprint") || typeCopy.contains("/biometric") ||
@@ -141,7 +146,7 @@ class Scan4Apis {
                                         try {
                                             val clzName =
                                                 type.substring(1, type.length - 1).replace("/", ".")
-                                            Class.forName(clzName)
+                                            Class.forName(clzName, false, javaClass.classLoader)
                                             sb.append(type).append("\n")
                                             if (counter == 0) {
                                                 writer.write("\n-------------------------\n")
@@ -157,7 +162,6 @@ class Scan4Apis {
                                     }
                                 }
                             }
-                            System.gc()
                             f.delete()
                         }
                         if (counter > 0) {
@@ -168,19 +172,26 @@ class Scan4Apis {
                             stringBuilder.append("\n")
                             writer.write("\n")
                         }
-                    } catch (e: Throwable) {
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
                         e.printStackTrace()
                     } finally {
                         dexInternalStoragePath.delete()
                     }
                 }
+                scanContext.ensureActive()
+                val report = File(cache, "deviceapi.log")
+                FileWriter(report).use { it.write(writer.toString()) }
+                scanContext.ensureActive()
+                if (!report.renameTo(file)) throw IOException("Could not publish the diagnostic report")
                 return stringBuilder.toString()
             } finally {
                 deleteRecursive(cache)
-                fileWriter.write(writer.toString())
-                fileWriter.close()
             }
-        } catch (e: Throwable) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
             e.printStackTrace()
         }
         return null
@@ -188,14 +199,16 @@ class Scan4Apis {
 
     private fun isZipFile(fileZip: File): Boolean {
         try {
-            val zis = ZipInputStream(FileInputStream(fileZip))
-            val zipEntry = zis.nextEntry
-            val isZip = zipEntry != null
-            if (isZip) {
-                zis.closeEntry()
+            FileInputStream(fileZip).use { fis ->
+                ZipInputStream(fis).use { zis ->
+                    val zipEntry = zis.nextEntry
+                    val isZip = zipEntry != null
+                    if (isZip) {
+                        zis.closeEntry()
+                    }
+                    return isZip
+                }
             }
-            zis.close()
-            return isZip
         } catch (ignore: Throwable) {
         }
         return false
@@ -246,9 +259,12 @@ class Scan4Apis {
                 if (!zipEntry.isDirectory) {
                     val file = File(destDir, fileZip.name + "_" + zipEntry.name.replace("/", "-"))
                     if (file.exists()) file.delete()
-                    val fos = FileOutputStream(file)
-                    NetworkApi.fastCopy(zipFile.getInputStream(zipEntry), fos)
-                    fos.flush()
+                    FileOutputStream(file).use { fos ->
+                        zipFile.getInputStream(zipEntry).use { zis ->
+                            NetworkApi.fastCopy(zis, fos)
+                            fos.flush()
+                        }
+                    }
                     files.add(file)
                 }
             }
@@ -262,7 +278,13 @@ class Scan4Apis {
         return files
     }
 
-    private fun scanRecursivly(fileOrDirectory: File?, filesOut: HashSet<String>) {
+    private fun scanRecursively(
+        fileOrDirectory: File?,
+        filesOut: HashSet<String>,
+        visitedDirectories: HashSet<String>,
+        scanContext: CoroutineContext
+    ) {
+        scanContext.ensureActive()
         try {
             if (fileOrDirectory == null || !fileOrDirectory.exists() || fileOrDirectory.name.contains(
                     BuildConfig.APPLICATION_ID
@@ -271,10 +293,14 @@ class Scan4Apis {
                 )
             ) return
             if (fileOrDirectory.isDirectory) {
+                val canonicalPath = fileOrDirectory.canonicalPath
+                if (canonicalPath == "/proc" || canonicalPath.startsWith("/proc/") ||
+                    !visitedDirectories.add(canonicalPath)
+                ) return
                 val files = fileOrDirectory.listFiles()
                 if (files != null && files.isNotEmpty()) {
                     for (child in files) {
-                        scanRecursivly(child, filesOut)
+                        scanRecursively(child, filesOut, visitedDirectories, scanContext)
                     }
                 }
             } else {
@@ -288,7 +314,9 @@ class Scan4Apis {
                     name.endsWith(".jar")
                 ) filesOut.add(fileOrDirectory.absolutePath)
             }
-        } catch (e: Throwable) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }

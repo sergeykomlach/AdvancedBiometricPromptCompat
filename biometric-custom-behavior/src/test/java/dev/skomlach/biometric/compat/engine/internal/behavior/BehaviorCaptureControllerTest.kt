@@ -45,7 +45,8 @@ class BehaviorCaptureControllerTest {
         context.setContentView(root)
         builder.setBehaviorTypingView(externalInput)
         builder.setBehaviorSignatureContainer(externalPad)
-        controller = BehaviorCaptureController(root, builder, false) { readyCount++ }
+        controller = BehaviorCaptureController(root, builder, false,
+            dispatchBackground = Runnable::run, dispatchMain = Runnable::run) { readyCount++ }
         controller.install()
     }
 
@@ -103,7 +104,8 @@ class BehaviorCaptureControllerTest {
     @Test fun closeAndReopenDoesNotReuseAnAttachedInputView() {
         install()
         controller.dispose()
-        controller = BehaviorCaptureController(root, builder, false) { readyCount++ }
+        controller = BehaviorCaptureController(root, builder, false,
+            dispatchBackground = Runnable::run, dispatchMain = Runnable::run) { readyCount++ }
         controller.install()
         assertEquals(1, views().filterIsInstance<EditText>().size)
         assertTrue(views().filterIsInstance<Button>().any { it.text.toString() == "Verify" })

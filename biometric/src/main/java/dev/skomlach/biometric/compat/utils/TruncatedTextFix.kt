@@ -38,12 +38,14 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.storage.SharedPreferenceProvider
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** Keeps the historical single-line approximation of Android 12 prompt text on other versions. */
 object TruncatedTextFix {
     private val cache = LruCache<String, TruncatedText>(5)
     private val pref by lazy { SharedPreferenceProvider.getPreferences("TruncatedText_v3") }
     private val gson by lazy { Gson() }
+    private val diskCacheLoaded = AtomicBoolean(false)
     private val writer = LatestSnapshotWriter<Map<String, TruncatedText>>(
         execute = ExecutorHelper::startOnBackground,
         write = { snapshot ->
@@ -110,7 +112,7 @@ object TruncatedTextFix {
                 mode = "empty"
                 return
             }
-            val map = getTruncatedText(cacheKey).map
+            val map = cache.get(cacheKey)?.map.orEmpty()
             val pending = texts.filter { text ->
                 when {
                     text.source.isNullOrEmpty() -> false
@@ -176,23 +178,23 @@ object TruncatedTextFix {
         }
     }
 
-    private fun getTruncatedText(cacheKey: String): TruncatedText {
-        cache.get(cacheKey)?.let { return it }
-        return (try {
-            val json = pref.getString(cacheKey, null)
-            if (json.isNullOrEmpty()) TruncatedText(emptyMap())
-            else TruncatedText(boundPromptTextEntries(
-                gson.fromJson(json, TruncatedText::class.java)?.map ?: emptyMap()
-            ))
-        } catch (error: Throwable) {
-            BiometricLoggerImpl.e(error)
-            pref.edit().remove(cacheKey).apply()
-            TruncatedText(emptyMap())
-        }).also { cache.put(cacheKey, it) }
+    internal fun prepareDiskCache() {
+        if (!diskCacheLoaded.compareAndSet(false, true)) return
+        runCatching {
+            pref.all.entries.take(5).forEach { (key, value) ->
+                val json = value as? String ?: return@forEach
+                runCatching {
+                    val map = gson.fromJson(json, TruncatedText::class.java)?.map.orEmpty()
+                    synchronized(cache) {
+                        if (cache.get(key) == null) cache.put(key, TruncatedText(boundPromptTextEntries(map)))
+                    }
+                }.onFailure { BiometricLoggerImpl.e(it) }
+            }
+        }.onFailure { BiometricLoggerImpl.e(it) }
     }
 
     private fun setTruncatedText(cacheKey: String, truncatedText: TruncatedText) {
-        cache.put(cacheKey, truncatedText)
+        synchronized(cache) { cache.put(cacheKey, truncatedText) }
         writer.offer(cache.snapshot())
     }
 

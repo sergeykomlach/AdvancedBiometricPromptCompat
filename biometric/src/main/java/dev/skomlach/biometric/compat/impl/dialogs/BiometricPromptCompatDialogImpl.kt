@@ -25,6 +25,7 @@ import android.os.Looper
 import android.os.Message
 import android.view.SurfaceView
 import android.view.View
+import android.view.ViewTreeObserver
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.Window
 import android.view.ViewGroup
@@ -33,7 +34,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricFragmentHost
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProvider
 import dev.skomlach.biometric.compat.BehaviorAuthMode
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
@@ -42,7 +42,6 @@ import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptDelegate
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptHost
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptRegistry
 import dev.skomlach.biometric.compat.custom.SoftwarePromptStatus
-import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.impl.AuthCallback
 import dev.skomlach.biometric.compat.impl.AuthResult
 import dev.skomlach.biometric.compat.utils.BiometricTitle
@@ -273,30 +272,16 @@ class BiometricPromptCompatDialogImpl(
         }
     }
 
-    private var cachedPrimary = Pair<Long, BiometricType>(0, BiometricType.BIOMETRIC_ANY)
     private val primaryBiometricType: BiometricType
-        get() {
-            if (System.currentTimeMillis() - cachedPrimary.first <= 1000)
-                return cachedPrimary.second
-
-            e("BiometricPromptGenericImpl.primaryBiometricType > ${compatBuilder.getEffectiveAvailableTypes()}")
-            val selectedType = LegacyBiometric.getSelectedBiometricModule(
-                        compatBuilder.getAuthenticationExecutionTypes()
-                    .filterNot { authFinishedCopy.containsKey(it) },
-                compatBuilder.getBiometricAuthRequest().provider,
-                compatBuilder.enroll,
-                compatBuilder.getDisabledModuleTags()
-            )?.first
-                ?: BiometricType.BIOMETRIC_ANY
-            e("BiometricPromptGenericImpl.primaryBiometricType < $selectedType")
-            return selectedType.also {
-                cachedPrimary = Pair(System.currentTimeMillis(), it)
-            }
-        }
+        get() = compatBuilder.preferredPreparedLegacyModule(
+            compatBuilder.getAuthenticationExecutionTypes().filterNot { authFinishedCopy.containsKey(it) }
+        )?.first ?: BiometricType.BIOMETRIC_ANY
     private val onGlobalLayoutListener = OnGlobalLayoutListener {
         e("BiometricPromptGenericImpl.onGlobalLayout - fallback dialog")
         checkInScreenVisibility()
     }
+    private var layoutView: View? = null
+    private var layoutObserver: ViewTreeObserver? = null
     private val onWindowFocusChangeListener: WindowFocusChangedListener =
         object : WindowFocusChangedListener {
             override fun onStartWatching() {
@@ -330,7 +315,10 @@ class BiometricPromptCompatDialogImpl(
             if (!isInScreen) {
                 dialog.setWindowFocusChangedListener(onWindowFocusChangeListener)
             }
-            v?.viewTreeObserver?.addOnGlobalLayoutListener(onGlobalLayoutListener)
+            layoutView = v
+            layoutObserver = v?.viewTreeObserver?.also {
+                it.addOnGlobalLayoutListener(onGlobalLayoutListener)
+            }
         } catch (we: Throwable) {
             e(we)
         }
@@ -338,13 +326,16 @@ class BiometricPromptCompatDialogImpl(
 
     private fun detachWindowListeners() {
         try {
-            val v = dialog.findViewById<View>(Window.ID_ANDROID_CONTENT)
             if (!isInScreen) {
                 dialog.setWindowFocusChangedListener(null)
             }
-            v?.viewTreeObserver?.removeOnGlobalLayoutListener(onGlobalLayoutListener)
+            (layoutObserver?.takeIf { it.isAlive } ?: layoutView?.viewTreeObserver)
+                ?.takeIf { it.isAlive }?.removeOnGlobalLayoutListener(onGlobalLayoutListener)
         } catch (we: Throwable) {
             e(we)
+        } finally {
+            layoutObserver = null
+            layoutView = null
         }
     }
 
@@ -412,12 +403,7 @@ class BiometricPromptCompatDialogImpl(
         clearFeedback()
         detachWindowListeners()
         cancelAuth()
-        if (dialog.isShowing) {
-            dialog.dismiss()
-        }
-        val viewModel: DialogViewModel =
-            ViewModelProvider(compatBuilder.getActivity() ?: return)[DialogViewModel::class.java]
-        viewModel.dismissDialog()
+        dialog.requestDismiss()
     }
 
     internal fun dismissForStageHandoff(done: () -> Unit) {

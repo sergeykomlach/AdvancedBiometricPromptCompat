@@ -24,7 +24,6 @@ import android.app.AppOpsManager
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
-import android.content.pm.PermissionGroupInfo
 import android.content.pm.PermissionInfo
 import android.os.Build
 import android.os.Build.VERSION
@@ -46,6 +45,7 @@ class PermissionUtils internal constructor() {
 
     companion object {
         private val appOpCache = LruCache<String, Boolean>(10)
+        private val permissionDefinitions = LruCache<String, PermissionInfo>(32)
 
         @JvmField
         var INSTANCE = PermissionUtils()
@@ -102,10 +102,9 @@ class PermissionUtils internal constructor() {
     fun hasSelfPermissions(vararg permissions: String): Boolean {
         for (permission: String in permissions) {
             //always granted for Android 12+
-            if (Utils.isAtLeastT && listOf(
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ).contains(permission)
+            if (Utils.isAtLeastT &&
+                (permission == Manifest.permission.WRITE_EXTERNAL_STORAGE ||
+                    permission == Manifest.permission.READ_EXTERNAL_STORAGE)
             )
                 continue
             if (!isPermissionExistsInTheSystem(permission)) {
@@ -119,25 +118,20 @@ class PermissionUtils internal constructor() {
     }
 
     private fun isPermissionExistsInTheSystem(permission: String): Boolean {
-        try {
-            val lstGroups = appContext.packageManager.getAllPermissionGroups(0)
-            lstGroups.add(null) // ungrouped permissions
-            for (pgi: PermissionGroupInfo? in lstGroups) {
-                pgi?.name?.let {
-                    val lstPermissions =
-                        appContext.packageManager.queryPermissionsByGroup(it, 0)
-                    for (pi: PermissionInfo in lstPermissions) {
-                        if ((pi.name == permission)) {
-                            return true
-                        }
-                    }
-                }
-            }
-        } catch (ex: Throwable) {
-            logException(ex)
+        return try {
+            getPermissionDefinition(permission)
+            true
+        } catch (_: PackageManager.NameNotFoundException) {
+            false
+        } catch (error: Exception) {
+            logException(error)
+            true // On an unexpected lookup failure still require the actual grant.
         }
-        return false
     }
+
+    private fun getPermissionDefinition(permission: String): PermissionInfo =
+        permissionDefinitions.get(permission) ?: appContext.packageManager.getPermissionInfo(permission, 0)
+            .also { permissionDefinitions.put(permission, it) }
 
     /**
      * Determine whether the app has the given permission *as a manifest/runtime permission*.
@@ -212,10 +206,7 @@ class PermissionUtils internal constructor() {
 
     private fun isAppOpPermission(manifestPermission: String): Boolean {
         try {
-            val info = appContext.packageManager.getPermissionInfo(
-                manifestPermission,
-                PackageManager.GET_META_DATA
-            )
+            val info = getPermissionDefinition(manifestPermission)
             logError("PermissionUtils.isAppOpPermission - $manifestPermission $info")
             //https://developer.android.com/reference/android/content/pm/PermissionInfo.html#getProtection()
             return if (VERSION.SDK_INT >= 28) {

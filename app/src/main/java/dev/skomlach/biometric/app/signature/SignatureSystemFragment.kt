@@ -7,10 +7,16 @@ import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.app.R
 import dev.skomlach.biometric.app.MainActivity
 import dev.skomlach.biometric.app.databinding.FragmentSignatureSystemBinding
 import dev.skomlach.biometric.compat.SupplementalBiometricOutcome
+import dev.skomlach.biometric.compat.engine.internal.behavior.BehaviorQualityIssue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SignatureSystemFragment : Fragment() {
     private var binding: FragmentSignatureSystemBinding? = null
@@ -18,6 +24,7 @@ class SignatureSystemFragment : Fragment() {
     private var securedWindow: Window? = null
     private var acquiredSecureFlag = false
     private var secureContent: AutoCloseable? = null
+    private var sampleCheck: Job? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View =
         FragmentSignatureSystemBinding.inflate(inflater, container, false).also { binding = it }.root
@@ -33,16 +40,33 @@ class SignatureSystemFragment : Fragment() {
         }
         ui.signatureSubmit.setOnClickListener {
             val current = flow ?: return@setOnClickListener
-            if (current.isRunning) return@setOnClickListener
-            val sample = ui.signaturePad.takeSample()
-            if (sample == null) ui.signatureStatus.setText(R.string.signature_system_need_signature)
-            else current.submit(sample)
+            if (current.isRunning || sampleCheck?.isActive == true) return@setOnClickListener
+            val sample = ui.signaturePad.snapshotSample()
+            if (sample == null) {
+                ui.signatureStatus.setText(R.string.signature_system_need_signature)
+                return@setOnClickListener
+            }
+            ui.signaturePad.isEnabled = false
+            ui.signatureSubmit.isEnabled = false
+            sampleCheck = viewLifecycleOwner.lifecycleScope.launch {
+                val valid = withContext(Dispatchers.Default) { sample.qualityIssue() == BehaviorQualityIssue.NONE }
+                if (valid) {
+                    ui.signaturePad.abortCapture()
+                    current.submit(sample)
+                } else {
+                    ui.signaturePad.isEnabled = true
+                    ui.signatureSubmit.isEnabled = true
+                    ui.signatureStatus.setText(R.string.signature_system_need_signature)
+                }
+            }
         }
         ui.signatureRestart.setOnClickListener {
+            sampleCheck?.cancel()
             flow?.reset()
             ui.signaturePad.beginCapture()
         }
         ui.signatureCancel.setOnClickListener {
+            sampleCheck?.cancel()
             flow?.cancel()
             ui.signaturePad.abortCapture()
         }
@@ -94,12 +118,15 @@ class SignatureSystemFragment : Fragment() {
     }
 
     override fun onStop() {
+        sampleCheck?.cancel()
         flow?.cancel()
         binding?.signaturePad?.abortCapture()
         super.onStop()
     }
 
     override fun onDestroyView() {
+        sampleCheck?.cancel()
+        sampleCheck = null
         flow?.close()
         flow = null
         binding?.signaturePad?.onInputRejected = null

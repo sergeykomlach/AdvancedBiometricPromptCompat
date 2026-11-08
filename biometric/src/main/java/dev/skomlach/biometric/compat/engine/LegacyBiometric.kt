@@ -66,6 +66,8 @@ import java.lang.ref.WeakReference
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+import dev.skomlach.biometric.compat.readOwnedAuthStatus
 import dev.skomlach.biometric.compat.impl.PendingAuthStart
 
 object LegacyBiometric {
@@ -78,6 +80,7 @@ object LegacyBiometric {
 
     private val initInProgress = AtomicBoolean(false)
     private val authInProgress = AtomicBoolean(false)
+    private val selectionGeneration = AtomicLong()
     private val joinedSession = LegacyAuthSession()
     private val pendingAuthStart = PendingAuthStart(ExecutorHelper::postDelayed, ExecutorHelper::removeCallbacks)
 
@@ -341,17 +344,12 @@ object LegacyBiometric {
     }
 
     fun updateBiometricEnrollChanged() {
-        synchronized(moduleHashMap) {
-            moduleHashMap.values.filter(::isSelectedRuntime).forEach { module ->
-                (module as? AbstractBiometricModule)?.updateBiometricEnrollChanged()
-            }
+        selectedModules().forEach { module ->
+            (module as? AbstractBiometricModule)?.updateBiometricEnrollChanged()
         }
     }
 
-    fun isEnrollChanged(): Boolean =
-        synchronized(moduleHashMap) {
-            moduleHashMap.values.any { isSelectedRuntime(it) && it.isBiometricEnrollChanged }
-        }
+    fun isEnrollChanged(): Boolean = selectedModules().any { it.isBiometricEnrollChanged }
 
     val availableBiometrics: List<BiometricType>
         get() = synchronized(moduleHashMap) {
@@ -371,9 +369,7 @@ object LegacyBiometric {
         }
 
     val isHardwareDetected: Boolean
-        get() = synchronized(moduleHashMap) {
-            moduleHashMap.values.any { isSelectedRuntime(it) && it.getModuleState().hardwarePresent }
-        }
+        get() = selectedModules().any { it.getModuleState().hardwarePresent }
 
     fun areAvailableSoftwareModulesPermanentlyLockedOut(
         biometricType: BiometricType?,
@@ -394,9 +390,7 @@ object LegacyBiometric {
     }
 
     val hasEnrolled: Boolean
-        get() = synchronized(moduleHashMap) {
-            moduleHashMap.values.any { isSelectedRuntime(it) && it.getModuleState().enrolled }
-        }
+        get() = selectedModules().any { it.getModuleState().enrolled }
 
     fun authenticate(
         biometricCryptographyPurpose: BiometricCryptographyPurpose?,
@@ -410,8 +404,8 @@ object LegacyBiometric {
     ) = authenticateInternal(biometricCryptographyPurpose, targetView, requestedMethods, listener,
         bundle, provider, excludedModuleTags, allowCryptoFallback, null)
 
-    internal fun authenticateInSession(
-        owner: Any,
+    internal fun authenticateOffMain(
+        owner: Any?,
         biometricCryptographyPurpose: BiometricCryptographyPurpose?,
         targetView: SurfaceView?,
         requestedMethods: List<BiometricType?>,
@@ -419,9 +413,37 @@ object LegacyBiometric {
         bundle: Bundle?,
         provider: BiometricProviderType,
         excludedModuleTags: Set<Int>,
-        allowCryptoFallback: Boolean
-    ) = authenticateInternal(biometricCryptographyPurpose, targetView, requestedMethods, listener,
-        bundle, provider, excludedModuleTags, allowCryptoFallback, owner)
+        allowCryptoFallback: Boolean,
+        dispatchBackground: (Runnable) -> Unit = ExecutorHelper::startOnBackground,
+        dispatchMain: (Runnable) -> Unit = ExecutorHelper::post,
+        isActive: () -> Boolean
+    ) {
+        val generation = selectionGeneration.get()
+        val enroll = bundle?.getBoolean(BundleBuilder.ENROLL, false) == true
+        readOwnedAuthStatus(dispatchBackground, dispatchMain,
+            { generation == selectionGeneration.get() && isActive() }, {
+                selectAuthenticationModules(requestedMethods, provider, enroll, excludedModuleTags)
+            }
+        ) { selected ->
+            selected.onSuccess { modules ->
+                authenticateInternal(biometricCryptographyPurpose, targetView, requestedMethods, listener,
+                    bundle, provider, excludedModuleTags, allowCryptoFallback, owner, modules)
+            }.onFailure {
+                e(it)
+                listener.onFailure(AuthenticationResult(requestedMethods.firstOrNull(),
+                    reason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE))
+            }
+        }
+    }
+
+    private fun selectAuthenticationModules(
+        requestedMethods: List<BiometricType?>,
+        provider: BiometricProviderType,
+        enroll: Boolean,
+        excludedModuleTags: Set<Int>
+    ): List<Pair<BiometricType, BiometricModule>> = requestedMethods.filterNotNull().mapNotNull { type ->
+        getPreferredBiometricModule(type, provider, enroll, excludedModuleTags)?.let { type to it }
+    }
 
     @Synchronized
     private fun authenticateInternal(
@@ -433,7 +455,8 @@ object LegacyBiometric {
         provider: BiometricProviderType,
         excludedModuleTags: Set<Int>,
         allowCryptoFallback: Boolean,
-        owner: Any?
+        owner: Any?,
+        selected: List<Pair<BiometricType, BiometricModule>>? = null
     ) {
         val joining = owner != null && joinedSession.owns(owner)
         if ((!joining && (authInProgress.get() || joinedSession.isOccupied())) || requestedMethods.isEmpty()) {
@@ -472,17 +495,16 @@ object LegacyBiometric {
         if (owner != null && !joinedSession.claim(owner)) return
 
         val isEnroll = bundle?.getBoolean(BundleBuilder.ENROLL, false) == true
-        requestedMethods.filterNotNull().forEach { type ->
-            getPreferredBiometricModule(type, provider, isEnroll, excludedModuleTags)?.let { module ->
+        (selected ?: selectAuthenticationModules(requestedMethods, provider, isEnroll, excludedModuleTags))
+            .forEach { (type, module) ->
                 selectedAnyModule = true
-                if (owner != null && !joinedSession.add(owner, module.tag())) return@let
-                Core.registerModule(module)
+                if (owner != null && !joinedSession.add(owner, module.tag())) return@forEach
+                Core.registerSelectedModule(module)
                 if (module is FacelockOldModule) module.setCallerView(targetView)
                 if (module is SoterFaceUnlockModule) module.bundle = bundle
                 if (module is SoterFingerprintUnlockModule) module.bundle = bundle
                 if (module is SoftwareBiometricModule) module.bundle = bundle
                 activeModules[module.tag()] = type
-            }
         }
         d("BiometricAuthentication.authenticate $activeModules")
         if (activeModules.isEmpty()) {
@@ -600,6 +622,7 @@ object LegacyBiometric {
 
     @Synchronized
     fun cancelAuthentication() {
+        selectionGeneration.incrementAndGet()
         joinedSession.clear()
         pendingAuthStart.cancel()
         // A module callback may already have released the start gate. The remaining
@@ -728,23 +751,26 @@ object LegacyBiometric {
         callback: AbstractSoftwareBiometricManager.PreparationCallback,
         isActive: () -> Boolean
     ) {
-        if (!isActive()) return
-        val modules = types
-            .mapNotNull { type ->
-                getPreferredBiometricModule(type, request.provider, enroll, excludedModuleTags)
+        readOwnedAuthStatus(ExecutorHelper::startOnBackground, ExecutorHelper::post, isActive, {
+            selectAuthenticationModules(types.toList(), request.provider, enroll, excludedModuleTags)
+                .map { it.second }.filterIsInstance<SoftwareBiometricModule>().distinct()
+        }) { prepared ->
+            val modules = prepared.getOrElse {
+                e(it)
+                callback.onPreparationError(AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE, null)
+                return@readOwnedAuthStatus
             }
-            .filterIsInstance<SoftwareBiometricModule>()
-            .distinct()
-
-        val skippedTags = excludedModuleTags.toMutableSet()
-        prepareSoftwareSequence(modules, { module, completion ->
-            val manager = module.manager
-            if (manager == null) completion.onPrepared()
-            else manager.prepareForAuthentication(completion)
-        }, onModuleSkipped, callback, isActive) { failed ->
-            skippedTags += failed.tag()
-            getPreferredBiometricModule(failed.biometricMethod.biometricType, request.provider,
-                enroll, skippedTags) as? SoftwareBiometricModule
+            val skippedTags = excludedModuleTags.toMutableSet()
+            prepareSoftwareSequence(modules, { module, completion ->
+                val manager = module.manager
+                if (manager == null) completion.onPrepared()
+                else manager.prepareForAuthentication(completion)
+            }, onModuleSkipped, callback, isActive,
+                ExecutorHelper::startOnBackground, ExecutorHelper::post) { failed ->
+                skippedTags += failed.tag()
+                getPreferredBiometricModule(failed.biometricMethod.biometricType, request.provider,
+                    enroll, skippedTags) as? SoftwareBiometricModule
+            }
         }
     }
 

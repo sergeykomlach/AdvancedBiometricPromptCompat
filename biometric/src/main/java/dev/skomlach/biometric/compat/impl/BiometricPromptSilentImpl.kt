@@ -21,11 +21,8 @@ package dev.skomlach.biometric.compat.impl
 
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
-import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricConfirmation
-import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.EnrollTerminalStatus
 import dev.skomlach.biometric.compat.BundleBuilder
@@ -62,13 +59,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
     init {
         val allTypes = builder.getAllAvailableTypes()
         if (builder.enroll) {
-            val softwareTypes = allTypes.filterNot {
-                BiometricManagerCompat.getAuthSnapshot(
-                    BiometricAuthRequest.default().withType(it).withProvider(
-                        BiometricProviderType.HARDWARE
-                    )
-                ).state.hardwareDetected
-            }
+            val softwareTypes = allTypes.filterNot(builder::hasSystemEnrollmentHardware)
             isFingerprint.set(softwareTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT))
         } else
             isFingerprint.set(
@@ -120,7 +111,8 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         pendingAuthStart.schedule(500) {
             if (!authSessionState.owns(sessionToken)) return@schedule
             types.filterNotNull().forEach(builder::trackSoftwareEnrollment)
-            LegacyBiometric.authenticate(
+            LegacyBiometric.authenticateOffMain(
+                null,
                 builder.getCryptographyPurpose(),
                 null,
                 types,
@@ -129,7 +121,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                 builder.getBiometricAuthRequest().provider,
                 builder.getDisabledModuleTags(),
                 builder.isCryptoFallbackAllowed()
-            )
+            ) { authSessionState.owns(sessionToken) && builder.authFlowActive() }
         }
     }
 

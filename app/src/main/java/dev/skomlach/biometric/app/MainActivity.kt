@@ -19,11 +19,9 @@
 
 package dev.skomlach.biometric.app
 
-import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.content.Context
 import android.graphics.Color
-import android.os.AsyncTask
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.WindowManager
@@ -35,6 +33,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -49,6 +49,10 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.statusbar.StatusBarTools
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import androidx.core.view.updatePadding
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 fun Context?.resolveColor(@AttrRes attrRes: Int): Int {
     if (this == null) return Color.BLACK
 
@@ -65,34 +69,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private val secureContentOwners = mutableSetOf<Any>()
+    private var scanProgress: ProgressDialog? = null
 
     private val controller: WindowInsetsControllerCompat by lazy {
         WindowInsetsControllerCompat(window, binding.root)
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        try {
-            super.onSaveInstanceState(outState)
-        } catch (e: IllegalStateException) {
-            BiometricLoggerImpl.e(e)
-        }
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        try {
-            super.onRestoreInstanceState(savedInstanceState)
-        } catch (e: IllegalStateException) {
-            BiometricLoggerImpl.e(e)
-        }
-
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        try {
-            super.onCreate(savedInstanceState)
-        } catch (e: IllegalStateException) {
-            BiometricLoggerImpl.e(e)
-        }
+        super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -114,52 +98,62 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-        binding.fab.setOnClickListener { _ ->
-            val dialog = ProgressDialog.show(
-                this@MainActivity,
-                getString(R.string.looking_for_apis),
-                getString(R.string.please_wait),
-                true
-            )
+        binding.fab.setOnClickListener {
+            if (scanProgress != null) return@setOnClickListener
+            val progress = ProgressDialog(this@MainActivity).apply {
+                setTitle(getString(R.string.looking_for_apis))
+                setMessage(getString(R.string.please_wait))
+                setCancelable(true)
+                setCanceledOnTouchOutside(false)
+                show()
+            }
+            scanProgress = progress
 
-            val scanTask = @SuppressLint("StaticFieldLeak")
-            object : AsyncTask<Void, Void, String>() {
-                @Deprecated("Deprecated in Java")
-                override fun onPreExecute() {
-                    dialog.show()
+            val scan = lifecycleScope.launch {
+                val result = try {
+                    withContext(Dispatchers.IO) {
+                        Scan4Apis().getList()
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    BiometricLoggerImpl.e(e)
+                    null
+                } finally {
+                    dismissScanProgress()
                 }
 
-                @Deprecated("Deprecated in Java")
-                override fun doInBackground(vararg params: Void?): String? {
-                    return Scan4Apis().getList()
-                }
-
-                @Deprecated("Deprecated in Java")
-                override fun onPostExecute(result: String?) {
-                    dialog.dismiss()
+                if (!isFinishing && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                     if (result.isNullOrEmpty()) {
                         Toast.makeText(
                             AndroidContext.appContext,
                             getString(R.string.unexpected_error_happens),
                             Toast.LENGTH_LONG
                         ).show()
-                        return
-                    }
-                    result.let {
+                    } else {
                         MailTo.startMailClient(
                             this@MainActivity,
                             "s.komlach@gmail.com",
                             getString(R.string.advanced_biometric_report_subject),
-                            it
+                            result
                         )
-
                     }
                 }
             }
-
-            scanTask.execute()
+            progress.setOnCancelListener { scan.cancel() }
         }
 
+    }
+
+    override fun onDestroy() {
+        dismissScanProgress()
+        super.onDestroy()
+    }
+
+    private fun dismissScanProgress() {
+        val progress = scanProgress
+        scanProgress = null
+        progress?.dismiss()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

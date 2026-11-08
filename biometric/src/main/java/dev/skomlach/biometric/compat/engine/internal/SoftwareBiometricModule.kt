@@ -60,6 +60,7 @@ import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.biometric.compat.readOwnedAuthStatus
 
 internal fun resolveSoftwareFailureReason(
     baseReason: AuthenticationFailureReason,
@@ -91,9 +92,17 @@ internal fun resolveSoftwareLockoutFailureReason(
 class SoftwareBiometricModule internal constructor(
     private val method: BiometricMethod,
     internal val runtime: SoftwareBiometricRuntime?,
-    private val listener: LegacyBiometricInitListener?
+    private val listener: LegacyBiometricInitListener?,
+    private val dispatchBackground: (Runnable) -> Unit,
+    private val dispatchMain: (Runnable) -> Unit
 ) :
     AbstractBiometricModule(method) {
+    internal constructor(
+        method: BiometricMethod,
+        runtime: SoftwareBiometricRuntime?,
+        listener: LegacyBiometricInitListener?
+    ) : this(method, runtime, listener, ExecutorHelper::startOnBackground, ExecutorHelper::post)
+
     // Never derive a software provider's namespace from the shared CUSTOM_* enum descriptor.
     override fun tag(): Int = runtime?.moduleId ?: super.tag()
 
@@ -320,12 +329,27 @@ class SoftwareBiometricModule internal constructor(
         return
     }
 
-    @Synchronized
     private fun authenticateInternal(
         biometricCryptoObject: BiometricCryptoObject?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?,
         sessionToken: SoftwareBiometricSessionToken
+    ) {
+        readOwnedAuthStatus(dispatchBackground, dispatchMain,
+            { isAuthenticationActive(listener) && sessionGuard.isActive(sessionToken) },
+            ::requireReadableEnrollment
+        ) { readable ->
+            launchPreparedAuthentication(biometricCryptoObject, listener, restartPredicate, sessionToken, readable)
+        }
+    }
+
+    @Synchronized
+    private fun launchPreparedAuthentication(
+        biometricCryptoObject: BiometricCryptoObject?,
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate?,
+        sessionToken: SoftwareBiometricSessionToken,
+        readable: Result<Unit>
     ) {
         if (!isAuthenticationActive(listener)) return
         val originalSignal = originalCancellationSignal
@@ -400,7 +424,7 @@ class SoftwareBiometricModule internal constructor(
 
                 d("$name.authenticate:  Crypto=$crypto")
                 // Recheck after preparation: unavailable templates must never reach the provider.
-                requireReadableEnrollment()
+                readable.getOrThrow()
                 val extras = convertBundleToCustom()
                     ?: throw IllegalArgumentException("Bundle should be not NULL")
                 if (!isAuthenticationActive(listener) || !sessionGuard.isActive(sessionToken) || cancellationSignal.isCanceled) return
@@ -499,8 +523,23 @@ class SoftwareBiometricModule internal constructor(
             if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
+            val code = if (errMsgId < 1000) errMsgId else errMsgId % 1000
+            if (code == CUSTOM_BIOMETRIC_ERROR_LOCKOUT || code == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT) {
+                readOwnedAuthStatus(dispatchBackground, dispatchMain,
+                    { callbackGate.canDispatch() && isAuthenticationCurrent(listener) }, {
+                        if (code == CUSTOM_BIOMETRIC_ERROR_LOCKOUT) lockout()
+                        else BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(biometricMethod.biometricType)
+                    }
+                ) {
+                    it.onFailure { error -> e(error) }
+                    processAuthenticationError(code, errString)
+                }
+            } else processAuthenticationError(code, errString)
+        }
+
+        private fun processAuthenticationError(code: Int, errString: CharSequence?) {
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
+            when (code) {
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 
@@ -514,9 +553,6 @@ class SoftwareBiometricModule internal constructor(
                     AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
 
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
-                        biometricMethod.biometricType
-                    )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
 
@@ -534,7 +570,6 @@ class SoftwareBiometricModule internal constructor(
                     AuthenticationFailureReason.TIMEOUT
 
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT -> {
-                    lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
 
@@ -590,23 +625,35 @@ class SoftwareBiometricModule internal constructor(
                         )
                     }, skipTimeout.toLong())
                 } else {
-                    failureReason = resolveSoftwareFailureReason(
-                        failureReason,
-                        manager?.getLockoutError()
-                    )
-                    if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
-                        if (!isAuthenticationCurrent(listener)) return
-                        lockout()
-                    }
-                    listener?.onFailure(tag(), failureReason, errString)
-                    postCancelTask(listener) {
-                        if (callbackGate.canDispatch()) {
-                            selfCanceled = true
-                            listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
-                            cancelAuthentication(listener)
+                    val reason = failureReason
+                    if (reason == AuthenticationFailureReason.AUTHENTICATION_FAILED ||
+                        reason == AuthenticationFailureReason.SENSOR_FAILED
+                    ) {
+                        readOwnedAuthStatus(dispatchBackground, dispatchMain,
+                            { callbackGate.canDispatch() && isAuthenticationCurrent(listener) },
+                            {
+                                val resolved = resolveSoftwareFailureReason(reason, manager?.getLockoutError())
+                                if (resolved == AuthenticationFailureReason.LOCKED_OUT) lockout()
+                                resolved
+                            }
+                        ) { resolved ->
+                            finishFailure(resolved.getOrDefault(reason), errString)
                         }
+                    } else {
+                        finishFailure(reason, errString)
                     }
                 }
+        }
+
+        private fun finishFailure(failureReason: AuthenticationFailureReason, errString: CharSequence?) {
+            listener?.onFailure(tag(), failureReason, errString)
+            postCancelTask(listener) {
+                if (callbackGate.canDispatch()) {
+                    selfCanceled = true
+                    listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
+                    cancelAuthentication(listener)
+                }
+            }
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {

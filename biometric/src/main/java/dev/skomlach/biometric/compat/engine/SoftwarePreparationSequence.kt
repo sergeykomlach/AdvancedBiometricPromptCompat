@@ -1,6 +1,7 @@
 package dev.skomlach.biometric.compat.engine
 
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.PreparationCallback
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE
 import dev.skomlach.biometric.compat.isSkippablePreparationError
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -14,6 +15,8 @@ internal fun <T> prepareSoftwareSequence(
     onModuleSkipped: (T) -> Unit,
     callback: PreparationCallback,
     isActive: () -> Boolean,
+    dispatchFallback: (Runnable) -> Unit = Runnable::run,
+    dispatchContinuation: (Runnable) -> Unit = Runnable::run,
     fallbackFor: (T) -> T?
 ) {
     fun prepareNext(remaining: List<T>, index: Int) {
@@ -35,12 +38,18 @@ internal fun <T> prepareSoftwareSequence(
                 if (isSkippablePreparationError(errMsgId)) {
                     onModuleSkipped(module)
                     if (!isActive()) return
-                    val fallback = fallbackFor(module)
-                    if (fallback != null) {
-                        prepareNext(remaining.toMutableList().also { it[index] = fallback }, index)
-                    } else {
-                        prepareNext(remaining, index + 1)
-                    }
+                    dispatchFallback(Runnable {
+                        if (!isActive()) return@Runnable
+                        val fallback = runCatching { fallbackFor(module) }
+                        dispatchContinuation(Runnable {
+                            if (!isActive()) return@Runnable
+                            fallback.onSuccess {
+                                if (it != null) {
+                                    prepareNext(remaining.toMutableList().also { next -> next[index] = it }, index)
+                                } else prepareNext(remaining, index + 1)
+                            }.onFailure { callback.onPreparationError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE, it.message) }
+                        })
+                    })
                     return
                 }
                 callback.onPreparationError(errMsgId, errString)

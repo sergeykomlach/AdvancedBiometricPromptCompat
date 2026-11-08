@@ -1,5 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
+import android.os.Bundle
+
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
@@ -31,6 +33,7 @@ import dev.skomlach.biometric.compat.R as BiometricR
 import dev.skomlach.biometric.custom.behavior.R
 import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.common.protection.A11yDetection
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlin.math.max
 
@@ -52,6 +55,8 @@ internal class BehaviorCaptureController(
     private val builder: BiometricPromptCompat.Builder,
     private val enroll: Boolean,
     private val onInputError: ((CharSequence) -> Unit)? = null,
+    private val dispatchBackground: (Runnable) -> Unit = ExecutorHelper::startOnBackground,
+    private val dispatchMain: (Runnable) -> Unit = ExecutorHelper::post,
     private val onReady: () -> Unit
 ) {
     private var prepared = false
@@ -71,6 +76,8 @@ internal class BehaviorCaptureController(
     private var overlayView: View? = null
     private var typingPolicy: BehaviorTypingInputPolicy? = null
     private var sessionToken: BehaviorCaptureSessionToken? = null
+    private var accessibilityPending = false
+    private var submissionPending = false
     private var captureInvalidated = false
     private val protectedOverlayViews = ArrayList<View>()
     private val inputProtection = ArrayList<InputProtection>()
@@ -89,7 +96,7 @@ internal class BehaviorCaptureController(
     }
 
     internal fun submitConsumer(): Boolean {
-        if (!disposed && consumerMode != null) prepareExtras()
+        if (!disposed && consumerMode != null) prepareExtras(synchronous = true)
         return prepared
     }
 
@@ -201,16 +208,29 @@ internal class BehaviorCaptureController(
         BehaviorCaptureSessionRegistry.invalidate(sessionToken)
         resetCapturedSample()
         clearInputError()
-        sessionToken = BehaviorCaptureSessionRegistry.start(SystemClock.elapsedRealtime(), SystemClock.uptimeMillis())
+        val token = BehaviorCaptureSessionRegistry.start(SystemClock.elapsedRealtime(), SystemClock.uptimeMillis())
+        sessionToken = token
+        accessibilityPending = false
+        submissionPending = false
         if (!runtimeCaptureAllowed()) return
-        if (isStrictBuiltInCapture() && evaluateBehaviorAccessibility(
+        if (!isStrictBuiltInCapture()) return
+        accessibilityPending = true
+        val context = rootView.context.applicationContext
+        dispatchBackground(Runnable {
+            val decision = evaluateBehaviorAccessibility(
                 strict = true,
-                hasWhitelistedService = A11yDetection.hasWhiteListedService(rootView.context),
-                hasUntrustedService = !A11yDetection.shouldWeTrustA11y(rootView.context)
-            ) == BehaviorAccessibilityDecision.REJECT_UNTRUSTED_SERVICE) {
-            invalidateCapture()
-            showInputError(localized(R.string.biometriccompat_behavior_error_accessibility))
-        }
+                hasWhitelistedService = A11yDetection.hasWhiteListedService(context),
+                hasUntrustedService = !A11yDetection.shouldWeTrustA11y(context)
+            )
+            dispatchMain(Runnable {
+                if (disposed || sessionToken !== token) return@Runnable
+                accessibilityPending = false
+                if (decision == BehaviorAccessibilityDecision.REJECT_UNTRUSTED_SERVICE) {
+                    invalidateCapture()
+                    showInputError(localized(R.string.biometriccompat_behavior_error_accessibility))
+                }
+            })
+        })
     }
 
     private fun createContent(container: FrameLayout): View {
@@ -617,6 +637,7 @@ internal class BehaviorCaptureController(
     private var submittedNonce: Long? = null
 
     private fun runtimeCaptureAllowed(): Boolean {
+        if (accessibilityPending || submissionPending) return false
         if (!BiometricPromptCompat.hasDetectedRuntimeHooks()) return true
         invalidateCapture()
         showInputError(localized(R.string.biometriccompat_behavior_help_unavailable))
@@ -624,7 +645,7 @@ internal class BehaviorCaptureController(
     }
 
     @Suppress("LongMethod", "CyclomaticComplexMethod", "ReturnCount")
-    private fun prepareExtras() {
+    private fun prepareExtras(synchronous: Boolean = false) {
         if (prepared || captureInvalidated || !runtimeCaptureAllowed()) return
         val mode = selectedMode()
         val phrase = phraseInput.text?.toString().orEmpty()
@@ -662,20 +683,36 @@ internal class BehaviorCaptureController(
             showInputError(localized(R.string.biometriccompat_behavior_error_need_signature))
             return
         }
-        val sample = BehaviorSample(mode, phrase.trim(), keyDowns.toList(), keyUps.toList(), decodeCapturedPoints())
-            .normalizedForMode()
-        val inputDecision = evaluateBehaviorSampleIntegrity(
-            sample, 0L, token.relativeUptime(SystemClock.uptimeMillis()), MAX_INTER_EVENT_GAP_MS)
-        if (inputDecision != BehaviorInputIntegrityDecision.ACCEPT) {
-            showInputError(localized(R.string.biometriccompat_behavior_error_capture_invalid))
-            return
+        submissionPending = true
+        val downs = keyDowns.toList()
+        val ups = keyUps.toList()
+        val strokeData = points.toFloatArray()
+        val latestEvent = token.relativeUptime(SystemClock.uptimeMillis())
+        val existingExtras = builder.getExtras()
+        val work = Runnable {
+            val extras = runCatching {
+                val sample = BehaviorSample(mode, phrase.trim(), downs, ups, decodeCapturedPoints(strokeData))
+                    .normalizedForMode()
+                val decision = evaluateBehaviorSampleIntegrity(sample, 0L, latestEvent, MAX_INTER_EVENT_GAP_MS)
+                if (decision == BehaviorInputIntegrityDecision.ACCEPT) {
+                    sealBehaviorExtras(existingExtras, sample, enroll, token, SystemClock.elapsedRealtime())
+                } else null
+            }.getOrNull()
+            strokeData.fill(0f)
+            val publish = Runnable {
+                if (disposed || sessionToken !== token) return@Runnable
+                submissionPending = false
+                if (!runtimeCaptureAllowed()) return@Runnable
+                if (extras == null) showInputError(localized(R.string.biometriccompat_behavior_error_capture_invalid))
+                else publishSample(token, extras)
+            }
+            if (synchronous) publish.run() else dispatchMain(publish)
         }
+        // Consumer submit returns the validation result and delivers onReady before returning.
+        if (synchronous) work.run() else dispatchBackground(work)
+    }
 
-        val extras = sealBehaviorExtras(builder.getExtras(), sample, enroll, token, nowMs)
-        if (extras == null) {
-            showInputError(localized(R.string.biometriccompat_behavior_error_capture_invalid))
-            return
-        }
+    private fun publishSample(token: BehaviorCaptureSessionToken, extras: Bundle) {
         prepared = true
         submittedNonce = token.nonce
         builder.setExtras(extras)
@@ -686,19 +723,18 @@ internal class BehaviorCaptureController(
         onReady()
     }
 
-    private fun decodeCapturedPoints(): List<BehaviorPoint> {
-        return points.chunked(BehaviorSample.POINT_STRIDE).mapNotNull { values ->
-            if (values.size != BehaviorSample.POINT_STRIDE) return@mapNotNull null
+    private fun decodeCapturedPoints(values: FloatArray): List<BehaviorPoint> =
+        List(values.size / BehaviorSample.POINT_STRIDE) { point ->
+            val offset = point * BehaviorSample.POINT_STRIDE
             BehaviorPoint(
-                x = values[0],
-                y = values[1],
-                timestampMs = values[2].toLong(),
-                pressure = values[3].takeIf { it >= 0f },
-                size = values[4].takeIf { it >= 0f },
-                strokeId = values[5].toInt()
+                x = values[offset],
+                y = values[offset + 1],
+                timestampMs = values[offset + 2].toLong(),
+                pressure = values[offset + 3].takeIf { it >= 0f },
+                size = values[offset + 4].takeIf { it >= 0f },
+                strokeId = values[offset + 5].toInt()
             )
         }
-    }
 
     private fun showInputError(message: CharSequence) {
         if (::errorText.isInitialized) {

@@ -98,12 +98,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
     private fun prepareStage(types: Set<BiometricType>) {
         stageTypes = types
-        val selected = LegacyBiometric.getSelectedBiometricModule(
-            stageTypes,
-            builder.getBiometricAuthRequest().provider,
-            builder.enroll,
-            builder.getDisabledModuleTags()
-        )
+        val selected = builder.preferredPreparedLegacyModule(stageTypes)
         val hardwareFingerprint = selected?.first == BiometricType.BIOMETRIC_FINGERPRINT &&
                 selected.second !is SoftwareBiometricModule
         val sensor = if (hardwareFingerprint) DevicesWithKnownBugs.fingerprintSensor else null
@@ -215,7 +210,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             if (!authSessionState.owns(sessionToken)) return@schedule
             foregroundFeedback?.setSystemPromptActive(systemPromptOwnsUi)
             types.filterNotNull().forEach(builder::trackSoftwareEnrollment)
-            LegacyBiometric.authenticate(
+            LegacyBiometric.authenticateOffMain(
+                null,
                 builder.getCryptographyPurpose(),
                 dialog?.authPreview,
                 types,
@@ -224,7 +220,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                 builder.getBiometricAuthRequest().provider,
                 excludedTags,
                 builder.isCryptoFallbackAllowed()
-            )
+            ) { authSessionState.owns(sessionToken) && builder.authFlowActive() }
         }
 
     }

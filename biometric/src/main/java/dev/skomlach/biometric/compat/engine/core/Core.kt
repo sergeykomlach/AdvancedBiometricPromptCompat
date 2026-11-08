@@ -61,14 +61,23 @@ object Core {
 
     fun registerModule(module: BiometricModule?) {
         try {
-            if (module == null || reprintModuleHashMap.containsKey(module.tag())) {
+            if (module == null) return
+            val tag = module.tag()
+            if (reprintModuleHashMap.containsKey(tag)) {
                 return
             }
             if (module.isHardwarePresent) {
-                reprintModuleHashMap[module.tag()] = module
+                registerSelectedModule(module)
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
+        }
+    }
+
+    internal fun registerSelectedModule(module: BiometricModule) {
+        val tag = module.tag()
+        synchronized(reprintModuleHashMap) {
+            if (!reprintModuleHashMap.containsKey(tag)) reprintModuleHashMap[tag] = module
         }
     }
 
@@ -76,7 +85,8 @@ object Core {
         get() {
             try {
 
-                for (module in reprintModuleHashMap.values) {
+                val modules = synchronized(reprintModuleHashMap) { reprintModuleHashMap.values.toList() }
+                for (module in modules) {
                     if (module.getModuleState().lockedOut) {
                         return true
                     }
@@ -90,7 +100,8 @@ object Core {
         get() {
             try {
 
-                for (module in reprintModuleHashMap.values) {
+                val modules = synchronized(reprintModuleHashMap) { reprintModuleHashMap.values.toList() }
+                for (module in modules) {
                     if (module.getModuleState().hardwarePresent) return true
                 }
             } catch (e: Throwable) {
@@ -104,7 +115,8 @@ object Core {
         get() {
             try {
 
-                for (module in reprintModuleHashMap.values) {
+                val modules = synchronized(reprintModuleHashMap) { reprintModuleHashMap.values.toList() }
+                for (module in modules) {
                     if (module.getModuleState().enrolled) return true
                 }
             } catch (e: Throwable) {

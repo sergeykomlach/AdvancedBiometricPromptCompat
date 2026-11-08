@@ -32,6 +32,22 @@ object BehaviorScorer {
     }
 
     fun scoreDetails(enrolled: BehaviorSample, probe: BehaviorSample): BehaviorScore {
+        return prepareProbe(probe)(enrolled)
+    }
+
+    internal fun prepareProbe(probe: BehaviorSample): (BehaviorSample) -> BehaviorScore {
+        val typing by lazy(LazyThreadSafetyMode.NONE) { typingFeatures(probe) }
+        val signature by lazy(LazyThreadSafetyMode.NONE) { resampleByPathLength(probe.strokePoints) }
+        val normalized by lazy(LazyThreadSafetyMode.NONE) { normalize(signature) }
+        return { enrolled -> scorePrepared(enrolled, probe, { typing }, { signature to normalized }) }
+    }
+
+    private fun scorePrepared(
+        enrolled: BehaviorSample,
+        probe: BehaviorSample,
+        probeTyping: () -> List<Double>,
+        probeSignature: () -> Pair<List<BehaviorPoint>, List<BehaviorPoint>>
+    ): BehaviorScore {
         if (enrolled.mode != probe.mode) {
             return BehaviorScore(0f, reason = BehaviorScoreReason.MODE_MISMATCH)
         }
@@ -45,16 +61,16 @@ object BehaviorScorer {
 
         val score = when (enrolled.mode) {
             BehaviorMode.TYPING -> {
-                val typing = typingScore(enrolled, probe)
+                val typing = typingScore(enrolled, probeTyping())
                 BehaviorScore(typing, typing = typing)
             }
             BehaviorMode.SIGNATURE -> {
-                val signature = signatureScore(enrolled, probe)
+                val signature = signatureScore(enrolled, probeSignature())
                 BehaviorScore(signature, signature = signature)
             }
             BehaviorMode.COMBINED -> {
-                val typing = typingScore(enrolled, probe)
-                val signature = signatureScore(enrolled, probe)
+                val typing = typingScore(enrolled, probeTyping())
+                val signature = signatureScore(enrolled, probeSignature())
                 if (typing <= 0f || signature <= 0f) {
                     BehaviorScore(
                         0f,
@@ -74,9 +90,8 @@ object BehaviorScorer {
         return score.copy(total = score.total.coerceIn(0f, 1f))
     }
 
-    private fun typingScore(enrolled: BehaviorSample, probe: BehaviorSample): Float {
+    private fun typingScore(enrolled: BehaviorSample, probeFeatures: List<Double>): Float {
         val enrolledFeatures = typingFeatures(enrolled)
-        val probeFeatures = typingFeatures(probe)
         if (enrolledFeatures.isEmpty() || enrolledFeatures.size != probeFeatures.size) return 0f
 
         val normalizedDistance = enrolledFeatures.indices.sumOf { index ->
@@ -103,11 +118,13 @@ object BehaviorScorer {
         return result
     }
 
-    private fun signatureScore(enrolled: BehaviorSample, probe: BehaviorSample): Float {
+    private fun signatureScore(
+        enrolled: BehaviorSample,
+        probe: Pair<List<BehaviorPoint>, List<BehaviorPoint>>
+    ): Float {
         val enrolledResampled = resampleByPathLength(enrolled.strokePoints)
-        val probeResampled = resampleByPathLength(probe.strokePoints)
+        val (probeResampled, probePoints) = probe
         val enrolledPoints = normalize(enrolledResampled)
-        val probePoints = normalize(probeResampled)
         if (enrolledPoints.isEmpty() || probePoints.isEmpty()) return 0f
 
         val distance = dynamicTimeWarpingDistance(enrolledPoints, probePoints)

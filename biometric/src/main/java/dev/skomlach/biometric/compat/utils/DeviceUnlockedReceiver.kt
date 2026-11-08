@@ -74,11 +74,9 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
         ExecutorHelper.startOnBackground {
             if (BOOT_ACTIONS.contains(action)) {
                 d("Device boot event received: $action")
-                if (PROTECTED_BOOT_ACTIONS.contains(action) ||
-                    BiometricErrorLockoutPermanentFix.isRebootDetected()
-                ) {
+                if (PROTECTED_BOOT_ACTIONS.contains(action)) {
                     BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-                } else {
+                } else if (!BiometricErrorLockoutPermanentFix.resetIfRebooted()) {
                     d("Ignoring boot event without reboot evidence")
                 }
             } else if (
@@ -90,9 +88,7 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
                                 ))
             ) {
                     d("Device unlocked completed")
-                    if (BiometricErrorLockoutPermanentFix.isRebootDetected())
-                        BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-                    else
+                    if (!BiometricErrorLockoutPermanentFix.resetIfRebooted())
                         BiometricLockoutFix.reset()
             }
         }

@@ -26,20 +26,23 @@ internal object BehaviorCaptureSessionRegistry {
         }
     }
 
-    @Synchronized fun seal(token: BehaviorCaptureSessionToken, sample: BehaviorSample,
+    fun seal(token: BehaviorCaptureSessionToken, sample: BehaviorSample,
         enrollment: Boolean, nowMs: Long): Boolean {
-        val capture = activeSessions[token.nonce] ?: return false
-        if (capture.token != token || capture.sample != null ||
-            decision(token, nowMs, MAX_CAPTURE_DURATION_MS) != BehaviorCaptureSessionDecision.ACTIVE) return false
         val normalized = sample.normalizedForMode()
         if (!normalized.hasValidStructure() || !normalized.hasRequiredDataForMode() ||
             normalized.qualityIssue() != BehaviorQualityIssue.NONE) return false
-        capture.sample = normalized.copy(
+        val snapshot = normalized.copy(
             keyDownTimesMs = java.util.Collections.unmodifiableList(ArrayList(normalized.keyDownTimesMs)),
             keyUpTimesMs = java.util.Collections.unmodifiableList(ArrayList(normalized.keyUpTimesMs)),
             strokePoints = java.util.Collections.unmodifiableList(ArrayList(normalized.strokePoints)))
-        capture.enrollment = enrollment
-        return true
+        return synchronized(this) {
+            val capture = activeSessions[token.nonce] ?: return@synchronized false
+            if (capture.token != token || capture.sample != null ||
+                decision(token, nowMs, MAX_CAPTURE_DURATION_MS) != BehaviorCaptureSessionDecision.ACTIVE) return@synchronized false
+            capture.sample = snapshot
+            capture.enrollment = enrollment
+            true
+        }
     }
 
     @Synchronized fun consumeSample(nonce: Long, nowMs: Long, enrollment: Boolean): BehaviorSample? {

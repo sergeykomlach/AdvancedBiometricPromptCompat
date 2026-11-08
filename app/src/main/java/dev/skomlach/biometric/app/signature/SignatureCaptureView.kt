@@ -58,13 +58,17 @@ class SignatureCaptureView @JvmOverloads constructor(context: Context, attrs: At
     }
 
     fun takeSample(): BehaviorSample? {
-        if (!capturing) return null
-        if (expired()) { reject(); return null }
-        if (activePointer != null || points.isEmpty()) return null
-        val sample = BehaviorSample(BehaviorMode.SIGNATURE, null, emptyList(), emptyList(), points.toList())
+        val sample = snapshotSample() ?: return null
         if (sample.qualityIssue() != BehaviorQualityIssue.NONE) return null
         abortCapture()
         return sample
+    }
+
+    internal fun snapshotSample(): BehaviorSample? {
+        if (!capturing) return null
+        if (expired()) { reject(); return null }
+        if (activePointer != null || points.isEmpty()) return null
+        return BehaviorSample(BehaviorMode.SIGNATURE, null, emptyList(), emptyList(), points.toList())
     }
 
     private fun expired(): Boolean = SystemClock.elapsedRealtime() - startedElapsed !in 0 until 30_000L

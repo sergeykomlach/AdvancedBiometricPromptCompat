@@ -203,7 +203,7 @@ class WindowBackgroundBlurring(
     fun setupListeners() {
         if (isBlurViewAttachedToHost) return
         isBlurViewAttachedToHost = true
-        blurSession = BlurUtil.BlurSession()
+        blurSession = BlurUtil.BlurSession(768)
         try {
             if (shouldCaptureBlurBitmap(Utils.isAtLeastS)) {
                 // Reattach before comparing against the bitmap retained from the previous showing.

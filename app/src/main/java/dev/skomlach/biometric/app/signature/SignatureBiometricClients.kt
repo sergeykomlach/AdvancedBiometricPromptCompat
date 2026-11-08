@@ -12,6 +12,7 @@ import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.engine.internal.behavior.BehaviorBiometricManager
 import dev.skomlach.biometric.compat.engine.internal.behavior.BehaviorSample
+import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal object SignatureSystemPolicy {
@@ -67,7 +68,9 @@ internal class SystemBiometricClient(private val activity: FragmentActivity) {
 
 /** Compatibility observations are intentionally evaluated outside the system authorization request. */
 internal class BehaviorSignalClient(context: Context,
-    private val manager: AbstractSoftwareBiometricManager = BehaviorBiometricManager(context.applicationContext)) {
+    private val manager: AbstractSoftwareBiometricManager = BehaviorBiometricManager(context.applicationContext),
+    private val dispatchBackground: (Runnable) -> Unit = ExecutorHelper::startOnBackground
+) {
     fun evaluate(sample: BehaviorSample, result: (SupplementalBiometricOutcome) -> Unit): AutoCloseable {
         val signal = CancellationSignal()
         val closed = AtomicBoolean(false)
@@ -75,30 +78,43 @@ internal class BehaviorSignalClient(context: Context,
         fun deliver(outcome: SupplementalBiometricOutcome) {
             if (!closed.get() && terminal.compareAndSet(false, true)) result(outcome)
         }
-        val points = sample.strokePoints.flatMap { point -> listOf(point.x, point.y,
-            point.timestampMs.toFloat(), point.pressure ?: -1f, point.size ?: -1f, point.strokeId.toFloat()) }.toFloatArray()
-        val extras = Bundle().apply {
-            putString(BehaviorSample.EXTRA_BEHAVIOR_MODE, "SIGNATURE")
-            putFloatArray(BehaviorSample.EXTRA_BEHAVIOR_POINTS, points)
-            putInt(BehaviorSample.EXTRA_BEHAVIOR_POINTS_STRIDE, 6)
-        }
-        try {
-            manager.authenticate(null, 0, signal, object : AbstractSoftwareBiometricManager.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: AbstractSoftwareBiometricManager.AuthenticationResult?) =
-                    deliver(if (result != null) SupplementalBiometricOutcome.MATCHED else SupplementalBiometricOutcome.UNAVAILABLE)
-                override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) = deliver(
-                    if (errMsgId == AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_NOT_MATCHED)
-                        SupplementalBiometricOutcome.NOT_MATCHED else SupplementalBiometricOutcome.UNAVAILABLE)
-                override fun onAuthenticationCancelled() = deliver(SupplementalBiometricOutcome.UNAVAILABLE)
-            }, Handler(Looper.getMainLooper()), extras)
-        } catch (_: Exception) {
-            signal.cancel()
-            deliver(SupplementalBiometricOutcome.UNAVAILABLE)
-        } finally {
-            // Manager parses synchronously into its own value objects. Do not retain raw extras in core/Builder.
-            extras.clear()
-            points.fill(0f)
-        }
+        dispatchBackground(Runnable {
+            if (closed.get()) return@Runnable
+            val stride = 6
+            val points = FloatArray(sample.strokePoints.size * stride)
+            sample.strokePoints.forEachIndexed { index, point ->
+                val offset = index * stride
+                points[offset] = point.x
+                points[offset + 1] = point.y
+                points[offset + 2] = point.timestampMs.toFloat()
+                points[offset + 3] = point.pressure ?: -1f
+                points[offset + 4] = point.size ?: -1f
+                points[offset + 5] = point.strokeId.toFloat()
+            }
+            val extras = Bundle().apply {
+                putString(BehaviorSample.EXTRA_BEHAVIOR_MODE, "SIGNATURE")
+                putFloatArray(BehaviorSample.EXTRA_BEHAVIOR_POINTS, points)
+                putInt(BehaviorSample.EXTRA_BEHAVIOR_POINTS_STRIDE, stride)
+            }
+            try {
+                if (closed.get()) return@Runnable
+                manager.authenticate(null, 0, signal, object : AbstractSoftwareBiometricManager.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: AbstractSoftwareBiometricManager.AuthenticationResult?) =
+                        deliver(if (result != null) SupplementalBiometricOutcome.MATCHED else SupplementalBiometricOutcome.UNAVAILABLE)
+                    override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) = deliver(
+                        if (errMsgId == AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_NOT_MATCHED)
+                            SupplementalBiometricOutcome.NOT_MATCHED else SupplementalBiometricOutcome.UNAVAILABLE)
+                    override fun onAuthenticationCancelled() = deliver(SupplementalBiometricOutcome.UNAVAILABLE)
+                }, Handler(Looper.getMainLooper()), extras)
+            } catch (_: Exception) {
+                signal.cancel()
+                ExecutorHelper.post { deliver(SupplementalBiometricOutcome.UNAVAILABLE) }
+            } finally {
+                // Manager parses synchronously into its own value objects. Do not retain raw extras in core/Builder.
+                extras.clear()
+                points.fill(0f)
+            }
+        })
         return AutoCloseable { if (closed.compareAndSet(false, true)) signal.cancel() }
     }
 }

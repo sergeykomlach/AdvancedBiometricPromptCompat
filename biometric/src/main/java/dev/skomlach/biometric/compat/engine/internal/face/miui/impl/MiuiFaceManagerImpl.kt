@@ -19,6 +19,8 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.miui.impl
 
+import dev.skomlach.biometric.compat.custom.newSoftwareBiometricWorker
+
 import android.content.Context
 import android.database.ContentObserver
 import android.graphics.Rect
@@ -170,6 +172,8 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
     private val mBinderLock = Any()
     private val mToken: IBinder = Binder()
     private val authenticationCallbacks = MiuiAuthenticationCallbacks()
+    private val authenticationWorker = newSoftwareBiometricWorker("MiuiFaceAuthentication")
+    private var runningAuthentication: MiuiAuthenticationCallbacks.Attempt? = null
     private var mEnrollmentCallback: IMiuiFaceManager.EnrollmentCallback? = null
     private val mFaceUnlockModel = 0
     private lateinit var mHandler: Handler
@@ -438,9 +442,16 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
             return res
         }
 
-    @Synchronized
     private fun cancelAuthentication(attempt: MiuiAuthenticationCallbacks.Attempt) {
         if (!attempt.cancel()) return
+        authenticationWorker.execute {
+            if (runningAuthentication === attempt) cancelRunningAuthentication()
+        }
+    }
+
+    private fun cancelRunningAuthentication() {
+        if (runningAuthentication == null) return
+        runningAuthentication = null
         if (DEBUG) {
             d(TAG, "cancelAuthentication ")
         }
@@ -531,35 +542,28 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
             }
             val receiver = authenticationReceiver(attempt)
             cancel?.setOnCancelListener(OnAuthenticationCancelListener(attempt))
-            if (!attempt.isActive) return
-            mEnrollmentCallback = null
-            try {
-                initService()
-                if (mMiuiFaceService != null) {
-                    binderCallAuthenticate(
-                        mMiuiFaceService,
-                        mToken,
-                        -1,
-                        -1,
-                        receiver,
-                        flags,
-                        context.packageName,
-                        timeout
-                    )
-                } else {
-                    d(
-                        TAG,
-                        "mMiuiFaceService is null"
-                    )
+            authenticationWorker.execute {
+                if (!attempt.isActive) return@execute
+                cancelRunningAuthentication()
+                if (!attempt.isActive) return@execute
+                mEnrollmentCallback = null
+                try {
+                    initService()
+                    if (!attempt.isActive) return@execute
+                    if (mMiuiFaceService != null) {
+                        runningAuthentication = attempt
+                        binderCallAuthenticate(
+                            mMiuiFaceService, mToken, -1, -1, receiver, flags, context.packageName, timeout
+                        )
+                    } else {
+                        d(TAG, "mMiuiFaceService is null")
+                        attempt.error(2100, getMessageInfo(2100))
+                    }
+                } catch (e: Exception) {
+                    runningAuthentication = null
+                    e(TAG, "Remote exception while authenticating: ", e)
                     attempt.error(2100, getMessageInfo(2100))
                 }
-            } catch (e: Exception) {
-                e(
-                    TAG,
-                    "Remote exception while authenticating: ",
-                    e
-                )
-                attempt.error(2100, getMessageInfo(2100))
             }
             return
         }
@@ -841,6 +845,10 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
     }
 
     override fun preInitAuthen() {
+        authenticationWorker.execute { preInitAuthentication() }
+    }
+
+    private fun preInitAuthentication() {
         try {
             initService()
             if (mMiuiFaceService != null) {

@@ -46,7 +46,7 @@ class BehaviorSignalClientTest {
     @Test fun temporaryRawPayloadIsClearedAfterSynchronousProviderParsing() {
         val sdk = Sdk()
         val results = mutableListOf<SupplementalBiometricOutcome>()
-        BehaviorSignalClient(RuntimeEnvironment.getApplication(), sdk).evaluate(sample, results::add).use {
+        BehaviorSignalClient(RuntimeEnvironment.getApplication(), sdk, Runnable::run).evaluate(sample, results::add).use {
             assertEquals(sample, sdk.parsed)
             assertTrue(sdk.received!!.isEmpty)
             assertTrue(sdk.rawPoints!!.all { point -> point == 0f })
@@ -59,7 +59,7 @@ class BehaviorSignalClientTest {
     @Test fun providerErrorsAreOnlySignalsAndCallbacksAfterCloseAreIgnored() {
         val sdk = Sdk()
         val results = mutableListOf<SupplementalBiometricOutcome>()
-        val source = BehaviorSignalClient(RuntimeEnvironment.getApplication(), sdk)
+        val source = BehaviorSignalClient(RuntimeEnvironment.getApplication(), sdk, Runnable::run)
         val handle = source.evaluate(sample, results::add)
         sdk.callback.onAuthenticationError(AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_NOT_MATCHED, "mismatch")
         assertEquals(listOf(SupplementalBiometricOutcome.NOT_MATCHED), results)
@@ -73,9 +73,24 @@ class BehaviorSignalClientTest {
     @Test fun nullProviderSuccessIsUnavailableRatherThanAMatch() {
         val sdk = Sdk()
         val results = mutableListOf<SupplementalBiometricOutcome>()
-        BehaviorSignalClient(RuntimeEnvironment.getApplication(), sdk).evaluate(sample, results::add).use {
+        BehaviorSignalClient(RuntimeEnvironment.getApplication(), sdk, Runnable::run).evaluate(sample, results::add).use {
             sdk.callback.onAuthenticationSucceeded(null)
             assertEquals(listOf(SupplementalBiometricOutcome.UNAVAILABLE), results)
         }
+    }
+
+    @Test fun closingBeforeDispatchSkipsProviderAndPreservesTheNextAttempt() {
+        val sdk = Sdk()
+        val results = mutableListOf<SupplementalBiometricOutcome>()
+        val queued = ArrayDeque<Runnable>()
+        val source = BehaviorSignalClient(RuntimeEnvironment.getApplication(), sdk, queued::addLast)
+        source.evaluate(sample, results::add).close()
+        val active = source.evaluate(sample, results::add)
+        queued.removeFirst().run()
+        assertNull(sdk.received)
+        queued.removeFirst().run()
+        sdk.callback.onAuthenticationSucceeded(AbstractSoftwareBiometricManager.AuthenticationResult(null))
+        assertEquals(listOf(SupplementalBiometricOutcome.MATCHED), results)
+        active.close()
     }
 }

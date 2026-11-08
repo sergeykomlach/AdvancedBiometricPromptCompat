@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.pm.FeatureInfo
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.SystemClock
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
@@ -49,10 +50,11 @@ import dev.skomlach.common.device.hasVoiceID
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
 import java.security.InvalidKeyException
 import java.security.KeyStore
 import java.text.Normalizer
@@ -60,6 +62,7 @@ import java.util.Locale
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import kotlin.concurrent.withLock
 
 internal fun shouldTrustSystemFaceHardwareSignal(
     model: String?,
@@ -81,36 +84,36 @@ internal fun shouldTrustSystemFaceHardwareSignal(
 class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     AbstractHardware(authRequest) {
     companion object {
-        private var canAuthenticatePair =
-            Pair<Long, Int>(0, BiometricManager.BIOMETRIC_STATUS_UNKNOWN)
+        @Volatile
+        private var canAuthenticatePair: Pair<Long, Int>? = null
     }
 
     private val modalityCache =
-        HashMap<BiometricType, Pair<Long, BiometricModalityDetector.Result>>()
+        ConcurrentHashMap<BiometricType, Pair<Long, BiometricModalityDetector.Result>>()
 
     private fun modalityResult(type: BiometricType): BiometricModalityDetector.Result {
-        val now = System.currentTimeMillis()
+        val now = SystemClock.elapsedRealtime()
         val cached = modalityCache[type]
         if (cached != null && now - cached.first < 1500L) {
             return cached.second
         }
         return BiometricModalityDetector.detect(appContext, type).also {
-            modalityCache[type] = now to it
+            modalityCache[type] = SystemClock.elapsedRealtime() to it
             BiometricLoggerImpl.d("modalityResult[$type]=$it")
         }
     }
 
     private val canAuthenticate: Int
         get() {
+            val cached = canAuthenticatePair
+            if (cached != null && SystemClock.elapsedRealtime() - cached.first < 1000L) return cached.second
             try {
-                return if (System.currentTimeMillis() - canAuthenticatePair.first >= 1000L)
-                    getStatusCode().also {
-                        canAuthenticatePair = Pair(System.currentTimeMillis(), it)
-                    }
-                else canAuthenticatePair.second
+                return getStatusCode().also {
+                    canAuthenticatePair = SystemClock.elapsedRealtime() to it
+                }
             } catch (e: Throwable) {
                 e(e, "BiometricPromptHardware - canAuthenticate")
-                return canAuthenticatePair.second
+                return canAuthenticatePair?.second ?: BiometricManager.BIOMETRIC_STATUS_UNKNOWN
             }
         }
 
@@ -394,38 +397,26 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
     override
     fun updateBiometricEnrollChanged() {
-        try {
-            if (isBiometricEnrollChanged) {
-                try {
-                    EnrollCheckHelper.keyStore.load(null)
-                    if (EnrollCheckHelper.keyStore.containsAlias(EnrollCheckHelper.KEY_NAME))
-                        EnrollCheckHelper.keyStore.deleteEntry(EnrollCheckHelper.KEY_NAME)
-                } finally {
-                    SharedPreferenceProvider.getPreferences("BiometricPromptHardware").edit()
-                        .clear().apply()
-                }
-            }
-        } catch (e: Throwable) {
-            e(e)
-        }
-
+        EnrollCheckHelper.acknowledge()
     }
 
     private object EnrollCheckHelper {
         const val KEY_NAME = "BiometricEnrollChanged.test-v2"
         private const val KEYSTORE_BIOMETRIC_UNAVAILABLE_RETRY_MS = 5 * 60 * 1000L
-        private val mutex = Mutex()
-        val keyStore: KeyStore by lazy {
+        private val lock = ReentrantLock()
+        private val probePending = AtomicBoolean(false)
+        private val keyStore: KeyStore by lazy {
             KeyStore.getInstance("AndroidKeyStore")
         }
-        private var job: Job? = null
         private var keyStoreBiometricUnavailableUntil = 0L
 
         init {
             ExecutorHelper.scope.launch {
                 try {
-                    keyStore.load(null)
-                    keyStore.deleteEntry("BiometricEnrollChanged.test")
+                    lock.withLock {
+                        keyStore.load(null)
+                        keyStore.deleteEntry("BiometricEnrollChanged.test")
+                    }
                 } catch (_: Throwable) {
                 }
                 withContext(Dispatchers.Main) {
@@ -437,18 +428,36 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         }
 
         fun updateState() {
-            if (job?.isActive == true) return
-            job?.cancel()
-            job = ExecutorHelper.scope.launch {
+            if (!probePending.compareAndSet(false, true)) return
+            ExecutorHelper.startOnBackground {
                 try {
-                    val changed = isChanged()
-                    SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                        .edit {
-                            putBoolean("isBiometricEnrollChanged", changed)
-                        }
+                    lock.withLock {
+                        val changed = isChanged() ?: return@withLock
+                        SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                            .edit { putBoolean("isBiometricEnrollChanged", changed) }
+                    }
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)
+                } finally {
+                    probePending.set(false)
                 }
+            }
+        }
+
+        fun acknowledge() {
+            try {
+                val prefs = SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                if (!prefs.getBoolean("isBiometricEnrollChanged", false)) return
+                lock.withLock {
+                    if (prefs.getBoolean("isBiometricEnrollChanged", false)) {
+                        keyStore.load(null)
+                        if (keyStore.containsAlias(KEY_NAME)) keyStore.deleteEntry(KEY_NAME)
+                        prefs.edit { clear() }
+                        keyStoreBiometricUnavailableUntil = 0L
+                    }
+                }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
         }
 
@@ -525,70 +534,44 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                     msg.contains("must be enrolled to create keys", ignoreCase = true)
         }
 
-        fun isChanged(): Boolean {
-            if (System.currentTimeMillis() < keyStoreBiometricUnavailableUntil) return false
-            if (!mutex.tryLock()) return false
-            try {
-                val prefs = SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-
-                repeat(2) { attempt ->
-                    try {
-                        val cipher = getCipher()
-                        val secretKey = getOrCreateFreshKey(forceRecreate = attempt > 0)
-
-                        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-
-                        prefs.edit {
-                            putBoolean("isBiometricConfirmed", true)
-                        }
-                        return false
-                    } catch (e: KeyPermanentlyInvalidatedException) {
-                        BiometricLoggerImpl.e(e)
-                        return true
-                    } catch (e: InvalidKeyException) {
-                        BiometricLoggerImpl.e(e)
-
-                        if (isRecoverableKeyFailure(e) && attempt == 0) {
-                            deleteSecretKey()
-                            return@repeat
-                        }
-                        return false
-                    } catch (e: Throwable) {
-                        if (e.message?.contains(
-                                "User changed or deleted their auth credentials",
-                                ignoreCase = true
-                            ) == true
-                        ) {
-                            return true
-                        }
-
-                        if (isNoKeystoreBiometricEnrollment(e)) {
-                            keyStoreBiometricUnavailableUntil =
-                                System.currentTimeMillis() + KEYSTORE_BIOMETRIC_UNAVAILABLE_RETRY_MS
-                            BiometricLoggerImpl.d(
-                                "BiometricPromptHardware.EnrollCheckHelper: AndroidKeyStore has no biometric enrollment usable for auth-per-use keys"
-                            )
-                            return prefs.getBoolean("isBiometricConfirmed", false)
-                        }
-
-                        BiometricLoggerImpl.e(e)
-
-                        if (isRecoverableKeyFailure(e) && attempt == 0) {
-                            deleteSecretKey()
-                            return@repeat
-                        }
-
-                        return false
-                    }
-                }
-
-                return false
-            } finally {
+        private fun isChanged(): Boolean? {
+            if (SystemClock.elapsedRealtime() < keyStoreBiometricUnavailableUntil) return null
+            val prefs = SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+            repeat(2) { attempt ->
                 try {
-                    if (mutex.isLocked) mutex.unlock()
-                } catch (_: Throwable) {
+                    val cipher = getCipher()
+                    val secretKey = getOrCreateFreshKey(forceRecreate = attempt > 0)
+                    cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+                    prefs.edit { putBoolean("isBiometricConfirmed", true) }
+                    return false
+                } catch (e: KeyPermanentlyInvalidatedException) {
+                    BiometricLoggerImpl.e(e)
+                    return true
+                } catch (e: Throwable) {
+                    if (e.message?.contains(
+                            "User changed or deleted their auth credentials",
+                            ignoreCase = true
+                        ) == true
+                    ) {
+                        return true
+                    }
+                    if (isNoKeystoreBiometricEnrollment(e)) {
+                        keyStoreBiometricUnavailableUntil =
+                            SystemClock.elapsedRealtime() + KEYSTORE_BIOMETRIC_UNAVAILABLE_RETRY_MS
+                        BiometricLoggerImpl.d(
+                            "BiometricPromptHardware.EnrollCheckHelper: AndroidKeyStore has no biometric enrollment usable for auth-per-use keys"
+                        )
+                        return prefs.getBoolean("isBiometricConfirmed", false)
+                    }
+                    BiometricLoggerImpl.e(e)
+                    if (isRecoverableKeyFailure(e) && attempt == 0) {
+                        deleteSecretKey()
+                        return@repeat
+                    }
+                    return null
                 }
             }
+            return null
         }
     }
 

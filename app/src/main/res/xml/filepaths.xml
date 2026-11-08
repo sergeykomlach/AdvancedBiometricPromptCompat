@@ -1,5 +1,5 @@
 <paths>
-    <files-path
+    <cache-path
             name="zipfiles"
             path="zipfiles/" />
 </paths>

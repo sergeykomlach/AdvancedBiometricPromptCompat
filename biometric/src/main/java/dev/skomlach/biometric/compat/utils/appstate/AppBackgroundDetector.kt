@@ -44,6 +44,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
         }
     }
     private val pendingFragmentDismiss = PendingAuthStart(ExecutorHelper::postDelayed, ExecutorHelper::removeCallbacks)
+    private var fragmentDismissPaused = false
     private val pendingLifecycleDismiss = PendingAuthStart(ExecutorHelper::postDelayed, ExecutorHelper::removeCallbacks)
     private val homeWatcher = HomeWatcher(object : HomeWatcher.OnHomePressedListener {
         override fun onHomePressed() {
@@ -102,6 +103,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
                 )
                 atomicBoolean.decrementAndGet()
                 pendingFragmentDismiss.cancel()
+                if (fragmentDismissPaused) return
                 val delay =
                     impl.builder.getContext().resources.getInteger(android.R.integer.config_longAnimTime)
                         .toLong()
@@ -162,8 +164,22 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
         stopWatcher = homeWatcher.startWatch()
     }
 
+    internal fun cancelPendingFragmentDismiss() {
+        pendingFragmentDismiss.cancel()
+    }
+
+    internal fun pauseFragmentDismiss() {
+        fragmentDismissPaused = true
+        cancelPendingFragmentDismiss()
+    }
+
+    internal fun resumeFragmentDismiss() {
+        fragmentDismissPaused = false
+    }
+
     fun detachListeners() {
         pendingHostDismiss.cancel()
+        fragmentDismissPaused = false
         pendingFragmentDismiss.cancel()
         pendingLifecycleDismiss.cancel()
         fragmentLifecycleCallbacks.reset()

@@ -61,7 +61,9 @@ object BlurUtil {
     }
 
     /** Owns scratch allocations and pending captures for one showing of an overlay. */
-    class BlurSession : AutoCloseable {
+    class BlurSession @androidx.annotation.RestrictTo(androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP)
+    constructor(private val maxCaptureSide: Int) : AutoCloseable {
+        constructor() : this(Int.MAX_VALUE)
         private var workspace: FastBlur.Workspace? = null
         private val requests = mutableSetOf<Capture>()
         private var closed = false
@@ -92,7 +94,8 @@ object BlurUtil {
                 if (source == null || callback.get() == null) {
                     finish()
                 } else {
-                    val original = fallbackViewCapture(source)
+                    val original = if (maxCaptureSide == Int.MAX_VALUE) fallbackViewCapture(source)
+                        else captureScaledView(source, maxCaptureSide)
                     if (original == null) finish()
                     else if (!blur || Utils.isAtLeastS) publish(original, null)
                     else {
@@ -149,6 +152,29 @@ object BlurUtil {
             }
             // Native cleanup can wait for an in-flight blur, never on the UI thread.
             if (releasedWorkspace != null) ExecutorHelper.startOnBackground { releasedWorkspace.close() }
+        }
+    }
+
+    private fun captureScaledView(view: View, maxSide: Int): Bitmap? {
+        val width = view.width
+        val height = view.height
+        if (width <= 0 || height <= 0 || maxSide <= 0) return null
+        val scale = minOf(1f, maxSide.toFloat() / maxOf(width, height))
+        var bitmap: Bitmap? = null
+        return try {
+            val target = Bitmap.createBitmap(
+                (width * scale).toInt().coerceAtLeast(1),
+                (height * scale).toInt().coerceAtLeast(1),
+                Bitmap.Config.ARGB_8888
+            ).also { bitmap = it }
+            val canvas = Canvas(target)
+            canvas.scale(target.width.toFloat() / width, target.height.toFloat() / height)
+            view.draw(canvas)
+            target
+        } catch (error: Throwable) {
+            bitmap?.recycle()
+            LogCat.logException(error)
+            null
         }
     }
 

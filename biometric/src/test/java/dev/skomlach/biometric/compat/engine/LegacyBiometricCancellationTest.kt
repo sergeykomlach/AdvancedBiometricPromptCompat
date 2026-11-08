@@ -29,10 +29,10 @@ class LegacyBiometricCancellationTest {
         val face = RecordingModule(BiometricMethod.FACE_MIUI.id)
         val iris = RecordingModule(BiometricMethod.IRIS_SAMSUNG.id)
         val owner = Any()
-        fun join(type: BiometricType) = LegacyBiometric.authenticateInSession(
+        fun join(type: BiometricType) = LegacyBiometric.authenticateOffMain(
             owner, null, null, listOf(type), NoOpLegacyListener, null,
-            BiometricProviderType.COMBINED, emptySet(), false
-        )
+            BiometricProviderType.COMBINED, emptySet(), false, Runnable::run, Runnable::run
+        ) { true }
         try {
             BiometricLoggerImpl.DEBUG = false
             LegacyBiometric.cancelAuthentication()

@@ -38,6 +38,9 @@ import java.net.URLEncoder
 import java.security.SecureRandom
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
+import android.os.Looper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 object LocalizationHelper {
     val agents = arrayOf(
@@ -62,6 +65,8 @@ object LocalizationHelper {
 
     private val diskTranslationsCache =
         ConcurrentHashMap<String, MutableMap<String, String>>()
+    private val pendingDiskLoads = java.util.Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
+    private val translationDispatcher = Dispatchers.IO.limitedParallelism(2)
 
     private val translationMemoryCache = ConcurrentHashMap<String, String>()
 
@@ -295,7 +300,7 @@ object LocalizationHelper {
         toLang: Locale,
         listener: TranslateResult? = null
     ) {
-        ExecutorHelper.startOnBackground {
+        ExecutorHelper.scope.launch(translationDispatcher) {
             ensureLocaleState()
             val str = read(fromLang, toLang, text) ?: translate(text, fromLang, toLang).also {
                 if (it.isNotEmpty() && it != text) {
@@ -321,7 +326,18 @@ object LocalizationHelper {
         }
 
         val pairKey = translationPairKey(fromLang, toLang)
-        val translations = getOrLoadTranslationsMap(pairKey)
+        val translations = diskTranslationsCache[pairKey] ?: if (Looper.myLooper() == Looper.getMainLooper()) {
+            if (pendingDiskLoads.add(pairKey)) {
+                ExecutorHelper.scope.launch(translationDispatcher) {
+                    try {
+                        getOrLoadTranslationsMap(pairKey)
+                    } finally {
+                        pendingDiskLoads.remove(pairKey)
+                    }
+                }
+            }
+            return null
+        } else getOrLoadTranslationsMap(pairKey)
 
         val value = translations[text]?.trim()?.ifEmpty { null }
         translationMemoryCache[memKey] = value ?: return null
@@ -333,7 +349,7 @@ object LocalizationHelper {
             val pref = SharedPreferenceProvider.getPreferences(PREF_NAME)
             val set = pref.getStringSet(pairKey, emptySet()).orEmpty()
 
-            val result = HashMap<String, String>(set.size * 2)
+            val result = ConcurrentHashMap<String, String>(set.size * 2)
             for (item in set) {
                 try {
                     val json = JSONObject(item)

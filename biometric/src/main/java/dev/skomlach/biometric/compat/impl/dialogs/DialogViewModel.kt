@@ -25,11 +25,7 @@ import dev.skomlach.common.misc.SingleLiveEvent
 
 class DialogViewModel : ViewModel() {
     private val mutableLiveData = SingleLiveEvent<Boolean>()
-    val listener: LiveData<Boolean>
-        get() {
-            mutableLiveData.value = false
-            return mutableLiveData
-        }
+    val listener: LiveData<Boolean> = mutableLiveData
 
     fun dismissDialog() {
         mutableLiveData.postValue(true)

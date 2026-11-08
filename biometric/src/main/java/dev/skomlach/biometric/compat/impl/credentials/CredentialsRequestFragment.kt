@@ -26,10 +26,14 @@ import android.content.Context.KEYGUARD_SERVICE
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.common.permissionui.OwnedResultFragment
+import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.translate.LocalizationHelper
+import java.lang.ref.WeakReference
 
 class CredentialsRequestFragment : OwnedResultFragment<Boolean>() {
     companion object {
@@ -41,7 +45,26 @@ class CredentialsRequestFragment : OwnedResultFragment<Boolean>() {
             description: CharSequence?,
             validator: (Boolean) -> Unit?
         ) {
-            launchOwned(activity, title, description) { validator(it) }
+            val host = WeakReference(activity)
+            launchOwned(activity, title, description) { confirmed ->
+                if (!confirmed) {
+                    validator(false)
+                } else {
+                    ExecutorHelper.startOnBackground {
+                        try {
+                            BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                        } catch (e: Exception) {
+                            LogCat.logException(e, TAG)
+                        } finally {
+                            ExecutorHelper.post {
+                                val owner = host.get()
+                                validator(owner != null && !owner.isFinishing && !owner.isDestroyed &&
+                                    owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED))
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         internal fun launchOwned(
@@ -56,10 +79,7 @@ class CredentialsRequestFragment : OwnedResultFragment<Boolean>() {
                     putCharSequence("description", description)
                 }
             }
-            return launchOwnedResult(activity, fragment, TAG) { result ->
-                if (result == true) BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-                validator(result == true)
-            }
+            return launchOwnedResult(activity, fragment, TAG) { result -> validator(result == true) }
         }
     }
 

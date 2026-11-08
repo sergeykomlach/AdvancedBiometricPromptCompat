@@ -26,10 +26,8 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.network.LibraryNetworkPolicy
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
-import java.util.Collections
 import java.util.Date
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 
 
 object DeviceInfoManager {
@@ -39,65 +37,56 @@ object DeviceInfoManager {
     const val OUTDATE_TIME_CACHE_DAYS = 7L
     const val OUTDATE_TIME_DAYS_FILES = OUTDATE_TIME_DAYS - OUTDATE_TIME_CACHE_DAYS
 
-    private var running = AtomicBoolean(false)
-
-    private val listeners =
-        Collections.synchronizedList<OnDeviceInfoListener?>(mutableListOf<OnDeviceInfoListener?>())
-
-//    init {
-//        getPreferences(PREF_NAME).apply {
-//            edit().clear().commit()
-//        }
-//    }
+    private var running = false
+    private val listeners = mutableListOf<OnDeviceInfoListener>()
 
     fun getDeviceInfo(listener: OnDeviceInfoListener?) {
         synchronized(listeners) {
-            listeners.add(listener)
-            if (running.getAndSet(true)) {
-                return
-            }
-        }
-        running.set(true)
-        listeners.add(listener)
-        checkCache()
-        cachedDeviceInfo?.let { deviceInfo ->
-            ExecutorHelper.post {
-                synchronized(listeners) {
-                    val list = listeners.toMutableList()
-                    listeners.clear()
-                    list.forEach {
-                        it?.onReady(deviceInfo)
-                    }
-                    running.set(false)
-                }
-
-            }
-            return
+            listener?.let { listeners.add(it) }
+            if (running) return
+            running = true
         }
         ExecutorHelper.startOnBackground {
+            var deviceInfo: DeviceInfo? = null
             try {
-                val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind }.getOrNull()
-                val deviceInfo = getCurrentDeviceInfo(emulatorKind).also {
-                    setCachedDeviceInfo(it)
+                try {
+                    checkCache()
+                } catch (e: Exception) {
+                    LogCat.logException(e, "DeviceInfoManager cache refresh")
                 }
-                notifyListeners(deviceInfo)
+                val cached = try {
+                    cachedDeviceInfo
+                } catch (e: Exception) {
+                    LogCat.logException(e, "DeviceInfoManager cached device")
+                    null
+                }
+                deviceInfo = cached ?: getCurrentDeviceInfo(
+                    runCatching { detectEmulatorKind }.getOrNull()
+                ).also(::setCachedDeviceInfo)
             } catch (e: Exception) {
-
-                running.set(false)
+                LogCat.logException(e, "DeviceInfoManager")
+            } finally {
+                notifyListeners(deviceInfo)
             }
         }
     }
 
-    private fun notifyListeners(deviceInfo: DeviceInfo) {
+    private fun notifyListeners(deviceInfo: DeviceInfo?) {
         ExecutorHelper.post {
             val listToNotify = synchronized(listeners) {
                 val copy = listeners.toList()
                 listeners.clear()
-                running.set(false)
+                running = false
                 copy
             }
 
-            listToNotify.forEach { l -> l.onReady(deviceInfo) }
+            listToNotify.forEach { listener ->
+                try {
+                    listener.onReady(deviceInfo)
+                } catch (e: Exception) {
+                    LogCat.logException(e, "DeviceInfoManager listener")
+                }
+            }
         }
     }
 
@@ -152,9 +141,6 @@ object DeviceInfoManager {
         }
 
     private fun getCurrentDeviceInfo(emulatorKind: EmulatorKind?): DeviceInfo {
-        cachedDeviceInfo?.let {
-            return it
-        }
         var ts = System.currentTimeMillis()
         val deviceModel = DeviceModelManager.getDeviceModel()
         LogCat.log("DeviceInfoManager: ts=${System.currentTimeMillis() - ts}; deviceModel=$deviceModel")

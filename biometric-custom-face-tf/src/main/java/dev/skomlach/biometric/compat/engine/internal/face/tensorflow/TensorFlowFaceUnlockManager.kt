@@ -24,6 +24,7 @@ import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkSession
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkScope
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkerCallback
 import dev.skomlach.biometric.compat.custom.newSoftwareBiometricWorker
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.CaptureContinuityProvider
@@ -81,6 +82,7 @@ class TensorFlowFaceUnlockManager(
         private var config: TensorFlowFaceConfig = TensorFlowFaceConfig()
 
         private val worker = newSoftwareBiometricWorker("FaceUnlockWorker")
+        private val workScope = SoftwareBiometricWorkScope(nonBlockingCancellation = true)
         private val sessionOwner = FaceSessionOwner()
 
         private val configurationObserverRegistered = AtomicBoolean(false)
@@ -469,23 +471,22 @@ class TensorFlowFaceUnlockManager(
     }
     override fun getManagers(): Set<Any> = emptySet()
 
-    @Synchronized
     override fun remove(extra: Bundle?) {
-        sessionOwner.revoke {
-            detector?.delete(extra?.getString(ENROLLMENT_TAG_KEY))
-        }
+        sessionOwner.revoke {}
+        workScope.revoke { detector?.delete(extra?.getString(ENROLLMENT_TAG_KEY)) }
     }
 
     override fun getEnrollBundle(name: String?): Bundle {
-        val registeredTemplates = countRegisteredTemplates(
-            getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
-                .getString(REGISTERED_TEMPLATES_PREF_KEY, null)
-        )
+        val tag = sanitizeEnrollmentTag(name) ?: run {
+            val count = countRegisteredTemplates(getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
+                .getString(REGISTERED_TEMPLATES_PREF_KEY, null))
+            "face${count + 1}"
+        }
         return Bundle().apply {
             putBoolean(IS_ENROLLMENT_KEY, true)
             putString(
                 ENROLLMENT_TAG_KEY,
-                sanitizeEnrollmentTag(name) ?: "face${registeredTemplates + 1}"
+                tag
             )
         }
     }
@@ -507,7 +508,7 @@ class TensorFlowFaceUnlockManager(
         handler: Handler?,
         extra: Bundle?
     ) {
-        val operation = SoftwareBiometricWorkSession().also { pendingOperation = it }
+        val operation = workScope.newSession().also { pendingOperation = it }
         val session = FaceCaptureSession(operation)
         val resultHandler = handler ?: Handler(Looper.getMainLooper())
         val workerCallback = SoftwareBiometricWorkerCallback(operation, resultHandler, callback) {

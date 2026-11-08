@@ -74,8 +74,8 @@ class WindowForegroundBlurring(
     private val paletteResults = BackdropPaletteResults()
     private var hasBackdropColor = false
 
-    @Volatile
-    private var isBlurViewAttachedToHost = false
+    @Volatile private var isBlurViewAttachedToHost = false
+    @Volatile private var iconStatusGeneration = 0L
     private var biometricsLayout: View? = null
     private var feedbackView: ForegroundFeedbackView? = null
     private var defaultColor = Color.TRANSPARENT
@@ -321,7 +321,7 @@ class WindowForegroundBlurring(
     fun setupListeners() {
         if (isBlurViewAttachedToHost) return
         isBlurViewAttachedToHost = true
-        blurSession = BlurUtil.BlurSession()
+        blurSession = BlurUtil.BlurSession(768)
         iconViews.values.forEach { it.tag = IconStates.WAITING }
         try {
             v?.apply {
@@ -348,6 +348,7 @@ class WindowForegroundBlurring(
 
     fun resetListeners() {
         isBlurViewAttachedToHost = false
+        iconStatusGeneration++
         feedbackView?.stop()
         blurCaptureLatch.reset()
         captureRequested = false
@@ -397,7 +398,19 @@ class WindowForegroundBlurring(
 
     private fun updateBiometricIconsLayout() {
         if (!isBlurViewAttachedToHost) return
-        val visibleTypes = biometricTypesList.toSet()
+        val generation = ++iconStatusGeneration
+        ExecutorHelper.startOnBackground {
+            if (iconStatusGeneration != generation) return@startOnBackground
+            val visibleTypes = biometricTypesList.toSet()
+            ExecutorHelper.post {
+                if (isBlurViewAttachedToHost && iconStatusGeneration == generation) {
+                    applyVisibleBiometricIcons(visibleTypes)
+                }
+            }
+        }
+    }
+
+    private fun applyVisibleBiometricIcons(visibleTypes: Set<BiometricType>) {
         biometricsLayout?.visibility = if (visibleTypes.isEmpty()) View.GONE else View.VISIBLE
         iconViews.forEach { (type, icon) ->
             icon.visibility = if (type in visibleTypes) View.VISIBLE else View.GONE
@@ -419,13 +432,19 @@ class WindowForegroundBlurring(
                 if (!bm.isRecycled) bm.recycle()
                 return
             }
+            val source = contentView ?: run {
+                bm.recycle()
+                return
+            }
+            val scaleX = bm.width.toFloat() / source.width.coerceAtLeast(1)
+            val scaleY = bm.height.toFloat() / source.height.coerceAtLeast(1)
             val crop = resolveBitmapCropBounds(
-                targetScreenLeft = biometricsRect.left,
-                targetScreenTop = biometricsRect.top,
-                targetWidth = biometricsRect.width(),
-                targetHeight = biometricsRect.height(),
-                bitmapHostScreenLeft = contentRect.left,
-                bitmapHostScreenTop = contentRect.top,
+                targetScreenLeft = ((biometricsRect.left - contentRect.left) * scaleX).toInt(),
+                targetScreenTop = ((biometricsRect.top - contentRect.top) * scaleY).toInt(),
+                targetWidth = (biometricsRect.width() * scaleX).toInt().coerceAtLeast(1),
+                targetHeight = (biometricsRect.height() * scaleY).toInt().coerceAtLeast(1),
+                bitmapHostScreenLeft = 0,
+                bitmapHostScreenTop = 0,
                 bitmapWidth = bm.width,
                 bitmapHeight = bm.height
             ) ?: run {

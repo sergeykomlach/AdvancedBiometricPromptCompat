@@ -266,39 +266,53 @@ internal fun dispatchAfterFlowFinished(
     return true
 }
 
-internal class AuthFlowRouteCache<K, V> {
+internal class AuthFlowRouteCache<K, V>(private val serializeCalculation: Boolean = true) {
     private val values = HashMap<K, V>()
     private var activeFlowId: Long? = null
+    private var revision = 0L
 
     @Synchronized
     fun beginFlow(flowId: Long) {
         activeFlowId = flowId
-        values.clear()
+        invalidate()
     }
 
     @Synchronized
     fun endFlow(flowId: Long) {
         if (activeFlowId == flowId) {
             activeFlowId = null
-            values.clear()
+            invalidate()
         }
     }
 
     @Synchronized
     fun invalidate() {
+        revision++
         values.clear()
     }
 
-    @Synchronized
     fun getOrPut(key: K, calculate: () -> V): V {
-        if (activeFlowId == null) {
-            return calculate()
+        if (serializeCalculation) {
+            return synchronized(this) {
+                when {
+                    activeFlowId == null -> calculate()
+                    values.containsKey(key) -> values.getValue(key)
+                    else -> calculate().also { values[key] = it }
+                }
+            }
         }
-        if (values.containsKey(key)) {
-            @Suppress("UNCHECKED_CAST")
-            return values[key] as V
+        val preparedRevision = synchronized(this) {
+            if (values.containsKey(key)) return values.getValue(key)
+            revision.takeIf { activeFlowId != null }
         }
-        return calculate().also { values[key] = it }
+        val prepared = calculate()
+        return synchronized(this) {
+            when {
+                revision != preparedRevision -> prepared
+                values.containsKey(key) -> values.getValue(key)
+                else -> prepared.also { values[key] = it }
+            }
+        }
     }
 }
 
@@ -312,6 +326,22 @@ internal fun isAuthFlowActive(
     canceled: Boolean
 ): Boolean {
     return expectedGeneration == currentGeneration && inProgress && !canceled
+}
+
+internal fun <T> readOwnedAuthStatus(
+    dispatchBackground: (Runnable) -> Unit,
+    dispatchMain: (Runnable) -> Unit,
+    ownsFlow: () -> Boolean,
+    read: () -> T,
+    deliver: (Result<T>) -> Unit
+) {
+    dispatchBackground(Runnable {
+        if (!ownsFlow()) return@Runnable
+        val result = runCatching(read)
+        dispatchMain(Runnable {
+            if (ownsFlow()) deliver(result)
+        })
+    })
 }
 
 /**

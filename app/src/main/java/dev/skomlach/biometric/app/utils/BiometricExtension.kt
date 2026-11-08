@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.app.utils
 
 import android.content.Context
+import android.widget.CheckBox
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -40,13 +41,28 @@ import dev.skomlach.biometric.compat.crypto.CryptographyManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.getFixedContext
-import java.nio.charset.Charset
+import dev.skomlach.common.storage.SharedPreferenceProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private val testString = "Test data"
 private val cryptoTests = HashMap<BiometricAuthRequest, CryptoTest>()
+
+internal fun Fragment.bindDeviceCredentials(checkbox: CheckBox) {
+    viewLifecycleOwner.lifecycleScope.launch {
+        val preferences = SharedPreferenceProvider.getPreferences("app_settings")
+        val deviceSecure = withContext(Dispatchers.IO) {
+            !preferences.contains("allowDeviceCredentials") &&
+                    BiometricManagerCompat.isDeviceSecureAvailable()
+        }
+        checkbox.setOnCheckedChangeListener(null)
+        checkbox.isChecked = preferences.getBoolean("allowDeviceCredentials", deviceSecure)
+        checkbox.setOnCheckedChangeListener { _, checked ->
+            preferences.edit().putBoolean("allowDeviceCredentials", checked).apply()
+        }
+    }
+}
 
 fun Fragment.startBiometric(
     biometricAuthRequest: BiometricAuthRequest,
@@ -56,11 +72,12 @@ fun Fragment.startBiometric(
     isRegister: Boolean
 ) {
     viewLifecycleOwner.lifecycleScope.launch {
-        val snapshot = withContext(Dispatchers.IO) {
-            BiometricManagerCompat.getAuthSnapshot(biometricAuthRequest)
+        val (snapshot, canUseCredentials) = withContext(Dispatchers.IO) {
+            BiometricManagerCompat.getAuthSnapshot(biometricAuthRequest) to
+                    (allowCredentials && BiometricManagerCompat.isDeviceSecureAvailable())
         }
         if (!isResumed) return@launch
-        startBiometric(biometricAuthRequest, silentAuth, crypto, allowCredentials, isRegister, snapshot)
+        startBiometric(biometricAuthRequest, silentAuth, crypto, canUseCredentials, isRegister, snapshot)
     }
 }
 
@@ -108,6 +125,9 @@ private fun Fragment.startBiometric(
         }
     }
     val start = System.currentTimeMillis()
+    val test = if (crypto) cryptoTests.getOrPut(biometricAuthRequest) {
+        CryptoTest(testString.toByteArray(Charsets.UTF_8))
+    } else null
 
     val biometricPromptCompat = BiometricPromptCompat.Builder(
         biometricAuthRequest,
@@ -121,14 +141,11 @@ private fun Fragment.startBiometric(
             setDeviceCredentialFallbackAllowed(allowCredentials)
         }
         .also {
-            if (crypto) {
-                val cryptoTest = cryptoTests.getOrPut(biometricAuthRequest) {
-                    CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
-                }
+            if (test != null) {
                 it.setCryptographyPurpose(
                     BiometricCryptographyPurpose(
-                        cryptoTest.type,
-                        cryptoTest.vector
+                        test.type,
+                        test.vector
                     )
                 )
             }
@@ -139,7 +156,8 @@ private fun Fragment.startBiometric(
         .build()
 
 
-    val lifecycle = viewLifecycleOwner.lifecycle
+    val owner = viewLifecycleOwner
+    val lifecycle = owner.lifecycle
     val cancelOnDestroy = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
             biometricPromptCompat.cancelAuthentication()
@@ -157,54 +175,30 @@ private fun Fragment.startBiometric(
         override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             if (!finish()) return
             super.onSucceeded(confirmed)
-            var cryptoText = this@startBiometric.getString(R.string.crypto_disabled)
-            if (cryptoTests[biometricAuthRequest]?.type == BiometricCryptographyPurpose.ENCRYPT) {
-                CryptographyManager.encryptData(
-                    cryptoTests[biometricAuthRequest]?.byteArray,
-                    confirmed
-                )?.let {
-                    cryptoText = this@startBiometric.getString(
-                        R.string.crypto_encryption_result,
-                        String(
-                            it.data,
-                            Charset.forName("UTF-8")
-                        )
-                    )
-                    cryptoTests[biometricAuthRequest] = CryptoTest(
-                        it.data,
-                        it.initializationVector,
-                        BiometricCryptographyPurpose.DECRYPT
-                    )
+            owner.lifecycleScope.launch {
+                val encrypt = test?.type == BiometricCryptographyPurpose.ENCRYPT
+                val result = test?.let {
+                    withContext(Dispatchers.IO) {
+                        if (encrypt) CryptographyManager.encryptData(it.byteArray, confirmed)
+                        else CryptographyManager.decryptData(it.byteArray, confirmed)
+                    }
                 }
-
-            } else {
-                CryptographyManager.decryptData(
-                    cryptoTests[biometricAuthRequest]?.byteArray,
-                    confirmed
-                )?.let {
-                    cryptoText = this@startBiometric.getString(
-                        R.string.crypto_decryption_result,
-                        String(
-                            it.data,
-                            Charset.forName("UTF-8")
-                        )
+                if (!canUpdateUi()) return@launch
+                val cryptoText = if (result != null && cryptoTests[biometricAuthRequest] === test) {
+                    cryptoTests[biometricAuthRequest] = if (encrypt) {
+                        CryptoTest(result.data, result.initializationVector, BiometricCryptographyPurpose.DECRYPT)
+                    } else CryptoTest(testString.toByteArray(Charsets.UTF_8))
+                    getString(
+                        if (encrypt) R.string.crypto_encryption_result else R.string.crypto_decryption_result,
+                        String(result.data, Charsets.UTF_8)
                     )
-                    cryptoTests[biometricAuthRequest] =
-                        CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
-                }
+                } else getString(R.string.crypto_disabled)
+                Toast.makeText(
+                    AndroidContext.appContext.getFixedContext(),
+                    getString(R.string.biometric_demo_success, confirmed.toString(), cryptoText),
+                    Toast.LENGTH_LONG
+                ).show()
             }
-
-            BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed; $cryptoText")
-            Toast.makeText(
-                AndroidContext.appContext.getFixedContext(),
-                this@startBiometric.getString(
-                    R.string.biometric_demo_success,
-                    confirmed.toString(),
-                    cryptoText
-                ),
-                Toast.LENGTH_LONG
-            )
-                .show()
         }
 
         override fun onCanceled(canceled: Set<AuthenticationResult>) {

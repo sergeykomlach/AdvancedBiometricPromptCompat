@@ -30,11 +30,10 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import android.view.ViewTreeObserver
 import dev.skomlach.biometric.app.databinding.FragmentFirstBinding
 import dev.skomlach.biometric.app.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
-import dev.skomlach.biometric.compat.BiometricManagerCompat
+import dev.skomlach.biometric.app.utils.bindDeviceCredentials
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager
@@ -53,7 +52,6 @@ class FirstFragment : Fragment() {
     private var progressDialog: ProgressDialog? = null
     private var initListener: App.OnInitFinished? = null
     private var networkListener: Connection.NetworkListener? = null
-    private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -90,23 +88,27 @@ class FirstFragment : Fragment() {
             fillList(inflater, binding?.buttonsList)
             checkDeviceInfo()
         }
-        updateUi()
         networkListener = object : Connection.NetworkListener {
             override fun networkChanged(isConnected: Boolean) {
                 checkDeviceInfo()
             }
         }
         networkListener?.let(Connection::addNetworkListener)
-        return binding?.root?.apply {
-            globalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
-                updateUi()
-            }
-            this.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
-        }
+        return binding?.root
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        updateUi()
+        binding?.allowDeviceCredentials?.let { bindDeviceCredentials(it) }
+    }
+
     private fun updateUi() {
+        binding?.checkboxFullscreen?.setOnCheckedChangeListener(null)
+        binding?.checkboxWindowSecure?.setOnCheckedChangeListener(null)
+        binding?.checkboxCrypto?.setOnCheckedChangeListener(null)
+        binding?.checkboxSilent?.setOnCheckedChangeListener(null)
 
         binding?.checkboxFullscreen?.isChecked =
             SharedPreferenceProvider.getPreferences("app_settings")
@@ -140,19 +142,9 @@ class FirstFragment : Fragment() {
         binding?.checkboxCrypto?.isChecked =
             SharedPreferenceProvider.getPreferences("app_settings")
                 .getBoolean("crypto", false)
-        binding?.allowDeviceCredentials?.isChecked =
-            SharedPreferenceProvider.getPreferences("app_settings")
-                .getBoolean(
-                    "allowDeviceCredentials",
-                    BiometricManagerCompat.isDeviceSecureAvailable()
-                )
         binding?.checkboxCrypto?.setOnCheckedChangeListener { buttonView, isChecked ->
             SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("crypto", isChecked).apply()
-        }
-        binding?.allowDeviceCredentials?.setOnCheckedChangeListener { buttonView, isChecked ->
-            SharedPreferenceProvider.getPreferences("app_settings").edit()
-                .putBoolean("allowDeviceCredentials", isChecked).apply()
         }
         binding?.checkboxSilent?.isChecked =
             SharedPreferenceProvider.getPreferences("app_settings")
@@ -209,10 +201,7 @@ class FirstFragment : Fragment() {
                     SharedPreferenceProvider.getPreferences("app_settings")
                         .getBoolean("crypto", false),
                     SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean(
-                            "allowDeviceCredentials",
-                            BiometricManagerCompat.isDeviceSecureAvailable()
-                        ), false
+                        .getBoolean("allowDeviceCredentials", true), false
                 )
             }
             buttonsList?.addView(container)
@@ -244,10 +233,6 @@ class FirstFragment : Fragment() {
         networkListener?.let {
             Connection.removeNetworkListener(it)
             networkListener = null
-        }
-        globalLayoutListener?.let {
-            binding?.root?.viewTreeObserver?.removeOnGlobalLayoutListener(it)
-            globalLayoutListener = null
         }
         progressDialog?.dismiss()
         progressDialog = null

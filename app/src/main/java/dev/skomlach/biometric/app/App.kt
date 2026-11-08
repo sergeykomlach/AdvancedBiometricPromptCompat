@@ -27,16 +27,18 @@ import androidx.multidex.MultiDexApplication
 import dev.skomlach.biometric.app.devtools.AppMonitoringDevTools
 import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.compat.BiometricAuthRequest
-import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.conscrypt.Conscrypt
 import java.security.Security
 
 class App : MultiDexApplication() {
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     companion object {
 
         val authRequestList = ArrayList<BiometricAuthRequest>()
@@ -72,16 +74,17 @@ class App : MultiDexApplication() {
 
     private fun checkInit() {
         if (BiometricPromptCompat.isInitialized) {
-            GlobalScope.launch(Dispatchers.Default) {
+            appScope.launch {
                 val availableAuthRequests = BiometricPromptCompat.getAvailableAuthRequests()
                 withContext(Dispatchers.Main) {
                     authRequestList.addAll(availableAuthRequests)
-                for (listener in onInitListeners.toList()) {
-                    listener.onFinished()
-                }
-                onInitListeners.clear()
-                isReady = true
-                Log.d("BiometricPromptCompat", "checkInit=${System.currentTimeMillis() - ts}ms")
+                    val listeners = onInitListeners.toList()
+                    onInitListeners.clear()
+                    isReady = true
+                    for (listener in listeners) {
+                        listener.onFinished()
+                    }
+                    Log.d("BiometricPromptCompat", "checkInit=${System.currentTimeMillis() - ts}ms")
                 }
             }
         } else {

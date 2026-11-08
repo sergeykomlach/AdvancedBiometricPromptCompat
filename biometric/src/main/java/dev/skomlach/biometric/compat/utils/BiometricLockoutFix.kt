@@ -27,6 +27,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 object BiometricLockoutFix {
     //LockOut behavior emulated, because for example Meizu API allow to enroll fingerprint unlimited times
@@ -36,39 +37,27 @@ object BiometricLockoutFix {
         SharedPreferenceProvider.getPreferences("BiometricCompat_Storage")
     private val lock = ReentrantLock()
     fun reset() {
-        try {
-            lock.runCatching { this.lock() }
+        lock.withLock {
             preferences.edit { clear() }
-            LegacyBiometric.resetSoftwareLockOut()
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
         }
+        LegacyBiometric.resetSoftwareLockOut()
     }
 
     fun lockout(biometricType: BiometricType) {
-        try {
-            lock.runCatching { this.lock() }
+        lock.withLock {
             BiometricLoggerImpl.d("BiometricLockoutFix.setLockout for " + biometricType.name)
             preferences.edit().putLong(
                 TS_PREF + "-" + biometricType.name,
                 System.currentTimeMillis()
             ).apply()
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
         }
-
     }
 
 
     fun isLockOut(biometricType: BiometricType): Boolean {
-        try {
-            lock.runCatching { this.lock() }
+        return lock.withLock {
             val ts = preferences.getLong(TS_PREF + "-" + biometricType.name, 0)
-            return if (ts > 0) {
+            if (ts > 0) {
                 if (System.currentTimeMillis() - ts >= timeout) {
                     preferences.edit()
                         .putLong(TS_PREF + "-" + biometricType.name, 0).apply()
@@ -81,10 +70,6 @@ object BiometricLockoutFix {
             } else {
                 BiometricLoggerImpl.d("BiometricLockoutFix.lockout is FALSE(2) for " + biometricType.name)
                 false
-            }
-        } finally {
-            lock.runCatching {
-                this.unlock()
             }
         }
     }
