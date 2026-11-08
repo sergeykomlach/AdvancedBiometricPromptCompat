@@ -118,7 +118,7 @@ internal class VoiceCaptureOrchestrator(
                 }
                 chunks += chunk
 
-                detection = detector.detect(chunks, materializeActiveSample = false)
+                detection = detector.detect(chunks, materializeActiveSample = false, includeNoiseContext = true)
                 if (detection.isComplete) {
                     break
                 }
@@ -136,7 +136,7 @@ internal class VoiceCaptureOrchestrator(
             recorderFailureOutcome(hadSpeechActivity = detection.detectedSpeech)
         } else {
             if (detection.detectedSpeech && !detection.isComplete) {
-                detection = detector.detect(chunks, materializeActiveSample = true)
+                detection = detector.detect(chunks, includeNoiseContext = true)
             }
             decideVoiceCaptureSample(detection, sampleRateHz).toOutcome()
         }

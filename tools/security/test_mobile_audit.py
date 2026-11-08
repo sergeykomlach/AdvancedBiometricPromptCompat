@@ -158,7 +158,7 @@ class MobileAuditTest(unittest.TestCase):
         source = self.root / ENTRY
         self.write(ENTRY, source.read_text(encoding="utf-8").replace("bridge", "alterX"))
         os.utime(source, (1, 1))
-        self.git("status", "--porcelain=v1", "--untracked-files=no", "--", SCOPE)
+        self.git("hash-object", f"--path={ENTRY}", ENTRY)
         self.assertTrue(marker.exists(), "Fixture must exercise Git's configured clean filter")
         marker.unlink()
         self.prepare()

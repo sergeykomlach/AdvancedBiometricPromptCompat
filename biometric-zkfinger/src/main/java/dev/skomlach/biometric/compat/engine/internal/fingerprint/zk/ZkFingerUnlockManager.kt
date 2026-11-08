@@ -17,6 +17,7 @@ import android.os.Looper
 import android.util.Base64
 import androidx.core.content.ContextCompat
 import dev.skomlach.common.storage.editProtected
+import dev.skomlach.common.storage.protectedKeys
 import dev.skomlach.common.storage.ProtectedStorageUnavailableException
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
@@ -256,8 +257,7 @@ class ZkFingerUnlockManager(
     }
 
     override fun getEnrolls(): Collection<String> {
-        return prefs.all.keys
-            .filterIsInstance<String>()
+        return prefs.protectedKeys()
             .filter { it.startsWith(TEMPLATE_PREFIX) }
             .map { it.removePrefix(TEMPLATE_PREFIX) }
             .sorted()

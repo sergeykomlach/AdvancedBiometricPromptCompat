@@ -10,6 +10,8 @@ internal class SherpaOnnxPromptDelegate(
     private val host: SoftwareBiometricPromptHost,
     private val lockoutManager: SherpaOnnxBiometricManager
 ) : SoftwareBiometricPromptDelegate {
+    private var disposed = false
+
     private val controller = VoiceAutoCaptureController(
         context = host.context,
         builder = host.builder,
@@ -31,18 +33,21 @@ internal class SherpaOnnxPromptDelegate(
 
             override fun isPromptActive(): Boolean = host.callbacks.isPromptActive()
         },
-        onMaxAttemptsExceeded = { lockoutManager.triggerAutoCaptureLockout() }
+        onMaxAttemptsExceeded = lockoutManager::triggerAutoCaptureLockout
     )
 
     override fun start() {
-        if (!host.enroll) {
-            lockoutManager.enrollmentProblem()?.let { problem ->
-                problem.description?.let { message ->
-                    host.callbacks.onStatus(SoftwarePromptStatus(primaryText = message, terminal = true))
-                }
-                host.callbacks.onFailure(problem)
-                return
+        if (host.enroll) startCapture(null) else lockoutManager.checkEnrollment(::startCapture)
+    }
+
+    private fun startCapture(problem: AuthenticationResult?) {
+        if (disposed || !host.callbacks.isPromptActive()) return
+        if (problem != null) {
+            problem.description?.let { message ->
+                host.callbacks.onStatus(SoftwarePromptStatus(primaryText = message, terminal = true))
             }
+            host.callbacks.onFailure(problem)
+            return
         }
         if (controller.shouldAutoCapture()) {
             controller.start()
@@ -52,10 +57,11 @@ internal class SherpaOnnxPromptDelegate(
     }
 
     override fun cancel() {
-        controller.dispose()
+        dispose()
     }
 
     override fun dispose() {
+        disposed = true
         controller.dispose()
     }
 

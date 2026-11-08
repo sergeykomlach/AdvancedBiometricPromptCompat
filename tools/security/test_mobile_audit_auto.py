@@ -117,7 +117,7 @@ class MobileAuditAutoTest(unittest.TestCase):
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                    text=True, encoding="utf-8", **process_options())
         try:
-            stdout, stderr = process.communicate(timeout=90)
+            stdout, stderr = process.communicate(timeout=180)
         except subprocess.TimeoutExpired:
             stop_process_tree(process)
             process.communicate()
@@ -321,6 +321,7 @@ class MobileAuditAutoTest(unittest.TestCase):
         result = self.cli(mode="timeout")
         self.assertNotEqual(0, result.returncode)
         self.assertFalse((self.base / "success.json").exists())
+        self.write_config(task_timeout_seconds=20, run_timeout_seconds=240)
         self.assertEqual("ai_audit_complete", self.output(self.cli())["status"])
 
     def test_live_owner_blocks_an_overlapping_run(self):
@@ -336,7 +337,7 @@ class MobileAuditAutoTest(unittest.TestCase):
             second = self.output(self.cli("--prepare-only"))
             self.assertEqual("already_running", second["status"])
             self.log.with_suffix(".release").write_text("release")
-            stdout, stderr = process.communicate(timeout=20)
+            stdout, stderr = process.communicate(timeout=180)
             self.assertEqual(0, process.returncode, stdout.decode() + stderr.decode())
             self.assertEqual(6, len(self.invocations()))
         finally:

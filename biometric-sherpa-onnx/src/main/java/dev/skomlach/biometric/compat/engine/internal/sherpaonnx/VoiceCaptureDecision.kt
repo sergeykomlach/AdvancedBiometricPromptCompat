@@ -51,7 +51,8 @@ internal fun decideVoiceCaptureSample(
     }
 
     return VoiceCaptureDecision(
-        acceptedSample = preprocessResult.pcm,
+        // The matcher runs quality checks again and needs the original noise context.
+        acceptedSample = candidateSample,
         rejectReason = VoiceCaptureRejectReason.NONE,
         qualityIssue = VoiceQualityIssue.NONE,
         shouldNotifySpeechDetected = detection.detectedSpeech,

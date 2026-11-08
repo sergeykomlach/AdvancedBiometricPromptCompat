@@ -27,7 +27,8 @@ internal class VoiceStreamingDetector(
 
     fun detect(
         chunks: List<FloatArray>,
-        materializeActiveSample: Boolean = true
+        materializeActiveSample: Boolean = true,
+        includeNoiseContext: Boolean = false
     ): VoiceStreamingDetection {
         if (chunks.isEmpty() || sampleRateHz <= 0) {
             return VoiceStreamingDetection(
@@ -67,7 +68,7 @@ internal class VoiceStreamingDetector(
             )
 
         val activeSample = if (speechWindow.isComplete || materializeActiveSample) {
-            sampleSlice(chunks, speechWindow)
+            sampleSlice(chunks, speechWindow, if (includeNoiseContext) endSilenceFrames else 0)
         } else {
             null
         }
@@ -246,15 +247,16 @@ internal class VoiceStreamingDetector(
 
     private fun sampleSlice(
         chunks: List<FloatArray>,
-        speechWindow: SpeechWindow
+        speechWindow: SpeechWindow,
+        contextFrames: Int
     ): FloatArray? {
         if (speechWindow.startIndex < 0 || speechWindow.endExclusive <= speechWindow.startIndex) {
             return null
         }
         return flattenChunks(
             chunks,
-            speechWindow.startIndex,
-            speechWindow.endExclusive
+            (speechWindow.startIndex - contextFrames).coerceAtLeast(0),
+            (speechWindow.endExclusive + contextFrames).coerceAtMost(chunks.size)
         )
     }
 

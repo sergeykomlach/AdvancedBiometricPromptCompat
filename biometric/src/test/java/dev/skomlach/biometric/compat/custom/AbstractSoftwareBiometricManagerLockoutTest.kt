@@ -7,6 +7,9 @@ import org.junit.Test
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.storage.ProtectedStorageUnavailableException
 import java.lang.reflect.Proxy
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertThrows
 
@@ -91,6 +94,33 @@ class AbstractSoftwareBiometricManagerLockoutTest {
                 lockoutDurationMs = 30_000L
             )
         )
+    }
+
+    @Test
+    fun concurrentManagersDoNotLoseLockoutIncrements() {
+        val prefs = FakeSharedPreferences()
+        val workers = Executors.newFixedThreadPool(8)
+        val ready = CountDownLatch(8)
+        val start = CountDownLatch(1)
+        try {
+            val attempts = List(8) {
+                workers.submit {
+                    val manager = TestManager()
+                    ready.countDown()
+                    check(start.await(5, TimeUnit.SECONDS))
+                    repeat(8) { manager.forceImmediateLockout(prefs, 5, 64, 30_000L) }
+                }
+            }
+            assertTrue(ready.await(5, TimeUnit.SECONDS))
+            start.countDown()
+            attempts.forEach { it.get(5, TimeUnit.SECONDS) }
+            assertEquals(
+                AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT,
+                TestManager().currentLockoutError(prefs, 5, 64, 30_000L)
+            )
+        } finally {
+            workers.shutdownNow()
+        }
     }
 
     private class TestManager : AbstractSoftwareBiometricManager() {

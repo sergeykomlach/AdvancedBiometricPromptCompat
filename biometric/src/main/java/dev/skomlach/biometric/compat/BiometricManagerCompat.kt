@@ -42,8 +42,9 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 
 object BiometricManagerCompat {
     private const val TAG = "BiometricManagerCompat"
-    private val preferences =
+    private val preferences by lazy {
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+    }
     private val stateCacheLock = Any()
 
     /** Synchronous discovery/registration; may perform provider SDK and storage initialization. */

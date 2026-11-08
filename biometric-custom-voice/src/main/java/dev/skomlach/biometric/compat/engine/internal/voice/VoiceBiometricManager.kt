@@ -23,6 +23,8 @@ import dev.skomlach.biometric.custom.voice.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import dev.skomlach.common.translate.LocalizationHelper
+import dev.skomlach.common.misc.ExecutorHelper
+import java.util.concurrent.atomic.AtomicInteger
 
 class VoiceBiometricManager(
     private val context: Context,
@@ -60,15 +62,25 @@ class VoiceBiometricManager(
 
     override fun getPermissions(): List<String> = listOf(Manifest.permission.RECORD_AUDIO)
 
-    override fun getLockoutError(): Int? = getStoredLockoutError(prefs, LOCKOUT_POLICY)
+    override fun getLockoutError(): Int? =
+        if (pendingCaptureLockouts.get() != 0) CUSTOM_BIOMETRIC_ERROR_LOCKOUT
+        else getStoredLockoutError(prefs, LOCKOUT_POLICY)
 
-    internal fun triggerAutoCaptureLockout(): VoiceLockoutOutcome {
-        return try {
-            forceLockout(prefs, LOCKOUT_POLICY)
-            voiceLockoutOutcomeForError(getLockoutError() ?: CUSTOM_BIOMETRIC_ERROR_LOCKOUT)
-        } catch (error: ProtectedStorageUnavailableException) {
-            e(error, "Voice lockout storage unavailable")
-            voiceLockoutOutcomeForError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE)
+    internal fun triggerAutoCaptureLockout(deliver: (VoiceLockoutOutcome) -> Unit) {
+        pendingCaptureLockouts.incrementAndGet()
+        worker.execute {
+            val outcome = try {
+                forceLockout(prefs, LOCKOUT_POLICY)
+                voiceLockoutOutcomeForError(
+                    getStoredLockoutError(prefs, LOCKOUT_POLICY) ?: CUSTOM_BIOMETRIC_ERROR_LOCKOUT
+                )
+            } catch (error: ProtectedStorageUnavailableException) {
+                e(error, "Voice lockout storage unavailable")
+                voiceLockoutOutcomeForError(CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE)
+            } finally {
+                pendingCaptureLockouts.decrementAndGet()
+            }
+            ExecutorHelper.post { deliver(outcome) }
         }
     }
 
@@ -96,7 +108,14 @@ class VoiceBiometricManager(
         }
     }
 
-    internal fun enrollmentProblem(): dev.skomlach.biometric.compat.AuthenticationResult? {
+    internal fun checkEnrollment(deliver: (dev.skomlach.biometric.compat.AuthenticationResult?) -> Unit) {
+        worker.execute {
+            val problem = enrollmentProblem()
+            ExecutorHelper.post { deliver(problem) }
+        }
+    }
+
+    private fun enrollmentProblem(): dev.skomlach.biometric.compat.AuthenticationResult? {
         val status = try {
             getEnrollmentStatus()
         } catch (_: Exception) {
@@ -508,6 +527,7 @@ class VoiceBiometricManager(
     }
 
     internal companion object {
+        private val pendingCaptureLockouts = AtomicInteger(0)
         private const val IS_ENROLLMENT_KEY = "is_enrollment"
         private const val ENROLLMENT_TAG_KEY = "enrollment_tag"
         private const val LOCKOUT_STORAGE_NAME = "voice_lockout"

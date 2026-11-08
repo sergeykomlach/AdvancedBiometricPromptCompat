@@ -33,6 +33,8 @@ import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricConfirmation
@@ -198,6 +200,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
     private var biometricPrompt: BiometricPrompt? = null
     private var biometricPromptHost: FragmentActivity? = null
+    private var systemAuthCallback: GuardedSystemAuthCallback? = null
     private var dialog: BiometricPromptCompatDialogImpl? = null
     private var callback: BiometricPromptCompat.AuthenticationCallback? = null
     @Volatile private var parallelCapture: ParallelSoftwareCapture? = null
@@ -291,28 +294,47 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
         }
 
-    private fun guardedSystemAuthCallback(
-        expectedSessionToken: Long
-    ): BiometricPrompt.AuthenticationCallback {
-        return object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationFailed() {
-                if (!authSessionState.owns(expectedSessionToken)) return
-                callbackDispatchSessionToken.set(expectedSessionToken)
-                authCallback.onAuthenticationFailed()
-            }
+    // AndroidX stores this callback in an Activity ViewModel that survives recreation.
+    private class GuardedSystemAuthCallback(
+        owner: BiometricPromptApi28Impl,
+        private val expectedSessionToken: Long
+    ) : BiometricPrompt.AuthenticationCallback(), DefaultLifecycleObserver {
+        private var owner: BiometricPromptApi28Impl? = owner
 
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                if (!authSessionState.owns(expectedSessionToken)) return
-                callbackDispatchSessionToken.set(expectedSessionToken)
-                authCallback.onAuthenticationError(errorCode, errString)
-            }
-
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                if (!authSessionState.owns(expectedSessionToken)) return
-                callbackDispatchSessionToken.set(expectedSessionToken)
-                authCallback.onAuthenticationSucceeded(result)
-            }
+        fun detach() {
+            owner = null
         }
+
+        override fun onDestroy(owner: LifecycleOwner) {
+            detach()
+            owner.lifecycle.removeObserver(this)
+        }
+
+        private fun activeCallback(): BiometricPrompt.AuthenticationCallback? {
+            val activeOwner = owner ?: return null
+            if (!activeOwner.authSessionState.owns(expectedSessionToken)) return null
+            activeOwner.callbackDispatchSessionToken.set(expectedSessionToken)
+            return activeOwner.authCallback
+        }
+
+        override fun onAuthenticationFailed() {
+            activeCallback()?.onAuthenticationFailed()
+        }
+
+        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+            activeCallback()?.onAuthenticationError(errorCode, errString)
+        }
+
+        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+            activeCallback()?.onAuthenticationSucceeded(result)
+        }
+    }
+
+    private fun detachSystemAuthCallback() {
+        val detached = systemAuthCallback ?: return
+        systemAuthCallback = null
+        detached.detach()
+        biometricPromptHost?.lifecycle?.removeObserver(detached)
     }
 
     private fun guardedLegacyAuthCallback(
@@ -362,6 +384,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun authenticate(cbk: BiometricPromptCompat.AuthenticationCallback?) {
         d("BiometricPromptApi28Impl.authenticate():")
+        detachSystemAuthCallback()
         val previousCancellation = systemPromptCancellation
         systemPromptCancellation = null
         legacySessionOwner = Any()
@@ -416,12 +439,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
         val activity = builder.getActivity()
         biometricPromptHost = activity
-        biometricPrompt = activity?.let {
-            BiometricPrompt(
-                activity,
-                ExecutorHelper.executor,
-                guardedSystemAuthCallback(authSessionToken)
-            )
+        biometricPrompt = activity?.let { host ->
+            val systemCallback = GuardedSystemAuthCallback(this, sessionToken)
+            systemAuthCallback = systemCallback
+            host.lifecycle.addObserver(systemCallback)
+            BiometricPrompt(host, ExecutorHelper.executor, systemCallback)
         }
         // Only a known OEM bug or a disabled provider proves missing UI. Unreadable XML does not.
         val confirmedMissingSystemUi = DevicesWithKnownBugs.isMissedBiometricUI
@@ -455,6 +477,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         authSessionToken = -1L
         callbackDispatchSessionToken.set(-1L)
         sessionLegacyAuthCallback = null
+        detachSystemAuthCallback()
         try {
             onUiClosed()
         } finally {

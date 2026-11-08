@@ -17,7 +17,7 @@ internal class VoiceAutoCaptureController(
     private val builder: BiometricPromptCompat.Builder,
     enroll: Boolean,
     private val callback: VoiceAutoCaptureSession.Callback,
-    private val onMaxAttemptsExceeded: () -> VoiceLockoutOutcome
+    private val onMaxAttemptsExceeded: ((VoiceLockoutOutcome) -> Unit) -> Unit
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val disposed = AtomicBoolean(false)
@@ -27,13 +27,16 @@ internal class VoiceAutoCaptureController(
         phrase = builder.getVoicePhrase(),
         callback = callback,
         sampleRateHz = SAMPLE_RATE_HZ,
-        onCaptureLockout = {
-            val outcome = onMaxAttemptsExceeded()
-            AuthenticationResult(
-                type = BiometricType.BIOMETRIC_VOICE,
-                reason = outcome.reason,
-                description = localized(outcome.messageResId)
-            )
+        onCaptureLockout = { deliver ->
+            onMaxAttemptsExceeded { outcome ->
+                if (!disposed.get() && callback.isPromptActive()) {
+                    deliver(AuthenticationResult(
+                        type = BiometricType.BIOMETRIC_VOICE,
+                        reason = outcome.reason,
+                        description = localized(outcome.messageResId)
+                    ))
+                }
+            }
         }
     )
     private val orchestrator = VoiceCaptureOrchestrator(

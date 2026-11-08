@@ -1,15 +1,19 @@
 package dev.skomlach.common.storage
 
 import android.content.SharedPreferences
+import android.os.Looper
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Proxy
 import java.nio.ByteBuffer
+import java.util.concurrent.FutureTask
+import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29], manifest = Config.NONE)
@@ -28,7 +32,8 @@ class EncryptedPreferencesMigrationTest {
         f.legacy("empty-set", ByteBuffer.allocate(4).putInt(1).array())
         val prefs = f.open()
         var notifications = 0
-        prefs.registerOnSharedPreferenceChangeListener { _, _ -> notifications++ }
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> notifications++ }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
         val all = prefs.all
         assertEquals("порожній ключ", all[""])
         assertEquals("null-key", all[null])
@@ -41,6 +46,7 @@ class EncryptedPreferencesMigrationTest {
         assertEquals(setOf("a", "hello"), all["set"])
         assertEquals(emptySet<String>(), all["empty-set"])
         assertEquals(0, notifications)
+        prefs.unregisterOnSharedPreferenceChangeListener(listener)
         assertEquals(1, f.fence.begins)
         assertEquals(PreferenceMigrationFence.COMMITTED, f.fence.value)
         assertTrue(f.raw.all.keys.all { it.startsWith("e3_") || it == "__esp_v3_format__" })
@@ -135,13 +141,15 @@ class EncryptedPreferencesMigrationTest {
             val other = f.open()
             val failed = f.open(failingCommit(f.raw, true, throws))
             var notifications = 0
-            failed.registerOnSharedPreferenceChangeListener { _, _ -> notifications++ }
+            val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> notifications++ }
+            failed.registerOnSharedPreferenceChangeListener(listener)
             assertThrows(ProtectedStorageUnavailableException::class.java) { failed.getString("identity", null) }
             assertTrue(f.raw.all.values.all { (it as String).startsWith("v3_") })
             assertThrows(ProtectedStorageUnavailableException::class.java) { other.getString("identity", null) }
             assertThrows(ProtectedStorageUnavailableException::class.java) { other.edit().clear().commit() }
             assertNotEquals(PreferenceMigrationFence.COMMITTED, f.fence.value)
             assertEquals(0, notifications)
+            failed.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }
 
@@ -223,11 +231,12 @@ class EncryptedPreferencesMigrationTest {
         val f = ProtectedPreferenceFixture()
         val p = f.open()
         val events = mutableListOf<String?>()
-        p.registerOnSharedPreferenceChangeListener { prefs, key ->
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
             assertEquals(PreferenceMigrationFence.COMMITTED, f.fence.value)
             assertTrue(prefs.contains(key))
             events += key
         }
+        p.registerOnSharedPreferenceChangeListener(listener)
         p.edit().putInt("int", 9).putLong("long", 10L).putFloat("float", 3.5f)
             .putBoolean("bool", true).putString("str", "кирилиця")
             .putStringSet("set", mutableSetOf("a", "b")).putString("nil", null).apply()
@@ -235,6 +244,28 @@ class EncryptedPreferencesMigrationTest {
         assertEquals(mapOf("int" to 9, "long" to 10L, "float" to 3.5f, "bool" to true,
             "str" to "кирилиця", "set" to setOf("a", "b"), "nil" to null), reopened.all)
         assertEquals(7, events.distinct().size)
+        p.unregisterOnSharedPreferenceChangeListener(listener)
+    }
+
+    @Test fun backgroundCommitNotifiesOnceOnMainAfterPersistence() {
+        val prefs = ProtectedPreferenceFixture().open()
+        val mainLooper = Looper.getMainLooper()
+        val callbacks = mutableListOf<String?>()
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { source, key ->
+            assertSame(mainLooper, Looper.myLooper())
+            assertEquals("saved", source.getString(key, null))
+            callbacks += key
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        val commit = FutureTask { prefs.edit().putString("key", "saved").commit() }
+        Thread(commit).start()
+        assertTrue(commit.get(5, TimeUnit.SECONDS))
+        assertEquals("saved", prefs.getString("key", null))
+        assertTrue(callbacks.isEmpty())
+        shadowOf(mainLooper).idle()
+        assertEquals(listOf("key"), callbacks)
+        prefs.unregisterOnSharedPreferenceChangeListener(listener)
     }
 
     @Test fun unrelatedLegacyConfigIsNeverInitializedAfterAnEarlierLegacyKeyMatches() {

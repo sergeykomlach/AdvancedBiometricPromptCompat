@@ -37,7 +37,8 @@ class BasicVoiceEngineTest {
     fun basicEngineBuildsValidEmbeddingFromPcm() {
         val sample = VoiceSample(
             sampleRateHz = 16_000,
-            pcmFloat = FloatArray(16_000) { index ->
+            pcmFloat = FloatArray(24_000) { index ->
+                if (index !in 4_000 until 20_000) return@FloatArray 0f
                 (0.35f * sin(index / 12.0)).toFloat()
             },
             embedding = null,
@@ -54,7 +55,8 @@ class BasicVoiceEngineTest {
     fun basicEngineAcceptsPhraseLessSamplesForTextIndependentFlow() {
         val sample = VoiceSample(
             sampleRateHz = 16_000,
-            pcmFloat = FloatArray(16_000) { index ->
+            pcmFloat = FloatArray(24_000) { index ->
+                if (index !in 4_000 until 20_000) return@FloatArray 0f
                 (0.35f * sin(index / 10.0)).toFloat()
             },
             embedding = null,

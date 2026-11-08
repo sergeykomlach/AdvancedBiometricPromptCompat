@@ -30,7 +30,8 @@ class VoiceAudioPreprocessorTest {
 
     @Test
     fun preprocessRemovesDcOffsetFromVoiceSample() {
-        val pcm = voiceLikeTone(durationSeconds = 1.5, dcOffset = 0.18f)
+        val quiet = FloatArray(SAMPLE_RATE / 2) { 0.18f }
+        val pcm = quiet + voiceLikeTone(durationSeconds = 1.5, dcOffset = 0.18f) + quiet
 
         val result = VoiceAudioPreprocessor.preprocess(pcm, SAMPLE_RATE)
 
@@ -65,8 +66,10 @@ class VoiceAudioPreprocessorTest {
 
     @Test
     fun preprocessRejectsRepeatedLoopLikeSample() {
-        val chunk = voiceLikeTone(durationSeconds = 0.2)
-        val pcm = FloatArray(SAMPLE_RATE * 2) { index -> chunk[index % chunk.size] }
+        val chunk = voiceLikeTone(durationSeconds = 0.1)
+        val pcm = FloatArray(SAMPLE_RATE / 2) +
+            FloatArray(SAMPLE_RATE * 2) { index -> chunk[index % chunk.size] } +
+            FloatArray(SAMPLE_RATE / 2)
 
         val result = VoiceAudioPreprocessor.preprocess(pcm, SAMPLE_RATE)
 
@@ -117,7 +120,9 @@ class VoiceAudioPreprocessorTest {
         val engine = BasicVoiceEngine()
         val enrolled = VoiceSample(
             sampleRateHz = SAMPLE_RATE,
-            pcmFloat = voiceLikeTone(durationSeconds = 1.5, amplitudeScale = 0.45f, baseFrequency = 180.0),
+            pcmFloat = FloatArray(SAMPLE_RATE / 2) +
+                voiceLikeTone(durationSeconds = 1.5, amplitudeScale = 0.45f, baseFrequency = 180.0) +
+                FloatArray(SAMPLE_RATE / 2),
             embedding = null,
             phrase = null
         )
@@ -132,7 +137,13 @@ class VoiceAudioPreprocessorTest {
         val differentProbe = VoiceSample(
             sampleRateHz = SAMPLE_RATE,
             pcmFloat = FloatArray(SAMPLE_RATE / 2) +
-                voiceLikeTone(durationSeconds = 1.5, amplitudeScale = 0.08f, baseFrequency = 420.0) +
+                voiceLikeTone(durationSeconds = 1.5, amplitudeScale = 0.08f, baseFrequency = 420.0)
+                    .also { pcm ->
+                        for (i in pcm.indices) {
+                            val seconds = i.toDouble() / SAMPLE_RATE
+                            if (seconds in 0.26..0.72 || seconds in 0.93..1.25) pcm[i] *= 0.05f
+                        }
+                    } +
                 FloatArray(SAMPLE_RATE / 2),
             embedding = null,
             phrase = null

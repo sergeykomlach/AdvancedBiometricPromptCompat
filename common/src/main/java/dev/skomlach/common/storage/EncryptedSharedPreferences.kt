@@ -21,6 +21,8 @@ package dev.skomlach.common.storage
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Handler
+import android.os.Looper
 import android.preference.PreferenceManager
 import android.util.Base64
 import androidx.collection.ArraySet
@@ -29,7 +31,7 @@ import com.tozny.crypto.android.AesCbcWithIntegrity
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.WeakHashMap
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -98,7 +100,7 @@ class EncryptedSharedPreferences internal constructor(
     }
 
     private val state = states.getOrPut(storageIdentity) { StoreState() }
-    private val mListeners = CopyOnWriteArrayList<SharedPreferences.OnSharedPreferenceChangeListener>()
+    private val listeners = WeakHashMap<SharedPreferences.OnSharedPreferenceChangeListener, Unit>()
     private data class DerivedConfig(val valueKeys: AesCbcWithIntegrity.SecretKeys, val names: KeyNameCipher)
     private fun derive(config: SharedPreferenceProvider.EncryptionConfig) = DerivedConfig(
         AesCbcWithIntegrity.generateKeyFromPassword(String(config.password.reversedArray()), config.salt.reversedArray()),
@@ -308,10 +310,10 @@ class EncryptedSharedPreferences internal constructor(
     override fun contains(key: String?): Boolean = keySet().contains(key)
     override fun edit(): SharedPreferences.Editor = locked { Editor() }
     override fun registerOnSharedPreferenceChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
-        mListeners.add(listener)
+        synchronized(listeners) { listeners[listener] = Unit }
     }
     override fun unregisterOnSharedPreferenceChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
-        mListeners.remove(listener)
+        synchronized(listeners) { listeners.remove(listener) }
     }
 
     private inner class Editor : SharedPreferences.Editor {
@@ -417,13 +419,25 @@ class EncryptedSharedPreferences internal constructor(
                 clearRequested = false
                 changed
             }
-            // No listener is called by migration or under the store lock.
-            mListeners.forEach { listener -> changed.forEach { listener.onSharedPreferenceChanged(this@EncryptedSharedPreferences, it) } }
+            notifyListeners(changed)
             return true
         }
 
         // Protected mutations must be durable before publishing state or notifying consumers.
         override fun apply() { commit() }
+    }
+
+    private fun notifyListeners(changed: List<String?>) {
+        if (changed.isEmpty()) return
+        val snapshot = synchronized(listeners) { listeners.keys.toList() }
+        if (snapshot.isEmpty()) return
+        val delivery = Runnable {
+            for (listener in snapshot) {
+                for (key in changed) listener.onSharedPreferenceChanged(this, key)
+            }
+        }
+        val mainLooper = Looper.getMainLooper()
+        if (Looper.myLooper() == mainLooper) delivery.run() else Handler(mainLooper).post(delivery)
     }
 
     private fun decodeObject(value: ByteArray): Any? {

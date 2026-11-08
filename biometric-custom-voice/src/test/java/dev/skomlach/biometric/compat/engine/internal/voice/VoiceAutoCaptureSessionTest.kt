@@ -1,12 +1,16 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
 import android.os.Bundle
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+@org.junit.runner.RunWith(org.robolectric.RobolectricTestRunner::class)
+@org.robolectric.annotation.Config(sdk = [29], manifest = org.robolectric.annotation.Config.NONE)
 class VoiceAutoCaptureSessionTest {
     @Test
     fun enrollSessionWaitsForThreeSamplesBeforeReady() {
@@ -232,6 +236,35 @@ class VoiceAutoCaptureSessionTest {
 
         assertFalse(session.shouldEmitTimeoutOutcome(nowMs = 30_000L))
         assertTrue(session.shouldEmitTimeoutOutcome(nowMs = 31_001L))
+    }
+
+    @Test
+    fun lockoutStopsCaptureBeforeDurableResultArrives() {
+        val callback = RecordingCallback()
+        lateinit var deliver: (AuthenticationResult) -> Unit
+        val session = VoiceAutoCaptureSession(
+            enroll = false,
+            existingExtras = null,
+            phrase = null,
+            callback = callback,
+            promptMessageResolver = ::renderPrompt,
+            outcomePolicy = VoiceOutcomePolicy(maxSuspiciousCaptureAttempts = 1),
+            onCaptureLockout = { deliver = it }
+        )
+        session.start(nowMs = 1_000L)
+        session.onCaptureOutcome(
+            VoiceCaptureOutcome.Rejected(
+                VoiceCaptureDecision(null, VoiceCaptureRejectReason.RECORDER_FAILURE,
+                    VoiceQualityIssue.SAMPLE_MISSING, false, false)
+            ),
+            nowMs = 1_100L
+        )
+        assertFalse(session.shouldContinueCapture())
+        assertEquals(listOf("AUTH"), callback.messages)
+
+        deliver(AuthenticationResult(BiometricType.BIOMETRIC_VOICE,
+            reason = AuthenticationFailureReason.LOCKED_OUT, description = "locked"))
+        assertEquals(listOf("AUTH", "LOCKOUT", "error:locked"), callback.messages)
     }
 
     private fun validSample(seed: Int): FloatArray {

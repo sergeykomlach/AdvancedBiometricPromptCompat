@@ -23,6 +23,9 @@ import android.content.Context
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.app.R
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
@@ -136,8 +139,23 @@ private fun Fragment.startBiometric(
         .build()
 
 
+    val lifecycle = viewLifecycleOwner.lifecycle
+    val cancelOnDestroy = object : DefaultLifecycleObserver {
+        override fun onDestroy(owner: LifecycleOwner) {
+            biometricPromptCompat.cancelAuthentication()
+        }
+    }
+    lifecycle.addObserver(cancelOnDestroy)
     val callback = object : BiometricPromptCompat.AuthenticationCallback() {
+        private fun canUpdateUi() = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+
+        private fun finish(): Boolean {
+            lifecycle.removeObserver(cancelOnDestroy)
+            return canUpdateUi()
+        }
+
         override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
+            if (!finish()) return
             super.onSucceeded(confirmed)
             var cryptoText = this@startBiometric.getString(R.string.crypto_disabled)
             if (cryptoTests[biometricAuthRequest]?.type == BiometricCryptographyPurpose.ENCRYPT) {
@@ -191,6 +209,7 @@ private fun Fragment.startBiometric(
 
         override fun onCanceled(canceled: Set<AuthenticationResult>) {
             BiometricLoggerImpl.e("CheckBiometric.onCanceled() $canceled")
+            if (!finish()) return
             Toast.makeText(
                 AndroidContext.appContext.getFixedContext(),
                 this@startBiometric.getString(
@@ -206,6 +225,7 @@ private fun Fragment.startBiometric(
                 BiometricAuthException(canceled.toString()),
                 "CheckBiometric.onFailed()"
             )
+            if (!finish()) return
             val reason = canceled.firstOrNull()?.reason
             try {
                 when (reason) {
@@ -264,6 +284,7 @@ private fun Fragment.startBiometric(
 
         override fun onUIOpened() {
             BiometricLoggerImpl.e("CheckBiometric.onUIOpened()")
+            if (!canUpdateUi()) return
             Toast.makeText(
                 AndroidContext.appContext.getFixedContext(),
                 this@startBiometric.getString(R.string.biometric_demo_ui_opened),
@@ -273,6 +294,7 @@ private fun Fragment.startBiometric(
 
         override fun onUIClosed() {
             BiometricLoggerImpl.e("CheckBiometric.onUIClosed()")
+            if (!canUpdateUi()) return
             Toast.makeText(
                 AndroidContext.appContext.getFixedContext(),
                 this@startBiometric.getString(R.string.biometric_demo_ui_closed),

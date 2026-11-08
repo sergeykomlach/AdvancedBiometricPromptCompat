@@ -212,12 +212,19 @@ class NetworkReachabilityTest {
     @Test(timeout = 5_000)
     fun completedFlightIsNotReusedWhenItsPreviousCallerHasNotResumed() = withHarness {
         val dispatcher = QueueDispatcher()
-        val probe = ImmediateProbe(ProbeResponse.Http(204))
+        val firstProbe = WaitingProbe()
+        val starts = AtomicInteger()
+        val probe = EndpointProbe { endpoint, network, complete ->
+            if (starts.incrementAndGet() == 1) firstProbe.start(endpoint, network, complete)
+            else ImmediateProbe(ProbeResponse.Http(204)).start(endpoint, network, complete)
+        }
         val first = async(dispatcher, start = CoroutineStart.UNDISPATCHED) { check(probe, ttl = 0) }
         try {
+            firstProbe.awaitStart()
+            firstProbe.complete(ProbeResponse.Http(204))
             assertTrue(dispatcher.queued.await(2, TimeUnit.SECONDS))
             val second = check(probe, ttl = 0)
-            assertEquals(2, probe.starts.get())
+            assertEquals(2, starts.get())
             assertEquals(204, second.httpStatusCode)
         } finally { dispatcher.release() }
         assertEquals(204, first.await().httpStatusCode)
@@ -226,13 +233,16 @@ class NetworkReachabilityTest {
     @Test(timeout = 5_000)
     fun pausedOlderWaiterCannotOverwriteANewerCachedResponse() = withHarness {
         val dispatcher = QueueDispatcher()
+        val firstProbe = WaitingProbe()
         val starts = AtomicInteger()
-        val probe = EndpointProbe { _, _, complete ->
-            complete(ProbeResponse.Http(if (starts.incrementAndGet() == 1) 204 else 503))
-            ProbeCancellation { }
+        val probe = EndpointProbe { endpoint, network, complete ->
+            if (starts.incrementAndGet() == 1) firstProbe.start(endpoint, network, complete)
+            else ImmediateProbe(ProbeResponse.Http(503)).start(endpoint, network, complete)
         }
         val first = async(dispatcher, start = CoroutineStart.UNDISPATCHED) { check(probe) }
         try {
+            firstProbe.awaitStart()
+            firstProbe.complete(ProbeResponse.Http(204))
             assertTrue(dispatcher.queued.await(2, TimeUnit.SECONDS))
             assertEquals(503, check(probe).httpStatusCode)
         } finally { dispatcher.release() }

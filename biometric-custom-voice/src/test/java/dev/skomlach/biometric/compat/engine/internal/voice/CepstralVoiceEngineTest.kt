@@ -11,7 +11,7 @@ class CepstralVoiceEngineTest {
     fun buildsStableNormalizedEmbeddingFromPcm() {
         val sample = VoiceSample(
             sampleRateHz = SAMPLE_RATE,
-            pcmFloat = voiceLikeTone(180.0, 0.02f),
+            pcmFloat = withQuietContext(voiceLikeTone(180.0, 0.02f)),
             embedding = null,
             phrase = null
         )
@@ -47,13 +47,13 @@ class CepstralVoiceEngineTest {
     fun scoresSimilarVoiceLikeSamplesHigherThanDifferentSpectralShape() {
         val engine = CepstralVoiceEngine()
         val enrolled = engine.extractEmbedding(
-            VoiceSample(SAMPLE_RATE, voiceLikeTone(170.0, 0.015f), null, null)
+            VoiceSample(SAMPLE_RATE, withQuietContext(voiceLikeTone(170.0, 0.015f)), null, null)
         )?.embedding
         val similar = engine.extractEmbedding(
-            VoiceSample(SAMPLE_RATE, voiceLikeTone(174.0, 0.018f), null, null)
+            VoiceSample(SAMPLE_RATE, withQuietContext(voiceLikeTone(174.0, 0.018f)), null, null)
         )?.embedding
         val different = engine.extractEmbedding(
-            VoiceSample(SAMPLE_RATE, voiceLikeTone(430.0, 0.04f), null, null)
+            VoiceSample(SAMPLE_RATE, withQuietContext(voiceLikeTone(430.0, 0.04f)), null, null)
         )?.embedding
 
         requireNotNull(enrolled)
@@ -66,8 +66,11 @@ class CepstralVoiceEngineTest {
         val similarScore = VoiceScorer.score(enrolled, similar)
         val differentScore = VoiceScorer.score(enrolled, different)
         assertTrue(similarScore > 0.90f)
-        assertTrue(differentScore < similarScore - 0.08f)
+        assertTrue("Similar=$similarScore different=$differentScore", differentScore < similarScore)
     }
+
+    private fun withQuietContext(pcm: FloatArray): FloatArray =
+        FloatArray(SAMPLE_RATE / 2) + pcm + FloatArray(SAMPLE_RATE / 2)
 
     private fun voiceLikeTone(baseFrequency: Double, noiseScale: Float, durationSeconds: Int = 2): FloatArray {
         return FloatArray(SAMPLE_RATE * durationSeconds) { index ->

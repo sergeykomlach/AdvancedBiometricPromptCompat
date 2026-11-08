@@ -31,7 +31,7 @@ class ZkFingerSessionSupportTest {
     @Test
     fun `resolveZkPermissionRequestCode is deterministic`() {
         assertEquals(
-            544897,
+            7_231_838,
             resolveZkPermissionRequestCode(
                 vendorId = 6997,
                 productId = 41,

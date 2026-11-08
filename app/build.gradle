@@ -73,6 +73,9 @@ android {
     sourceSets.debug.jniLibs.srcDir new File(rootProject.ext.zkFingerSdkDirectory, 'jniLibs')
     sourceSets.debug.assets.srcDir new File(rootProject.ext.sherpaOnnxSdkDirectory, 'assets')
     sourceSets.sherpaOnly.assets.srcDir new File(rootProject.ext.sherpaOnnxSdkDirectory, 'assets')
+    ['debug', 'sdkAbsent', 'sherpaOnly'].each { variant ->
+        sourceSets.getByName(variant).java.srcDir 'src/leakCanary/java'
+    }
     buildFeatures {
         viewBinding true
     }
@@ -130,7 +133,9 @@ dependencies {
 //    //ANR's
 //    implementation libs.anrwatchdog
 //    //memory leaks
-    implementation libs.leakcanary.android
+    debugImplementation libs.leakcanary.android
+    sdkAbsentImplementation libs.leakcanary.android
+    sherpaOnlyImplementation libs.leakcanary.android
     implementation(libs.chucker.library)
     //releaseImplementation(libs.chucker.library.no.op)
 

@@ -1,6 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
 import dev.skomlach.common.storage.editProtected
+import dev.skomlach.common.storage.protectedKeys
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkScope
 import android.content.SharedPreferences
 import android.util.Base64
@@ -58,12 +59,11 @@ class VoiceTemplateStore internal constructor(
         voiceEnrollmentStatus(templateNames().map { prefs.getString(IDENTITY_PREFIX + it, null) }, identity)
     }
 
-    fun templateNames(): Collection<String> = synchronized(storageLock) {
-        prefs.all.keys
+    fun templateNames(): Collection<String> =
+        prefs.protectedKeys()
             .filter { it.startsWith(TEMPLATE_PREFIX) }
             .map { it.removePrefix(TEMPLATE_PREFIX) }
             .sorted()
-    }
 
     fun loadTemplates(): List<VoiceTemplate> = synchronized(storageLock) {
         templateNames().flatMap { tag ->
@@ -259,7 +259,7 @@ class VoiceTemplateStore internal constructor(
         // Stores share one protected namespace. Per-instance locks cannot prevent mixed
         // payload/identity reads or lost read-modify-write updates across public stores.
         // All persistence stays inside this lock; inference/training remains outside.
-        val operationScope = SoftwareBiometricWorkScope()
+        val operationScope = SoftwareBiometricWorkScope(nonBlockingCancellation = true)
         val storageLock = operationScope.lock
         const val STORAGE_NAME = "voice_templates"
         const val TEMPLATE_PREFIX = "template_"

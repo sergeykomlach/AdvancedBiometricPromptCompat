@@ -106,7 +106,7 @@ abstract class AbstractSoftwareBiometricManager {
 
     open fun isLockedOut(): Boolean = getLockoutError() != null
 
-    protected fun resetTemporaryLockoutState(prefs: SharedPreferences) {
+    protected fun resetTemporaryLockoutState(prefs: SharedPreferences): Unit = synchronized(prefs) {
         runProtectedStorageMaintenance({ LogCat.logException(it) }) {
             prefs.editProtected {
                 remove(KEY_LOCKOUT_END_TIMESTAMP)
@@ -115,7 +115,7 @@ abstract class AbstractSoftwareBiometricManager {
         }
     }
 
-    protected fun resetPermanentLockoutState(prefs: SharedPreferences) {
+    protected fun resetPermanentLockoutState(prefs: SharedPreferences): Unit = synchronized(prefs) {
         runProtectedStorageMaintenance({ LogCat.logException(it) }) {
             prefs.editProtected {
                 remove(KEY_FAILED_ATTEMPTS)
@@ -154,7 +154,7 @@ abstract class AbstractSoftwareBiometricManager {
     protected fun recordFailedAttempt(
         prefs: SharedPreferences,
         policy: LockoutPolicy
-    ) {
+    ): Unit = synchronized(prefs) {
         val now = System.currentTimeMillis()
         val lockoutEnd = prefs.getLong(KEY_LOCKOUT_END_TIMESTAMP, 0L)
         val expired = lockoutEnd in 1L..now
@@ -181,8 +181,8 @@ abstract class AbstractSoftwareBiometricManager {
     protected fun forceLockout(
         prefs: SharedPreferences,
         policy: LockoutPolicy
-    ) {
-        var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0) + 1
+    ): Unit = synchronized(prefs) {
+        val permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0) + 1
         prefs.editProtected {
             putInt(KEY_FAILED_ATTEMPTS, 0)
             if (permanentLockoutCount < policy.maxTemporaryLockoutsBeforePermanent) {

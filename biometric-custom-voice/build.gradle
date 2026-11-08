@@ -26,6 +26,7 @@ dependencies {
     implementation project(":" + libArtifactId_common)
     implementation project(":" + libArtifactId_biometric)
     testImplementation libs.junit
+    testImplementation libs.robolectric
 }
 
 ext {

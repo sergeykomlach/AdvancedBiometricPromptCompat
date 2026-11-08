@@ -14,12 +14,12 @@ internal class VoiceAutoCaptureSession(
     private val sampleRateHz: Int = DEFAULT_SAMPLE_RATE_HZ,
     private val promptMessageResolver: (VoicePromptState, CharSequence?) -> VoicePromptRender = VoicePromptMessageResolver::resolve,
     private val outcomePolicy: VoiceOutcomePolicy = VoiceOutcomePolicy(),
-    private val onCaptureLockout: () -> AuthenticationResult = {
-        AuthenticationResult(
+    private val onCaptureLockout: ((AuthenticationResult) -> Unit) -> Unit = { deliver ->
+        deliver(AuthenticationResult(
             type = BiometricType.BIOMETRIC_VOICE,
             reason = AuthenticationFailureReason.LOCKED_OUT,
             description = ""
-        )
+        ))
     }
 ) {
     interface Callback {
@@ -151,10 +151,8 @@ internal class VoiceAutoCaptureSession(
 
             is VoiceOutcomeDecision.Lockout -> {
                 progress = policyDecision.progress
-                emitTerminalError(
-                    state = VoicePromptState.Lockout,
-                    result = onCaptureLockout()
-                )
+                terminal = true
+                onCaptureLockout { result -> emitTerminalError(VoicePromptState.Lockout, result) }
             }
         }
     }

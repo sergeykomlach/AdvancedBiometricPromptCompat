@@ -10,6 +10,7 @@ import java.net.ProxySelector
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketAddress
+import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.net.URI
 import java.util.concurrent.CountDownLatch
@@ -67,18 +68,25 @@ class NativeHttpsRequestTest {
 
     @Test(timeout = 5_000)
     fun aSlowTrickleCannotExtendTheTotalResponseDeadline() {
+        val reply = "HTTP/1.1 204 Reply\r\n"
+        val bytesSent = AtomicInteger()
         withServer({ socket ->
             readHeaders(socket)
             try {
-                for (character in "HTTP/1.1 204 Reply\r\n") {
+                for (character in reply) {
                     socket.outputStream.write(character.code)
-                    Thread.sleep(30)
+                    bytesSent.incrementAndGet()
+                    Thread.sleep(50)
                 }
             } catch (_: IOException) { }
             ""
-        }) { server, _ ->
-            val request = request(server, timeout = 150)
-            assertThrows(SocketTimeoutException::class.java) { request.execute() }
+        }) { server, received ->
+            val request = request(server, timeout = 350)
+            val error = assertThrows(IOException::class.java) { request.execute() }
+            // Either the read deadline or the watchdog can stop the same request.
+            assertTrue(error is SocketTimeoutException || error is SocketException)
+            received.get(2, TimeUnit.SECONDS)
+            assertTrue(bytesSent.get() in 1 until reply.length)
         }
     }
 

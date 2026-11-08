@@ -12,12 +12,10 @@ import kotlin.math.sin
 class VoiceCaptureDecisionTest {
     @Test
     fun decideVoiceCaptureSampleAcceptsCompletedValidSample() {
-        val detection = VoiceStreamingDetection(
-            detectedSpeech = true,
-            isComplete = true,
-            completedSample = voiceLikeTone(durationSeconds = 1.5),
-            activeSample = null
-        )
+        val pcm = withQuietContext(voiceLikeTone(durationSeconds = 1.5))
+        val chunks = (pcm.indices step 320).map { pcm.copyOfRange(it, minOf(it + 320, pcm.size)) }
+        val detection = VoiceStreamingDetector(SAMPLE_RATE).detect(chunks, includeNoiseContext = true)
+        assertTrue(detection.isComplete)
 
         val decision = decideVoiceCaptureSample(detection, SAMPLE_RATE)
 
@@ -25,7 +23,8 @@ class VoiceCaptureDecisionTest {
         assertEquals(VoiceQualityIssue.NONE, decision.qualityIssue)
         assertTrue(decision.shouldNotifySpeechDetected)
         assertNotNull(decision.acceptedSample)
-        assertTrue(decision.acceptedSample!!.isNotEmpty())
+        val sample = VoiceSample(SAMPLE_RATE, requireNotNull(decision.acceptedSample), null, null)
+        assertEquals(VoiceQualityIssue.NONE, sample.qualityIssue())
     }
 
     @Test
@@ -34,7 +33,7 @@ class VoiceCaptureDecisionTest {
             detectedSpeech = true,
             isComplete = false,
             completedSample = null,
-            activeSample = voiceLikeTone(durationSeconds = 1.5)
+            activeSample = withQuietContext(voiceLikeTone(durationSeconds = 1.5))
         )
 
         val decision = decideVoiceCaptureSample(detection, SAMPLE_RATE)
@@ -145,6 +144,9 @@ class VoiceCaptureDecisionTest {
 
         assertTrue(shouldCountTowardsAutoCaptureLockout(decision))
     }
+
+    private fun withQuietContext(pcm: FloatArray): FloatArray =
+        FloatArray(SAMPLE_RATE / 2) + pcm + FloatArray(SAMPLE_RATE / 2)
 
     private fun voiceLikeTone(durationSeconds: Double): FloatArray {
         val size = (SAMPLE_RATE * durationSeconds).toInt()
