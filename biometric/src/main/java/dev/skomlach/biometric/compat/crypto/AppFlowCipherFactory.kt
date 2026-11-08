@@ -27,9 +27,12 @@ import javax.crypto.spec.SecretKeySpec
 internal object AppFlowCipherFactory {
     private val format = byteArrayOf(0x41, 0x46, 0x04, 0x01)
 
+    fun isVersionedIv(iv: ByteArray): Boolean =
+        iv.size == 20 && format.indices.all { iv[it] == format[it] }
+
     fun isLegacyIv(iv: ByteArray): Boolean {
         if (iv.size == 12) return true
-        require(iv.size == 20 && iv.take(4).toByteArray().contentEquals(format)) {
+        require(isVersionedIv(iv)) {
             "Unsupported app-flow IV format"
         }
         return false

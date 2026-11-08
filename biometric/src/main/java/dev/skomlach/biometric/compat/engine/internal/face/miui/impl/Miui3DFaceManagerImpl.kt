@@ -288,21 +288,13 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         prepareDatabase()
     }
 
+    @Synchronized
     override fun onBiometricServiceDisconnected() {
-        var str = LOG_TAG
-        var stringBuilder = StringBuilder()
-        stringBuilder.append("onBiometricServiceDisconnected ")
-        stringBuilder.append(this)
-        d(str, stringBuilder.toString())
-        if (!mDisonnected) {
-            str = LOG_TAG
-            stringBuilder = StringBuilder()
-            stringBuilder.append("xiaomi--> set mDisonnected true ")
-            stringBuilder.append(this)
-            d(str, stringBuilder.toString())
-            mDisonnected = true
-            release()
-        }
+        if (mDisonnected) return
+        mDisonnected = true
+        isReleased = true
+        // The terminal delivery closes the owned attempt and removes its timeout.
+        authentication?.attempt?.error(1, null)
     }
 
     override fun onBiometricEventClassLoader(bundle: Bundle) {
@@ -934,6 +926,11 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             stringBuilder.append(context)
             stringBuilder.append(str)
             e(str3, stringBuilder.toString())
+            if (callback != null && cancel?.isCanceled != true) {
+                Handler(handler?.looper ?: context.mainLooper).post {
+                    if (cancel?.isCanceled != true) callback.onAuthenticationError(1, null)
+                }
+            }
         } else if (hasEnrolledFaces() == 0) {
             str3 = LOG_TAG
             val stringBuilder2 = StringBuilder()
@@ -941,6 +938,11 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             stringBuilder2.append(context)
             stringBuilder2.append(str)
             e(str3, stringBuilder2.toString())
+            if (callback != null && cancel?.isCanceled != true) {
+                Handler(handler?.looper ?: context.mainLooper).post {
+                    if (cancel?.isCanceled != true) callback.onAuthenticationError(11, null)
+                }
+            }
         } else if (callback != null) {
             if (cancel != null) {
                 if (cancel.isCanceled) {

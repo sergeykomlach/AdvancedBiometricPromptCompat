@@ -345,7 +345,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         }
 
         //non fatal
-        if (!builder.isBehaviorFirstStage() && mutableListOf(
+        if (normalizedModule?.type != BiometricType.BIOMETRIC_BEHAVIOR && !builder.isBehaviorFirstStage() && mutableListOf(
                 AuthenticationFailureReason.SENSOR_FAILED,
                 AuthenticationFailureReason.AUTHENTICATION_FAILED
             ).contains(failureReason)

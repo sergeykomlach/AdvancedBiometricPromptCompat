@@ -60,10 +60,10 @@ import dev.skomlach.biometric.compat.shouldShowPostSystemCompatDialog
 import dev.skomlach.biometric.compat.biometricRequiredCryptoMissingDescription
 import dev.skomlach.biometric.compat.biometricRequiredCryptoRejectedDescription
 import dev.skomlach.biometric.compat.biometricStartAuthenticationDescription
-import dev.skomlach.biometric.compat.crypto.AppFlowCryptoRegistry
+import dev.skomlach.biometric.compat.crypto.AppFlowCryptoFacade
+import dev.skomlach.biometric.compat.crypto.AppFlowCipherFactory
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
-import dev.skomlach.biometric.compat.crypto.CryptoAccessType
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.StatusLegacyBiometricAuthenticationListener
@@ -114,6 +114,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private val authSessionState = AuthSessionState<AuthenticationResult>()
     @Volatile
     private var authSessionToken = -1L
+    private var appFlowCryptoPreparation: Long? = null
     private val callbackDispatchSessionToken = AtomicLong(-1L)
     private val isOpened = AtomicBoolean(false)
     private val systemPromptStarted = AtomicBoolean(false)
@@ -737,6 +738,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     @SuppressLint("RestrictedApi")
     private fun showSystemUi(biometricPrompt: BiometricPrompt) {
+        val sessionToken = authSessionToken
+        if (!authSessionState.owns(sessionToken) || appFlowCryptoPreparation == sessionToken) return
         try {
             d("BiometricPromptApi28Impl.showSystemUi() $biometricPrompt")
             // Use the host that owns this AndroidX prompt, never a newly resumed Activity.
@@ -757,23 +760,33 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 }.toSet())
                 return
             }
-            val sessionToken = authSessionToken
             if (systemPromptCancellation == null) {
                 systemPromptCancellation = AndroidXPromptCancellation(
                     activity.supportFragmentManager, biometricPrompt
                 ) { authSessionState.owns(sessionToken) }
             }
             systemPromptCancellation?.observe()
+            val requestedPurpose = builder.getCryptographyPurpose()
+            if (requestedPurpose?.purpose == BiometricCryptographyPurpose.DECRYPT &&
+                requestedPurpose.initVector?.let(AppFlowCipherFactory::isVersionedIv) == true
+            ) {
+                if (builder.isCryptoFallbackAllowed()) {
+                    prepareAppFlowCrypto(biometricPrompt, activity, sessionToken, requestedPurpose)
+                } else {
+                    checkAuthResult(AuthResult.AuthResultState.FATAL_ERROR, AuthenticationResult(
+                        BiometricType.BIOMETRIC_ANY, reason = AuthenticationFailureReason.CRYPTO_ERROR,
+                        description = biometricRequiredCryptoRejectedDescription()
+                    ))
+                }
+                return
+            }
             var biometricCryptoObject: BiometricCryptoObject? = null
-            var isAppFlowCrypto = false
-            builder.getCryptographyPurpose()?.let {
+            requestedPurpose?.let {
                 biometricCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
                     PROMPT_CRYPTO_KEY,
-                    builder.getCryptographyPurpose(),
+                    it,
                     true
                 )
-                isAppFlowCrypto =
-                    AppFlowCryptoRegistry.getAccessType(PROMPT_CRYPTO_KEY) == CryptoAccessType.APP_FLOW
             }
 
             val crpObject =
@@ -784,13 +797,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 else biometricCryptoObject?.signature?.let { BiometricPrompt.CryptoObject(it) }
 
             d("BiometricPromptApi28Impl.authenticate:  Crypto=$crpObject")
-            if (isAppFlowCrypto) {
-                d("BiometricPromptApi28Impl.authenticate: app-flow crypto is prepared; authenticate without AndroidX CryptoObject")
-                pendingPromptCryptoObject.set(biometricCryptoObject)
-                authCallTimestamp.set(System.currentTimeMillis())
-                biometricPrompt.authenticate(biometricPromptInfo)
-                updateSystemPromptStarted(true)
-            } else if (crpObject != null) {
+            if (crpObject != null) {
                 try {
                     pendingPromptCryptoObject.set(null)
                     authCallTimestamp.set(System.currentTimeMillis())
@@ -802,17 +809,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         "BiometricPromptApi28Impl.authenticate with CryptoObject failed"
                     )
                     pendingPromptCryptoObject.set(null)
-                    if (builder.getCryptographyPurpose() != null) {
+                    val purpose = builder.getCryptographyPurpose()
+                    if (purpose != null) {
                         if (builder.isCryptoFallbackAllowed()) {
-                            val fallbackCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                                PROMPT_CRYPTO_KEY,
-                                builder.getCryptographyPurpose(),
-                                false
-                            )
-                            pendingPromptCryptoObject.set(fallbackCryptoObject)
-                            authCallTimestamp.set(System.currentTimeMillis())
-                            biometricPrompt.authenticate(biometricPromptInfo)
-                            updateSystemPromptStarted(true)
+                            prepareAppFlowCrypto(biometricPrompt, activity, sessionToken, purpose)
                             return
                         }
                         checkAuthResult(
@@ -847,8 +847,49 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
     }
 
+    private fun prepareAppFlowCrypto(
+        prompt: BiometricPrompt,
+        host: FragmentActivity,
+        sessionToken: Long,
+        purpose: BiometricCryptographyPurpose
+    ) {
+        val ownedPurpose = purpose.copy(initVector = purpose.initVector?.copyOf())
+        appFlowCryptoPreparation = sessionToken
+        ExecutorHelper.startOnBackground {
+            if (!authSessionState.owns(sessionToken)) return@startOnBackground
+            val prepared = runCatching {
+                BiometricCryptoObjectHelper.prepareAppFlowCryptoObject(PROMPT_CRYPTO_KEY, ownedPurpose)
+            }
+            ExecutorHelper.post {
+                if (appFlowCryptoPreparation != sessionToken || !authSessionState.owns(sessionToken)) return@post
+                appFlowCryptoPreparation = null
+                if (host.isDestroyed || host.isFinishing || host.supportFragmentManager.isStateSaved) {
+                    callback?.onCanceled(emptySet())
+                    return@post
+                }
+                runCatching {
+                    pendingPromptCryptoObject.set(prepared.getOrThrow())
+                    AppFlowCryptoFacade.registerKeyForAppFlow(PROMPT_CRYPTO_KEY)
+                    authCallTimestamp.set(System.currentTimeMillis())
+                    prompt.authenticate(biometricPromptInfo)
+                    updateSystemPromptStarted(true)
+                    if (deferredPreparation?.isPending == false) startPreparedSoftware()
+                }.onFailure { error ->
+                    pendingPromptCryptoObject.set(null)
+                    e(error, "BiometricPromptApi28Impl app-flow crypto preparation failed")
+                    checkAuthResult(
+                        AuthResult.AuthResultState.FATAL_ERROR,
+                        AuthenticationResult(BiometricType.BIOMETRIC_ANY, reason = AuthenticationFailureReason.CRYPTO_ERROR,
+                            description = biometricRequiredCryptoRejectedDescription())
+                    )
+                }
+            }
+        }
+    }
+
 
     override fun stopAuth() {
+        appFlowCryptoPreparation = null
         deferredPreparation?.cancel()
         updateSystemPromptStarted(false)
         parallelCapture = null
@@ -1040,7 +1081,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
 
 
-        } else if (deferredPreparation?.isPending != true && shouldShowPostSystemCompatDialog(
+        } else if (appFlowCryptoPreparation == null && deferredPreparation?.isPending != true && shouldShowPostSystemCompatDialog(
                 systemPromptStarted = systemPromptStarted.get(),
                 hasPendingLegacyRoute = pendingLegacyTypes().let { pending ->
                     pending.isNotEmpty() && parallelCapture?.types.orEmpty().none { it in pending }

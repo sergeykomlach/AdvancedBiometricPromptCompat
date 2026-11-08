@@ -87,7 +87,7 @@ internal class BehaviorSignalClient(context: Context,
                 override fun onAuthenticationSucceeded(result: AbstractSoftwareBiometricManager.AuthenticationResult?) =
                     deliver(if (result != null) SupplementalBiometricOutcome.MATCHED else SupplementalBiometricOutcome.UNAVAILABLE)
                 override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) = deliver(
-                    if (errMsgId == AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_VENDOR)
+                    if (errMsgId == AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_NOT_MATCHED)
                         SupplementalBiometricOutcome.NOT_MATCHED else SupplementalBiometricOutcome.UNAVAILABLE)
                 override fun onAuthenticationCancelled() = deliver(SupplementalBiometricOutcome.UNAVAILABLE)
             }, Handler(Looper.getMainLooper()), extras)

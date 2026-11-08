@@ -1,27 +1,45 @@
 package dev.skomlach.biometric.compat.crypto
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 object AppFlowSessionStore {
 
-    private data class Session(
+    private class Session(
         val secret: CharArray,
         val createdAt: Long,
         val allowLegacyDecryption: Boolean
-    )
+    ) {
+        var expiry: ScheduledFuture<*>? = null
+
+        fun clear() {
+            expiry?.cancel(false)
+            secret.fill('\u0000')
+        }
+    }
 
     internal data class Unlock(val secret: CharArray, val allowLegacyDecryption: Boolean)
 
-    private val sessions = ConcurrentHashMap<String, Session>()
-    private const val SESSION_TTL_MS = 15_000L
+    private val sessions = HashMap<String, Session>()
+    private const val SESSION_TTL_SECONDS = 15L
+    private val expiryExecutor = ScheduledThreadPoolExecutor(1) { task ->
+        Thread(task, "BiometricCompat-app-flow-expiry").apply { isDaemon = true }
+    }.apply { removeOnCancelPolicy = true }
 
     fun unlock(keyName: String, secret: CharArray) {
         unlock(keyName, secret, false)
     }
 
+    @Synchronized
     internal fun unlock(keyName: String, secret: CharArray, allowLegacyDecryption: Boolean) {
-        close(keyName)
-        sessions[keyName] = Session(secret.copyOf(), System.currentTimeMillis(), allowLegacyDecryption)
+        val session = Session(secret.copyOf(), System.nanoTime(), allowLegacyDecryption)
+        sessions.put(keyName, session)?.clear()
+        session.expiry = expiryExecutor.schedule({
+            synchronized(this) {
+                if (sessions[keyName] === session) close(keyName)
+            }
+        }, SESSION_TTL_SECONDS, TimeUnit.SECONDS)
     }
 
     /**
@@ -29,24 +47,25 @@ object AppFlowSessionStore {
      */
     fun consumeSecretOrNull(keyName: String): CharArray? = consumeUnlockOrNull(keyName)?.secret
 
+    @Synchronized
     internal fun consumeUnlockOrNull(keyName: String): Unlock? {
         val session = sessions.remove(keyName) ?: return null
-        val expired = System.currentTimeMillis() - session.createdAt > SESSION_TTL_MS
-        return if (expired) {
-            session.secret.fill('\u0000')
-            null
-        } else {
-            Unlock(session.secret.copyOf(), session.allowLegacyDecryption).also { session.secret.fill('\u0000') }
+        return try {
+            val expired = System.nanoTime() - session.createdAt >= TimeUnit.SECONDS.toNanos(SESSION_TTL_SECONDS)
+            if (expired) null else Unlock(session.secret.copyOf(), session.allowLegacyDecryption)
+        } finally {
+            session.clear()
         }
     }
 
+    @Synchronized
     fun close(keyName: String) {
-        val removed = sessions.remove(keyName) ?: return
-        removed.secret.fill('\u0000')
+        sessions.remove(keyName)?.clear()
     }
 
+    @Synchronized
     fun closeAll() {
-        val keys = sessions.keys().toList()
-        keys.forEach(::close)
+        sessions.values.forEach(Session::clear)
+        sessions.clear()
     }
 }

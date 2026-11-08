@@ -77,10 +77,7 @@ internal class VoiceAutoCaptureController(
         }
         Vibro.start()
         val state = session.currentPromptState()
-        orchestrator.start(
-            step = state.currentStepOrNull() ?: 1,
-            total = state.totalStepsOrDefault()
-        )
+        orchestrator.start()
     }
 
     private fun onCaptureOutcome(outcome: VoiceCaptureOutcome) {

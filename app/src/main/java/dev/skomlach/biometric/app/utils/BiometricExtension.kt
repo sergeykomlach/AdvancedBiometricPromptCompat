@@ -23,6 +23,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.app.R
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
@@ -37,6 +38,9 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.getFixedContext
 import java.nio.charset.Charset
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private val testString = "Test data"
 private val cryptoTests = HashMap<BiometricAuthRequest, CryptoTest>()
@@ -48,9 +52,24 @@ fun Fragment.startBiometric(
     allowCredentials: Boolean,
     isRegister: Boolean
 ) {
+    viewLifecycleOwner.lifecycleScope.launch {
+        val snapshot = withContext(Dispatchers.IO) {
+            BiometricManagerCompat.getAuthSnapshot(biometricAuthRequest)
+        }
+        if (!isResumed) return@launch
+        startBiometric(biometricAuthRequest, silentAuth, crypto, allowCredentials, isRegister, snapshot)
+    }
+}
 
+private fun Fragment.startBiometric(
+    biometricAuthRequest: BiometricAuthRequest,
+    silentAuth: Boolean,
+    crypto: Boolean,
+    allowCredentials: Boolean,
+    isRegister: Boolean,
+    authSnapshot: BiometricAuthSnapshot
+) {
     BiometricLoggerImpl.e("CheckBiometric.start() for $biometricAuthRequest isRegister=$isRegister")
-    val authSnapshot = BiometricManagerCompat.getAuthSnapshot(biometricAuthRequest)
     if (isRegister) {
         val readyForEnroll = authSnapshot.readyForEnroll
         if (!readyForEnroll && !allowCredentials) {

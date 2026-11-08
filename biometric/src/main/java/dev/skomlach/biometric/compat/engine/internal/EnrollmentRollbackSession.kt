@@ -9,6 +9,9 @@ internal class EnrollmentRollbackSession<K>(
     private var finished = false
 
     @Synchronized
+    fun hasTrackedProviders(): Boolean = scopes.isNotEmpty()
+
+    @Synchronized
     fun track(owner: K): EnrollmentRollbackScope {
         check(!finished) { "Enrollment session is already finished" }
         return scopes.getOrPut(owner) { start(owner) }

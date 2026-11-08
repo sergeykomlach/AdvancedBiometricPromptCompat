@@ -53,6 +53,7 @@ abstract class AbstractSoftwareBiometricManager {
         const val CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS = 2
         const val CUSTOM_BIOMETRIC_ERROR_USER_CANCELED = 10
         const val CUSTOM_BIOMETRIC_ERROR_VENDOR = 8
+        const val CUSTOM_BIOMETRIC_ERROR_NOT_MATCHED = 14
 
         const val PRIORITY_BELOW_SYSTEM_HARDWARE =
             BiometricModule.PRIORITY_BELOW_SYSTEM_HARDWARE
@@ -146,12 +147,6 @@ abstract class AbstractSoftwareBiometricManager {
         val currentTime = System.currentTimeMillis()
         if (lockoutEndTime > currentTime) {
             return CUSTOM_BIOMETRIC_ERROR_LOCKOUT
-        } else if (lockoutEndTime > 0) {
-            // This reset is part of an access decision, so failure must remain unavailable.
-            prefs.editProtected {
-                remove(KEY_LOCKOUT_END_TIMESTAMP)
-                remove(KEY_FAILED_ATTEMPTS)
-            }
         }
         return null
     }
@@ -160,17 +155,21 @@ abstract class AbstractSoftwareBiometricManager {
         prefs: SharedPreferences,
         policy: LockoutPolicy
     ) {
-        var failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
+        val now = System.currentTimeMillis()
+        val lockoutEnd = prefs.getLong(KEY_LOCKOUT_END_TIMESTAMP, 0L)
+        val expired = lockoutEnd in 1L..now
+        var failedAttempts = if (expired) 1 else prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
         var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
 
         prefs.editProtected {
+            if (expired) remove(KEY_LOCKOUT_END_TIMESTAMP)
             if (failedAttempts >= policy.maxFailedAttemptsBeforeLockout) {
                 permanentLockoutCount++
                 failedAttempts = 0
                 if (permanentLockoutCount < policy.maxTemporaryLockoutsBeforePermanent) {
                     putLong(
                         KEY_LOCKOUT_END_TIMESTAMP,
-                        System.currentTimeMillis() + policy.lockoutDurationMs
+                        now + policy.lockoutDurationMs
                     )
                 }
                 putInt(KEY_PERMANENT_LOCKOUT_COUNT, permanentLockoutCount)

@@ -19,168 +19,40 @@
 
 package dev.skomlach.biometric.compat.impl.permissions
 
-import android.app.Activity
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.os.BundleCompat
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.BroadcastTools
-import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
-import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
-import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.permissionui.OwnedResultFragment
 
-
-class InitiateSystemBiometricEnrollFragment : Fragment() {
+class InitiateSystemBiometricEnrollFragment : OwnedResultFragment<Unit>() {
     companion object {
-        private const val INTENT_KEY = "InitiateSystemBiometricEnrollFragment.intent_key"
-
         private const val TAG = "InitiateSystemBiometricEnrollFragment"
-        fun showFragment(
+
+        fun showFragment(activity: FragmentActivity, biometricAuthRequest: BiometricAuthRequest, callback: () -> Unit?) {
+            launchOwned(activity, biometricAuthRequest) { callback() }
+        }
+
+        internal fun launchOwned(
             activity: FragmentActivity,
-            biometricAuthRequest: BiometricAuthRequest,
-            callback: () -> Unit?
-        ) {
-            LogCat.log("InitiateSystemBiometricEnrollFragment", "showFragment")
-
-            val tag = TAG
-
-
-            if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
-                return
-            registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    AndroidContext.resumedActivityLiveData.observeForever(object :
-                        Observer<Activity?> {
-                        private val observer = this
-                        private val action = Runnable {
-                            AndroidContext.activity?.let {
-                                AndroidContext.resumedActivityLiveData.removeObserver(observer)
-                                callback.invoke()
-                            }
-                        }
-
-                        override fun onChanged(value: Activity?) {
-                            if (value != null) {
-                                ExecutorHelper.removeCallbacks(action)
-                                ExecutorHelper.postDelayed(action, 250)
-                            }
-                        }
-                    })
-                    try {
-                        unregisterGlobalBroadcastIntent(appContext, this)
-                    } catch (e: Throwable) {
-                        LogCat.logException(e)
-                    }
-                }
-            }, IntentFilter(INTENT_KEY))
-            activity
-                .supportFragmentManager.beginTransaction()
-                .add(InitiateSystemBiometricEnrollFragment().apply {
-                    arguments = Bundle().apply {
-                        putParcelable("request", biometricAuthRequest)
-                    }
-                }, tag)
-                .commitAllowingStateLoss()
-
-        }
-
-
-    }
-
-    private fun closeFragment() {
-        LogCat.log("InitiateSystemBiometricEnrollFragment", "closeFragment")
-        val tag = TAG
-        activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
-        try {
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.remove(this@InitiateSystemBiometricEnrollFragment)
-                ?.commitNowAllowingStateLoss()
-        } catch (e: Throwable) {
-            e("InitiateSystemBiometricEnrollFragment", e.message, e)
-        } finally {
-            BroadcastTools.sendGlobalBroadcastIntent(
-                appContext, Intent(
-                    INTENT_KEY
-                )
-            )
+            request: BiometricAuthRequest,
+            callback: (returnedFromSettings: Boolean) -> Unit
+        ): () -> Unit {
+            val fragment = InitiateSystemBiometricEnrollFragment().apply { this.request = request }
+            return launchOwnedResult(activity, fragment, TAG) { callback(it != null) }
         }
     }
 
-
-    private val startForResult: ActivityResultLauncher<Intent> =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                closeFragment()
-
-            } else { //workaround
-                val observer = object : Observer<Activity?> {
-                    private var waitForResume = false
-                    override fun onChanged(t: Activity?) {
-                        if (t == null) {
-                            waitForResume = true
-                            return
-                        }
-                        if (waitForResume && t == activity) {
-                            AndroidContext.resumedActivityLiveData.removeObserver(this)
-                            closeFragment()
-                        }
-
-
-                    }
-                }
-                AndroidContext.resumedActivityLiveData.observeForever(observer)
-            }
-        }
-
-    override fun onDestroyView() {
-        LogCat.log("InitiateSystemBiometricEnrollFragment", "onDestroyView")
-        super.onDestroyView()
-        startForResult.unregister()
+    private var request: BiometricAuthRequest? = null
+    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        // Settings can return RESULT_CANCELED even when a template was added.
+        completeRequest(Unit)
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        LogCat.log("InitiateSystemBiometricEnrollFragment", "onAttach $arguments")
-        lifecycleScope.launchWhenResumed {
-            try {
-                val biometricRequest: BiometricAuthRequest = BundleCompat.getParcelable(
-                    arguments ?: return@launchWhenResumed,
-                    "request",
-                    BiometricAuthRequest::class.java
-                ) ?: return@launchWhenResumed
-
-                val intent =
-                    LegacyBiometric.getSettingsIntent(biometricRequest.type) ?: Intent(
-                        Settings.ACTION_SETTINGS
-                    )
-                LogCat.logError(
-                    "InitiateSystemBiometricEnrollFragment",
-                    "$biometricRequest -> $intent"
-                )
-                startForResult.launch(intent)
-            } catch (e: Throwable) {
-                LogCat.logException(
-                    e, "InitiateSystemBiometricEnrollFragment", e.message
-                )
-                closeFragment()
-            }
-        }
-
+    override fun launchRequest() {
+        val intent = LegacyBiometric.getSettingsIntent(checkNotNull(request).type) ?: Intent(Settings.ACTION_SETTINGS)
+        startForResult.launch(intent)
     }
-
 }

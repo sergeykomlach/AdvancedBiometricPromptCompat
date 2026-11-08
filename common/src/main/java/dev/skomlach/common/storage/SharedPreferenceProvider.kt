@@ -106,6 +106,7 @@ object SharedPreferenceProvider {
             private const val KEYSTORE_ALIAS = "BiometricCompatProtectedPrefs"
             private const val KEYSTORE_WRAPPED_KEY = "bio_key_v2"
             private const val KEYSTORE_SALT = "bio_hash_v2"
+            private const val KEYSTORE_MATERIAL = "bio_material_v3"
 
             @Volatile
             // Legacy EncryptionConfig callers only. V3 protected preferences always require Keystore.
@@ -216,12 +217,15 @@ object SharedPreferenceProvider {
                     val userManager = appContext.getSystemService(Context.USER_SERVICE) as? UserManager
                     check(userManager?.isUserUnlocked == true) { "Protected key material requires an unlocked user" }
                 }
-                val passwordExists = File(getDataDir(), KEYSTORE_WRAPPED_KEY).exists()
-                val saltExists = File(getDataDir(), KEYSTORE_SALT).exists()
-                check(passwordExists == saltExists) { "Incomplete protected key material" }
+                val directory = getDataDir()
+                val material = File(directory, KEYSTORE_MATERIAL)
+                val passwordExists = File(directory, KEYSTORE_WRAPPED_KEY).exists()
+                val saltExists = File(directory, KEYSTORE_SALT).exists()
+                val hasBundle = material.exists()
+                if (!hasBundle) check(passwordExists == saltExists) { "Incomplete protected key material" }
                 val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
                 if (!keyStore.containsAlias(KEYSTORE_ALIAS)) {
-                    check(!passwordExists && !saltExists) { "Keystore key for existing data is missing" }
+                    check(!hasBundle && !passwordExists) { "Keystore key for existing data is missing" }
                     val keyGenerator = KeyGenerator.getInstance(
                         KeyProperties.KEY_ALGORITHM_AES,
                         ANDROID_KEYSTORE
@@ -240,32 +244,31 @@ object SharedPreferenceProvider {
                 }
                 val secretKey = keyStore.getKey(KEYSTORE_ALIAS, null) as? SecretKey
                     ?: throw ProtectedStorageUnavailableException("Cannot read protected preferences key")
-                if (!passwordExists) {
-                    val password = secureRandomBytes(32)
-                    val salt = secureRandomBytes(128)
-                    // Complete both Keystore operations before persisting either half.
-                    val wrappedPassword = encryptWithKeyStore(secretKey, password)
-                    val wrappedSalt = encryptWithKeyStore(secretKey, salt)
-                    KeyMaterialFile.readOrCreate(File(getDataDir(), KEYSTORE_WRAPPED_KEY), 32,
-                        { password }, encode = { wrappedPassword })
-                    KeyMaterialFile.readOrCreate(File(getDataDir(), KEYSTORE_SALT), 128,
-                        { salt }, encode = { wrappedSalt })
+                if (!hasBundle && passwordExists) {
+                    val password = readWrappedBytes(KEYSTORE_WRAPPED_KEY, 32, secretKey)
+                    val salt = readWrappedBytes(KEYSTORE_SALT, 128, secretKey)
                     return EncryptionConfig(password, salt)
                 }
-                val password = readOrCreateWrappedBytes(KEYSTORE_WRAPPED_KEY, 32, secretKey)
-                val salt = readOrCreateWrappedBytes(KEYSTORE_SALT, 128, secretKey)
-                return EncryptionConfig(password, salt)
+                val bytes = KeyMaterialFile.readOrCreate(
+                    material, 160, { secureRandomBytes(160) },
+                    decode = { decryptWithKeyStore(secretKey, it) },
+                    encode = { encryptWithKeyStore(secretKey, it) }
+                )
+                return try {
+                    EncryptionConfig(bytes.copyOfRange(0, 32), bytes.copyOfRange(32, 160))
+                } finally {
+                    bytes.fill(0)
+                }
             }
 
-            private fun readOrCreateWrappedBytes(
+            private fun readWrappedBytes(
                 fileName: String,
                 size: Int,
                 secretKey: SecretKey
             ): ByteArray {
                 return KeyMaterialFile.readOrCreate(
-                    File(getDataDir(), fileName), size, { secureRandomBytes(size) },
-                    decode = { decryptWithKeyStore(secretKey, it) },
-                    encode = { encryptWithKeyStore(secretKey, it) }
+                    File(getDataDir(), fileName), size, { error("Missing legacy key material") },
+                    decode = { decryptWithKeyStore(secretKey, it) }
                 )
             }
 
@@ -308,8 +311,12 @@ object SharedPreferenceProvider {
                         uuids.forEach {
                             if (deviceID.isEmpty()) {
                                 try {
-                                    val drmIdByteArray = MediaDrm(it)
-                                        .getPropertyByteArray(MediaDrm.PROPERTY_DEVICE_UNIQUE_ID)
+                                    val drm = MediaDrm(it)
+                                    val drmIdByteArray = try {
+                                        drm.getPropertyByteArray(MediaDrm.PROPERTY_DEVICE_UNIQUE_ID)
+                                    } finally {
+                                        drm.release()
+                                    }
                                     val drmID = Base64.encodeToString(
                                         drmIdByteArray,
                                         Base64.DEFAULT
@@ -328,9 +335,9 @@ object SharedPreferenceProvider {
                     return deviceID
                 }
 
-                val deviceID = deviceID().trim()
-                if (deviceID.isEmpty()) return null
-                val password = deviceID().reversed().toByteArray(UTF_8)
+                val deviceID = deviceID()
+                if (deviceID.isBlank()) return null
+                val password = deviceID.reversed().toByteArray(UTF_8)
                 val bytes = existingSalt ?: readOrCreateBytes("bio_hash", 128)
                 return EncryptionConfig(password, bytes.reversedArray())
             }

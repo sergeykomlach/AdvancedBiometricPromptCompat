@@ -68,4 +68,22 @@ class AuthFlowCompletionTest {
         queue.single().invoke()
         assertEquals(listOf("success", "closed"), events)
     }
+
+    @Test fun enrollmentRollbackKeepsGateUntilCleanupCompletes() {
+        val queue = mutableListOf<() -> Unit>()
+        val events = mutableListOf<String>()
+        val completion = AuthFlowCompletion(
+            post = { queue += it }, ownsFlow = { true },
+            cleanup = { events += "ui cleanup" },
+            release = { events += "released"; true },
+            onClosed = { events += "closed" },
+            afterCleanup = { complete -> queue += { events += "rollback"; complete() } }
+        )
+        completion.finish { events += "cancelled" }
+        queue.removeAt(0).invoke()
+        assertEquals(listOf("ui cleanup"), events)
+        assertTrue(completion.isFinishing())
+        queue.removeAt(0).invoke()
+        assertEquals(listOf("ui cleanup", "rollback", "released", "cancelled", "closed"), events)
+    }
 }

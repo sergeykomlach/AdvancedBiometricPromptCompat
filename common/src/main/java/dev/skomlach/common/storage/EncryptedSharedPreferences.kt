@@ -106,6 +106,7 @@ class EncryptedSharedPreferences internal constructor(
     private val primary by lazy { derive(encryptionConfig()
         ?: throw ProtectedStorageUnavailableException("Protected preference primary key is unavailable")) }
     private val cipher by lazy { BoundPreferenceCipher(primary.valueKeys.integrityKey, storageIdentity) }
+    private var authenticatedNames: Map<String?, String>? = null
     private val legacy = legacyEncryptionConfigs.map { provider -> lazy { provider()?.let(::derive) } }
     private val configs get() = sequence {
         yield(primary)
@@ -161,6 +162,11 @@ class EncryptedSharedPreferences internal constructor(
     }
 
     private fun names(snapshot: Map<String, *>, versioned: Boolean): Map<String?, String> {
+        if (versioned) {
+            authenticatedNames?.let { cached ->
+                if (cached.size == snapshot.size - 1 && cached.values.all(snapshot::containsKey)) return cached
+            }
+        }
         val result = LinkedHashMap<String?, String>()
         for (physical in snapshot.keys) {
             if (physical == HEADER) continue
@@ -173,6 +179,7 @@ class EncryptedSharedPreferences internal constructor(
             if (result.containsKey(key)) throw ProtectedStorageUnavailableException("Ambiguous protected preference name")
             result[key] = physical
         }
+        if (versioned) authenticatedNames = result
         return result
     }
 
@@ -235,6 +242,23 @@ class EncryptedSharedPreferences internal constructor(
         if (!checkFormat(snapshot)) { migrate(snapshot); snapshot = mSharedPreferences.all }
         names(snapshot, true).mapValuesTo(LinkedHashMap()) { (key, physical) ->
             decodeObject(cipher.decryptValue(key, storedValue(snapshot, physical)))
+        }
+    }
+
+    internal fun visitStrings(prefix: String, visit: (String, String?) -> Boolean) {
+        val (snapshot, index) = locked {
+            var snapshot = mSharedPreferences.all
+            if (!checkFormat(snapshot)) {
+                migrate(snapshot)
+                snapshot = mSharedPreferences.all
+            }
+            snapshot to names(snapshot, true)
+        }
+        for (name in index.keys.filterNotNull().filter { it.startsWith(prefix) }.sorted()) {
+            val value = locked {
+                decodeObject(cipher.decryptValue(name, storedValue(snapshot, index.getValue(name)))) as? String
+            }
+            if (!visit(name, value)) return
         }
     }
 

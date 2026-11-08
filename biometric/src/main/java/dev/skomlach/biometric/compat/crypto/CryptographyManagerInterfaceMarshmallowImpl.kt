@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat.crypto
 import android.content.pm.PackageManager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
 import android.security.keystore.KeyProperties.BLOCK_MODE_GCM
 import android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE
@@ -35,6 +36,7 @@ import java.util.concurrent.locks.ReentrantLock
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
 
 @RequiresApi(Build.VERSION_CODES.M)
@@ -61,6 +63,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
                 isUserAuthRequired
             )
             cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+            verifyAuthenticationPolicy(secretKey, isUserAuthRequired)
             cipher
         } catch (e: Throwable) {
             if (!isUserAuthRequired || !isNoKeystoreBiometricEnrollment(e)) {
@@ -92,6 +95,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
             val iv = initializationVector
                 ?: throw IllegalArgumentException("Initialization vector is required for decryption")
             cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, iv))
+            verifyAuthenticationPolicy(secretKey, isUserAuthRequired)
             cipher
         } catch (e: Throwable) {
             if (!isUserAuthRequired || !isNoKeystoreBiometricEnrollment(e)) {
@@ -119,6 +123,20 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
     private fun getCipher(): Cipher {
         val transformation = "$KEY_ALGORITHM_AES/$BLOCK_MODE_GCM/$ENCRYPTION_PADDING_NONE"
         return Cipher.getInstance(transformation)
+    }
+
+    private fun verifyAuthenticationPolicy(key: SecretKey, required: Boolean) {
+        if (!required) return
+        val info = SecretKeyFactory.getInstance(key.algorithm, ANDROID_KEYSTORE_PROVIDER_TYPE)
+            .getKeySpec(key, KeyInfo::class.java) as KeyInfo
+        check(info.isUserAuthenticationRequired && info.userAuthenticationValidityDurationSeconds in -1..0) {
+            "Existing key does not require per-operation biometric authentication"
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            check(info.userAuthenticationType == KeyProperties.AUTH_BIOMETRIC_STRONG) {
+                "Existing key is not restricted to strong biometrics"
+            }
+        }
     }
 
     private fun getOrCreateSecretKey(keyName: String, isUserAuthRequired: Boolean): SecretKey {

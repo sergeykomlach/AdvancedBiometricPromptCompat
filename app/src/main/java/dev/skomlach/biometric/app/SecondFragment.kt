@@ -87,14 +87,19 @@ class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
     }
 
     override fun onDestroyView() {
+        LogCat.clearLog2ViewCallback(this)
+        logs = null
+        scrollView = null
         super.onDestroyView()
         _binding = null
     }
 
     override fun log(log: String) {
-        val sb: StringBuilder = StringBuilder(logs?.text ?: "")
-        sb.append(log).append("\n")
-        logs?.text = sb.toString()
+        val logView = logs ?: return
+        logView.append(log)
+        logView.append("\n")
+        val excess = logView.length() - LogCat.MAX_TEXT_LENGTH
+        if (excess > 0) logView.editableText?.delete(0, excess)
         if (autoscroll) {
             scrollView?.smoothScrollTo(0, logs?.bottom ?: return)
         }

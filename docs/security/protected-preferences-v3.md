@@ -7,6 +7,14 @@ HMAC-SHA256. The primary material must come from Android Keystore; the old
 `failClosedWhenKeyStoreUnavailable=false` configuration option cannot select the
 v3 key. No plaintext, file-key or device-ID write fallback is available.
 
+Fresh key material is wrapped as one atomic `bio_material_v3` file. Installations
+with a complete `bio_key_v2` and `bio_hash_v2` pair continue to read that pair.
+A missing Keystore key, an incomplete old pair, or an unreadable bundle fails
+closed. Older binaries cannot read `bio_material_v3`. On re-upgrade, an existing
+bundle remains authoritative even if an older binary created a separate pair.
+Keep the bundle with the other device-bound material excluded from backup and
+device transfer.
+
 ## Binding and representation
 
 - Names use `e3_`; values and the authenticated format header use `v3_`.

@@ -67,8 +67,9 @@ all samples and permits deletion when a value is corrupt.
 
 Limits: 32 profiles; five samples per tag; 262,144 serialized characters per tag;
 2,097,152 across profiles; 256 phrase characters; 512 typing events; 2,048 points.
-New enrollment is rejected without evicting existing profiles. Legacy overflow is
-unavailable; explicitly remove selected/all profiles to recover. No silent
+New enrollment is rejected without evicting existing profiles. Matching can still
+read valid legacy profiles above the count or aggregate storage limit. Remove
+selected profiles explicitly to resume enrollment within the limits. No silent
 destructive migration occurs. Tags identify enrollment records, not accounts:
 authentication currently compares all local tags. Multi-account consumers must
 isolate identity and authorize enrollment/removal at their own authenticated boundary.

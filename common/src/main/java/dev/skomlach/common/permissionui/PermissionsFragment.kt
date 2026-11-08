@@ -19,12 +19,8 @@
 
 package dev.skomlach.common.permissionui
 
-import android.app.Activity
 import android.app.Dialog
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -34,31 +30,23 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.edit
 import androidx.core.text.TextUtilsCompat
 import androidx.core.view.ViewCompat
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import dev.skomlach.common.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.BroadcastTools
-import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
-import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.Runnable
 
-class PermissionsFragment : Fragment() {
+class PermissionsFragment : OwnedResultFragment<Unit>() {
     companion object {
 
         private const val TAG = "PermissionsFragment"
         private const val LIST_KEY = "permissions_list"
-        private const val INTENT_KEY = "PermissionsFragment.intent_key"
         private const val PREFERENCES_NAME = "BiometricCompat_PermissionsFragment"
         private const val DENIED_KEY_PREFIX = "denied:"
 
@@ -92,46 +80,19 @@ class PermissionsFragment : Fragment() {
             permissions: List<String>,
             callback: Runnable?
         ) {
-            LogCat.log("PermissionsFragment.askForPermissions()")
-            if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
-                val tag = TAG
-                if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
-                    return
-                val fragment = PermissionsFragment()
-                val bundle = Bundle()
-                bundle.putStringArrayList(LIST_KEY, ArrayList(permissions))
-                fragment.arguments = bundle
-                registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
-                    override fun onReceive(context: Context, intent: Intent) {
-                        AndroidContext.resumedActivityLiveData.observeForever(object :
-                            Observer<Activity?> {
-                            private val observer = this
-                            private val action = Runnable {
-                                AndroidContext.activity?.let {
-                                    AndroidContext.resumedActivityLiveData.removeObserver(observer)
-                                    callback?.run()
-                                }
-                            }
-                            override fun onChanged(value: Activity?) {
-                                if (value != null) {
-                                    ExecutorHelper.removeCallbacks(action)
-                                    ExecutorHelper.postDelayed(action, 250)
-                                }
-                            }
-                        })
-                        try {
-                            unregisterGlobalBroadcastIntent(appContext, this)
-                        } catch (e: Throwable) {
-                            LogCat.logException(e)
-                        }
-                    }
-                }, IntentFilter(INTENT_KEY))
-                activity
-                    .supportFragmentManager.beginTransaction()
-                    .add(fragment, tag).commitAllowingStateLoss()
-            } else {
-                if (callback != null) ExecutorHelper.post(callback)
+            launchOwned(activity, permissions) { callback?.run() }
+        }
+
+        @androidx.annotation.RestrictTo(androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP)
+        fun launchOwned(
+            activity: FragmentActivity,
+            permissions: List<String>,
+            callback: (returned: Boolean) -> Unit
+        ): () -> Unit {
+            val fragment = PermissionsFragment().apply {
+                arguments = Bundle().apply { putStringArrayList(LIST_KEY, ArrayList(permissions)) }
             }
+            return launchOwnedResult(activity, fragment, TAG) { callback(it != null) }
         }
     }
 
@@ -152,31 +113,19 @@ class PermissionsFragment : Fragment() {
             closeFragment()
         }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        startForResult.unregister()
-        startForResultForPermissions.unregister()
+    override fun launchRequest() {
+        val permissions = arguments?.getStringArrayList(LIST_KEY).orEmpty()
+        if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
+            requestPermissions(permissions)
+        } else {
+            closeFragment()
+        }
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        lifecycleScope.launchWhenResumed {
-            val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
-            if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(
-                    permissions
-                )
-            ) {
-
-                try {
-                    requestPermissions(permissions)
-                } catch (e: Throwable) {
-                    closeFragment()
-                }
-            } else {
-                closeFragment()
-            }
-        }
-
+    override fun onDestroy() {
+        super.onDestroy()
+        alert?.dismiss()
+        alert = null
     }
 
     private fun requestPermissions(permissions: List<String>) {
@@ -245,6 +194,7 @@ class PermissionsFragment : Fragment() {
         val title = resolveApplicationTitle(this)
         if (textEnd.isNullOrEmpty() || title.isEmpty()) {
             closeFragment()
+            return
         }
         alert = SystemMonetDialogs.showAlertDialog(
             requireActivity(), title = title, cancelable = false, message = text,
@@ -311,23 +261,6 @@ class PermissionsFragment : Fragment() {
     }
 
     private fun closeFragment() {
-        LogCat.logError("PermissionsFragment", "closeFragment")
-        alert?.dismiss()
-        alert = null
-        val tag = TAG
-        activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
-        try {
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.remove(this@PermissionsFragment)
-                ?.commitNowAllowingStateLoss()
-        } catch (e: Throwable) {
-            LogCat.logException(e, "PermissionsFragment", e.message)
-        } finally {
-            BroadcastTools.sendGlobalBroadcastIntent(
-                appContext, Intent(
-                    INTENT_KEY
-                )
-            )
-        }
+        completeRequest(Unit)
     }
 }

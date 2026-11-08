@@ -27,62 +27,85 @@ import java.io.InputStreamReader
 import java.util.concurrent.atomic.AtomicBoolean
 
 object LogCat {
+    internal const val MAX_TEXT_LENGTH = 65_536
+    private const val MAX_LINES = 128
+    private const val MAX_LINE_LENGTH = MAX_TEXT_LENGTH / MAX_LINES - 1
     private val started = AtomicBoolean(false)
-    private var handler: Handler = Handler(Looper.getMainLooper())
-    private val cache: MutableList<String> = ArrayList()
+    private val handler = Handler(Looper.getMainLooper())
+    private val cache = ArrayDeque<String>()
+    private val pending = ArrayDeque<String>()
     private var log2ViewCallback: Log2ViewCallback? = null
-    private var FILTER = ""
+    private var filter = ""
+    private val dispatchPending = Runnable { deliverPending() }
+
+    @Synchronized
     fun setFilter(filter: String) {
-        FILTER = filter
+        this.filter = filter
+        pending.clear()
     }
 
     fun setLog2ViewCallback(log2ViewCallback: Log2ViewCallback?) {
-        LogCat.log2ViewCallback = log2ViewCallback
-        log2ViewCallback?.log(log)
+        val snapshot = synchronized(this) {
+            this.log2ViewCallback = log2ViewCallback
+            pending.clear()
+            if (log2ViewCallback == null) return
+            cache.filter(::matchesFilter).joinToString("\n")
+        }
+        log2ViewCallback?.log(snapshot)
+    }
+
+    @Synchronized
+    fun clearLog2ViewCallback(owner: Log2ViewCallback) {
+        if (log2ViewCallback === owner) setLog2ViewCallback(null)
     }
 
     fun start() {
+        if (!started.compareAndSet(false, true)) return
         AsyncTask.THREAD_POOL_EXECUTOR.execute {
-            started.set(true)
             try {
-                Runtime.getRuntime().exec("logcat -c")
-            } catch (ignore: Throwable) {
-            }
-            try {
-                val pq = Runtime.getRuntime().exec("logcat v main")
-                val stream = BufferedReader(InputStreamReader(pq.inputStream))
-                var log = ""
-                while (started.get()) {
-                    if (stream.readLine()?.also { log = it } != null) {
-                        val temp = truncate(log)
-                        cache.add(temp)
-                        if (log2ViewCallback != null && (FILTER.isEmpty() || temp.contains(
-                                FILTER
-                            ))
-                        ) {
-                            handler.post { log2ViewCallback?.log(temp) }
+                Runtime.getRuntime().exec("logcat -c").waitFor()
+                val process = Runtime.getRuntime().exec("logcat -v brief -b main")
+                try {
+                    BufferedReader(InputStreamReader(process.inputStream)).use { stream ->
+                        while (started.get()) {
+                            val line = stream.readLine() ?: break
+                            remember(truncate(line).take(MAX_LINE_LENGTH))
                         }
                     }
+                } finally {
+                    process.destroy()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } catch (error: Exception) {
+                error.printStackTrace()
+            } finally {
+                started.set(false)
             }
         }
     }
 
-    private val log: String
-        get() {
-            val stringBuilder = StringBuilder()
-            for (i in cache.indices) {
-                if (FILTER.isNullOrEmpty() || cache[i].contains(FILTER)) {
-                    stringBuilder.append(cache[i])
-                    if (i < cache.size - 1) {
-                        stringBuilder.append("\n")
-                    }
-                }
-            }
-            return stringBuilder.toString()
+    @Synchronized
+    private fun remember(line: String) {
+        if (cache.size == MAX_LINES) cache.removeFirst()
+        cache.addLast(line)
+        if (log2ViewCallback == null || !matchesFilter(line)) return
+        if (pending.isEmpty()) {
+            handler.removeCallbacks(dispatchPending)
+            handler.postDelayed(dispatchPending, 100L)
         }
+        if (pending.size == MAX_LINES) pending.removeFirst()
+        pending.addLast(line)
+    }
+
+    private fun deliverPending() {
+        val (callback, batch) = synchronized(this) {
+            val callback = log2ViewCallback ?: return
+            if (pending.isEmpty()) return
+            callback to pending.joinToString("\n").also { pending.clear() }
+        }
+        callback.log(batch)
+    }
+
+    private fun matchesFilter(line: String): Boolean = filter.isEmpty() || line.contains(filter)
 
     private fun truncate(log: String): String {
         return log.replaceFirst("([\\d-\\s:.]*)".toRegex(), "")

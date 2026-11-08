@@ -19,153 +19,54 @@
 
 package dev.skomlach.biometric.compat.impl.dialogs
 
-import android.app.Activity
 import android.app.Dialog
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.compat.R
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.BroadcastTools
-import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
-import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
-import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.permissionui.OwnedResultFragment
 import dev.skomlach.common.permissionui.resolveApplicationTitle
 import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
 
 
-class UntrustedAccessibilityFragment : Fragment() {
+class UntrustedAccessibilityFragment : OwnedResultFragment<Boolean>() {
     companion object {
         private const val TAG = "UntrustedAccessibilityFragment"
-        private const val INTENT_KEY = "UntrustedAccessibilityFragment.intent_key"
-        private const val INTENT_RESULT = "UntrustedAccessibilityFragment.result"
 
-        fun askForTrust(
-            activity: FragmentActivity,
-            callback: (Boolean) -> Unit,
-        ) {
-            LogCat.log("UntrustedAccessibilityFragment.askForPermissions()")
-
-            val tag = TAG
-            val oldFragment = activity.supportFragmentManager.findFragmentByTag(tag)
-            val fragment = UntrustedAccessibilityFragment()
-            registerGlobalBroadcastIntent(AndroidContext.appContext, object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    AndroidContext.resumedActivityLiveData.observeForever(object :
-                        Observer<Activity?> {
-                        private val observer = this
-                        private val action = Runnable {
-                            AndroidContext.activity?.let {
-                                AndroidContext.resumedActivityLiveData.removeObserver(observer)
-                                callback.invoke(intent.getBooleanExtra(INTENT_RESULT, false))
-                            }
-                        }
-
-                        override fun onChanged(value: Activity?) {
-                            if (value != null) {
-                                ExecutorHelper.removeCallbacks(action)
-                                ExecutorHelper.postDelayed(action, 250)
-                            }
-                        }
-                    })
-                    try {
-                        unregisterGlobalBroadcastIntent(AndroidContext.appContext, this)
-                    } catch (e: Throwable) {
-                        LogCat.logException(e)
-                    }
-                }
-            }, IntentFilter(INTENT_KEY))
-            activity
-                .supportFragmentManager.beginTransaction()
-                .apply {
-                    if (oldFragment != null)
-                        this.remove(oldFragment)
-                }
-                .add(fragment, tag).commitAllowingStateLoss()
-
+        fun askForTrust(activity: FragmentActivity, callback: (Boolean) -> Unit) {
+            launchOwned(activity, callback)
         }
+
+        internal fun launchOwned(activity: FragmentActivity, callback: (Boolean) -> Unit): () -> Unit =
+            launchOwnedResult(activity, UntrustedAccessibilityFragment(), TAG) { callback(it == true) }
     }
 
     private var alert: Dialog? = null
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        lifecycleScope.launchWhenResumed {
-            if (alert == null)
-                try {
-                    val title = resolveApplicationTitle(this@UntrustedAccessibilityFragment)
-                    val shortText = LocalizationHelper.getLocalizedString(
-                        requireActivity(),
-                        R.string.biometriccompat_use_devicecredentials
-                    )
-                    val longText = LocalizationHelper.getLocalizedString(
-                        requireActivity(),
-                        R.string.biometriccompat_untrusted_a11y,
-                        shortText,
-                        title
-                    )
-                    val str = SpannableStringBuilder(longText)
-                    //Should not happen anymore
-                    try {
-                        str.setSpan(
-                            StyleSpan(Typeface.BOLD),
-                            shortText.length,
-                            longText.length,
-                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                        )
-                    } catch (e: Throwable) {
-                        LogCat.logException(e)
-                    }
 
-                    alert = SystemMonetDialogs.showAlertDialog(
-                        requireActivity(), title = title,
-                        message = str, cancelable = false,
-                        negativeText = getString(android.R.string.cancel),
-                        onNegative = {
-                            closeFragment(false)
-                        },
-                        positiveText = getString(android.R.string.ok),
-
-                        onPositive = {
-                            closeFragment(true)
-                        })
-                } catch (e: Throwable) {
-                    LogCat.logException(
-                        e, "UntrustedAccessibilityFragment", e.message
-                    )
-                    closeFragment(false)
-                }
+    override fun launchRequest() {
+        val title = resolveApplicationTitle(this)
+        val shortText = LocalizationHelper.getLocalizedString(requireActivity(), R.string.biometriccompat_use_devicecredentials)
+        val longText = LocalizationHelper.getLocalizedString(
+            requireActivity(), R.string.biometriccompat_untrusted_a11y, shortText, title
+        )
+        val message = SpannableStringBuilder(longText)
+        if (shortText.length < longText.length) {
+            message.setSpan(StyleSpan(Typeface.BOLD), shortText.length, longText.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
-
+        alert = SystemMonetDialogs.showAlertDialog(
+            requireActivity(), title = title, message = message, cancelable = false,
+            negativeText = getString(android.R.string.cancel), onNegative = { completeRequest(false) },
+            positiveText = getString(android.R.string.ok), onPositive = { completeRequest(true) }
+        )
     }
 
-    private fun closeFragment(ok: Boolean) {
+    override fun onDestroy() {
+        super.onDestroy()
         alert?.dismiss()
         alert = null
-        val tag = TAG
-        activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
-        try {
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.remove(this@UntrustedAccessibilityFragment)
-                ?.commitNowAllowingStateLoss()
-        } catch (e: Throwable) {
-            LogCat.logException(e)
-        } finally {
-            BroadcastTools.sendGlobalBroadcastIntent(
-                AndroidContext.appContext,
-                Intent(INTENT_KEY).apply {
-                    this.putExtra(INTENT_RESULT, ok)
-                })
-        }
     }
 }

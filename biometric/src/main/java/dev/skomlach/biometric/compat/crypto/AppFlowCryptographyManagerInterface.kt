@@ -12,6 +12,7 @@ class AppFlowCryptographyManagerInterface : CryptographyManagerInterface {
         keyName: String,
         isUserAuthRequired: Boolean
     ): Cipher {
+        require(!isUserAuthRequired) { "App-flow keys cannot require biometric-bound cryptography" }
         try {
             val secret = AppFlowSessionStore.consumeSecretOrNull(keyName)
                 ?: throw IllegalStateException("App-flow session is not unlocked for key: $keyName")
@@ -32,6 +33,7 @@ class AppFlowCryptographyManagerInterface : CryptographyManagerInterface {
         isUserAuthRequired: Boolean,
         initializationVector: ByteArray?
     ): Cipher {
+        require(!isUserAuthRequired) { "App-flow keys cannot require biometric-bound cryptography" }
         try {
             val iv = initializationVector
                 ?: throw IllegalArgumentException("Initialization vector is required for decryption")
@@ -40,7 +42,7 @@ class AppFlowCryptographyManagerInterface : CryptographyManagerInterface {
             val secret = unlock.secret
             val legacySecret = if (unlock.allowLegacyDecryption) keyName.toCharArray().reversedArray() else null
             try {
-                val salt = AppFlowCryptoStorage.getOrCreateSalt(keyName)
+                val salt = AppFlowCryptoStorage.requireSalt(keyName)
                 return AppFlowCipherFactory.decrypt(secret, salt, iv, legacySecret)
             } finally {
                 secret.fill('\u0000')

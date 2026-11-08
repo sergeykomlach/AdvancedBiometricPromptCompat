@@ -222,6 +222,9 @@ object LegacyBiometric {
                         )
                     } else {
                         val module = SoftwareBiometricModule(key.method, runtime, null)
+                        // Read behavior enrollment and migrate its protected lockout state
+                        // on this initialization worker before publishing the provider.
+                        if (targetType == BiometricType.BIOMETRIC_BEHAVIOR) module.getModuleState()
                         customModuleHashMap[key] = customManager
                         newSoftwareModules[key] = module
                         d(
@@ -496,6 +499,7 @@ object LegacyBiometric {
 
         authInProgress.set(true)
         val listenerRef = SoftReference(listener)
+        val cryptoFailures = Collections.synchronizedSet(HashSet<Int>())
 
         Core.authenticateSelected(biometricCryptographyPurpose, object : StatusAuthenticationListener {
             override fun onHelp(msg: CharSequence?) {
@@ -520,7 +524,10 @@ object LegacyBiometric {
                 desc: CharSequence?
             ) {
                 if (owner != null && !joinedSession.owns(owner)) return
-                if (reason == AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR) {
+                if (reason == AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR ||
+                    (reason == AuthenticationFailureReason.CRYPTO_ERROR &&
+                        cryptoFailures.add(tag) && cryptoFailures.size == activeModules.size)
+                ) {
                     authInProgress.set(false)
                 }
                 listenerRef.get()?.onFailure(

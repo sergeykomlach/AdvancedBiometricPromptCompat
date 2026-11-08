@@ -40,6 +40,7 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class BiometricClient {
     companion object {
@@ -74,6 +75,7 @@ class BiometricClient {
     private var mServiceConnection: MyServiceConnection? = null
     private val serviceBindingState = ServiceBindingState()
     private var mTagInfo: String? = null
+    @Volatile
     private var replayReadyLatch_: CountDownLatch? = null
     private var serviceReadyLatch_: CountDownLatch? = null
     private val context = AndroidContext.appContext
@@ -525,158 +527,40 @@ class BiometricClient {
     }
 
     private fun handle_getServiceVersion(module_id: Int) {
-        accessLock_.runCatching { this.lock() }
-        val i = mServiceConnectStatus
-        val str = ":"
-        val str2 = LOG_TAG
-        var stringBuilder: StringBuilder
-        if (i != 2) {
-            stringBuilder = StringBuilder()
-            stringBuilder.append(str)
-            stringBuilder.append(mTagInfo)
-            stringBuilder.append(":handle_getServiceVersion error: service not Connected")
-            d(str2, stringBuilder.toString())
-            accessLock_.runCatching {
-                this.unlock()
-            }
-            return
-        }
-        var stringBuilder2: StringBuilder
-        try {
-            if (BiometricConnect.DEBUG_LOG) {
-                stringBuilder = StringBuilder()
-                stringBuilder.append(str)
-                stringBuilder.append(mTagInfo)
-                stringBuilder.append(":handle_getServiceVersion")
-                d(str2, stringBuilder.toString())
-            }
-            val msg = Message.obtain(null, 1000, module_id, 0)
-            msg.replyTo = mReplyMessager
-            replayReadyLatch_ = CountDownLatch(1)
-            mSendMessager?.send(msg)
-            accessLock_.runCatching {
-                this.unlock()
-            }
-            try {
-                if (replayReadyLatch_?.await(2, TimeUnit.SECONDS) == false) {
-                    stringBuilder2 = StringBuilder()
-                    stringBuilder2.append(str)
-                    stringBuilder2.append(mTagInfo)
-                    stringBuilder2.append(":handle_getServiceVersion - ERROR: timeout!")
-                    d(str2, stringBuilder2.toString())
-                }
-            } catch (ex: InterruptedException) {
-                val stringBuilder3 = StringBuilder()
-                stringBuilder3.append(str)
-                stringBuilder3.append(mTagInfo)
-                stringBuilder3.append(":handle_getServiceVersion - ERROR: ")
-                stringBuilder3.append(ex)
-                d(str2, stringBuilder3.toString())
-                e(ex)
-            }
-        } catch (e: RemoteException) {
-            stringBuilder2 = StringBuilder()
-            stringBuilder2.append(str)
-            stringBuilder2.append(mTagInfo)
-            stringBuilder2.append(":handle_getServiceVersion - RemoteException ERROR: ")
-            stringBuilder2.append(e)
-            d(str2, stringBuilder2.toString())
-            e(e)
-        } catch (e2: Exception) {
-            stringBuilder2 = StringBuilder()
-            stringBuilder2.append(str)
-            stringBuilder2.append(mTagInfo)
-            stringBuilder2.append(":handle_getServiceVersion - Exception ERROR: ")
-            stringBuilder2.append(e2)
-            d(str2, stringBuilder2.toString())
-            e(e2)
-        }
-        if (BiometricConnect.DEBUG_LOG) {
-            stringBuilder = StringBuilder()
-            stringBuilder.append(str)
-            stringBuilder.append(mTagInfo)
-            stringBuilder.append(":handle_getServiceVersion end")
-            d(str2, stringBuilder.toString())
-        }
+        sendAndAwaitReply(Message.obtain(null, 1000, module_id, 0), "getServiceVersion")
     }
 
     private fun handle_sendService(msg: Message) {
-        var stringBuilder: StringBuilder
-        val str = ":handle_sendService - ERROR: "
-        accessLock_.runCatching { this.lock() }
-        val i = mServiceConnectStatus
-        val str2 = ":"
-        val str3 = LOG_TAG
-        val stringBuilder2: StringBuilder
-        if (i != 2) {
-            stringBuilder2 = StringBuilder()
-            stringBuilder2.append(str2)
-            stringBuilder2.append(mTagInfo)
-            stringBuilder2.append(":handle_sendService error: service not Connected")
-            d(str3, stringBuilder2.toString())
-            accessLock_.runCatching {
-                this.unlock()
+        sendAndAwaitReply(msg, "sendService")
+    }
+
+    private fun sendAndAwaitReply(message: Message, operation: String) {
+        val reply = CountDownLatch(1)
+        val messenger = accessLock_.withLock {
+            if (mServiceConnectStatus != 2) return@withLock null
+            mSendMessager?.also {
+                if (message.replyTo == null) message.replyTo = mReplyMessager
+                replayReadyLatch_ = reply
             }
+        }
+        if (messenger == null) {
+            d(LOG_TAG, ":$mTagInfo:$operation service not connected")
             return
         }
-        var stringBuilder3: StringBuilder
-        if (BiometricConnect.DEBUG_LOG) {
-            stringBuilder3 = StringBuilder()
-            stringBuilder3.append(str2)
-            stringBuilder3.append(mTagInfo)
-            stringBuilder3.append(":handle_sendService")
-            d(str3, stringBuilder3.toString())
-        }
         try {
-            if (msg.replyTo == null) msg.replyTo = mReplyMessager
-            replayReadyLatch_ = CountDownLatch(1)
-            mSendMessager?.send(msg)
-            accessLock_.runCatching {
-                this.unlock()
+            messenger.send(message)
+            if (!reply.await(2, TimeUnit.SECONDS)) {
+                d(LOG_TAG, ":$mTagInfo:$operation timed out (cmd=${message.arg1}, arg=${message.arg2})")
             }
-            try {
-                if (replayReadyLatch_?.await(2, TimeUnit.SECONDS) == false) {
-                    stringBuilder3 = StringBuilder()
-                    stringBuilder3.append(str2)
-                    stringBuilder3.append(mTagInfo)
-                    stringBuilder3.append(":handle_sendService - ERROR: timeout! cmd:")
-                    stringBuilder3.append(msg.arg1)
-                    stringBuilder3.append(" arg:")
-                    stringBuilder3.append(msg.arg2)
-                    d(str3, stringBuilder3.toString())
-                }
-            } catch (ex: InterruptedException) {
-                stringBuilder = StringBuilder()
-                stringBuilder.append(str2)
-                stringBuilder.append(mTagInfo)
-                stringBuilder.append(str)
-                stringBuilder.append(ex)
-                d(str3, stringBuilder.toString())
-                e(ex)
+        } catch (error: InterruptedException) {
+            Thread.currentThread().interrupt()
+            e(error)
+        } catch (error: Exception) {
+            e(error)
+        } finally {
+            accessLock_.withLock {
+                if (replayReadyLatch_ === reply) replayReadyLatch_ = null
             }
-        } catch (ex2: RemoteException) {
-            stringBuilder = StringBuilder()
-            stringBuilder.append(str2)
-            stringBuilder.append(mTagInfo)
-            stringBuilder.append(str)
-            stringBuilder.append(ex2)
-            d(str3, stringBuilder.toString())
-            e(ex2)
-        } catch (e: Exception) {
-            stringBuilder3 = StringBuilder()
-            stringBuilder3.append(str2)
-            stringBuilder3.append(mTagInfo)
-            stringBuilder3.append(":handle_sendService - Exception ERROR: ")
-            stringBuilder3.append(e)
-            d(str3, stringBuilder3.toString())
-            e(e)
-        }
-        if (BiometricConnect.DEBUG_LOG) {
-            stringBuilder2 = StringBuilder()
-            stringBuilder2.append(str2)
-            stringBuilder2.append(mTagInfo)
-            stringBuilder2.append(":handle_sendService end")
-            d(str3, stringBuilder2.toString())
         }
     }
 

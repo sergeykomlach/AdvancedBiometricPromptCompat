@@ -39,6 +39,8 @@ import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Com
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_SPACE
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NOT_MATCHED
+import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_TIMEOUT
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_USER_CANCELED
@@ -519,6 +521,10 @@ class SoftwareBiometricModule internal constructor(
                 }
 
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                    if (biometricMethod.biometricType == BiometricType.BIOMETRIC_BEHAVIOR)
+                        AuthenticationFailureReason.SENSOR_FAILED else AuthenticationFailureReason.AUTHENTICATION_FAILED
+
+                CUSTOM_BIOMETRIC_ERROR_NOT_MATCHED -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
 
                 CUSTOM_BIOMETRIC_ERROR_NO_SPACE -> failureReason =
@@ -554,7 +560,8 @@ class SoftwareBiometricModule internal constructor(
                     return
                 }
             }
-            if (restartCauseTimeout(failureReason)) {
+            val canRetry = biometricMethod.biometricType != BiometricType.BIOMETRIC_BEHAVIOR
+            if (canRetry && restartCauseTimeout(failureReason)) {
                 selfCanceled = true
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
@@ -566,9 +573,9 @@ class SoftwareBiometricModule internal constructor(
                     )
                 }, skipTimeout.toLong())
             } else
-                if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
+                if (canRetry && (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
-                    ) == true
+                    ) == true)
                 ) {
                     listener?.onFailure(tag(), failureReason, errString)
                     if (!isAuthenticationCurrent(listener)) return

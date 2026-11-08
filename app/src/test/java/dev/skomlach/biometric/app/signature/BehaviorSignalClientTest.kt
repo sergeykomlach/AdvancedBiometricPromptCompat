@@ -61,7 +61,7 @@ class BehaviorSignalClientTest {
         val results = mutableListOf<SupplementalBiometricOutcome>()
         val source = BehaviorSignalClient(RuntimeEnvironment.getApplication(), sdk)
         val handle = source.evaluate(sample, results::add)
-        sdk.callback.onAuthenticationError(AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_VENDOR, "mismatch")
+        sdk.callback.onAuthenticationError(AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_NOT_MATCHED, "mismatch")
         assertEquals(listOf(SupplementalBiometricOutcome.NOT_MATCHED), results)
         handle.close()
         val next = source.evaluate(sample, results::add)

@@ -55,15 +55,17 @@ class BehaviorSecurityBoundaryTest {
         assertEquals(listOf("profile" to typing()), store.loadTemplates())
     }
 
-    @Test fun legacyOverflowIsUnavailableAndCanBeRecoveredByExplicitRemoval() {
+    @Test fun legacyOverflowRemainsReadableWhileNewWritesRespectCapacity() {
         val prefs = RuntimeEnvironment.getApplication().getSharedPreferences("overflow-upgrade", Context.MODE_PRIVATE)
         val store = BehaviorTemplateStore { prefs }
         store.save("profile_0", typing())
         val raw = prefs.getString("template_profile_0", null)
         repeat(32) { prefs.edit().putString("template_profile_${it + 1}", raw).commit() }
-        assertThrows(dev.skomlach.common.storage.ProtectedStorageUnavailableException::class.java) { store.hasTemplate() }
+        assertEquals(33, store.loadTemplates().size)
+        assertThrows(IllegalArgumentException::class.java) { store.save("profile_33", typing()) }
         store.remove("profile_32")
         assertEquals(32, store.loadTemplates().size)
+        store.save("profile_0", typing())
         store.remove(null)
         assertFalse(store.hasTemplate())
     }

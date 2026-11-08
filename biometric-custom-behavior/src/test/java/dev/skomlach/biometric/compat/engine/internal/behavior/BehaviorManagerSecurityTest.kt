@@ -16,6 +16,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import java.time.Duration
+import java.util.concurrent.Executor
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29], manifest = Config.NONE)
@@ -29,11 +30,11 @@ class BehaviorManagerSecurityTest {
     private fun sample(phrase: String) = BehaviorSample(BehaviorMode.TYPING, phrase,
         listOf(0L, 120L, 270L, 420L, 610L), listOf(60L, 190L, 345L, 500L, 705L), emptyList())
 
-    private fun manager(sample: BehaviorSample): BehaviorBiometricManager {
+    private fun manager(sample: BehaviorSample, worker: Executor = Executor(Runnable::run)): BehaviorBiometricManager {
         val id = java.util.UUID.randomUUID().toString()
         val store = BehaviorTemplateStore { context.getSharedPreferences("templates_$id", Context.MODE_PRIVATE) }
         store.save("profile", sample)
-        return BehaviorBiometricManager(context, store).also { manager ->
+        return BehaviorBiometricManager(context, store, worker).also { manager ->
             // Exercise the real manager with real preferences, without pretending to emulate Keystore.
             manager.javaClass.getDeclaredField("prefs\$delegate").apply { isAccessible = true }.set(manager,
                 lazy { context.getSharedPreferences("lockout_$id", Context.MODE_PRIVATE) })
@@ -92,5 +93,22 @@ class BehaviorManagerSecurityTest {
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
         assertEquals(0, result.successes)
         assertEquals(1, result.errors)
+    }
+
+    @Test fun workerUsesOwnedInputAfterCallerClearsItsBundle() {
+        val enrolled = sample("tango")
+        val downs = enrolled.keyDownTimesMs.toLongArray()
+        val ups = enrolled.keyUpTimesMs.toLongArray()
+        val extras = buildBehaviorExtras(null, enrolled.mode, enrolled.phrase, downs, ups, floatArrayOf(), false)
+        val tasks = ArrayDeque<Runnable>()
+        val result = Result()
+        manager(enrolled, Executor(tasks::addLast)).authenticate(null, 0, cancel, result, null, extras)
+        extras.clear()
+        downs.fill(0L)
+        ups.fill(0L)
+        tasks.removeFirst().run()
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
+        assertEquals(1, result.successes)
+        assertEquals(0, result.errors)
     }
 }

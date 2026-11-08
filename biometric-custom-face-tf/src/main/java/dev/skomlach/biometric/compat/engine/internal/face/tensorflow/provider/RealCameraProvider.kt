@@ -33,6 +33,10 @@ class RealCameraProvider(private val context: Context) : IFrameProvider, Capture
     companion object {
         private const val MIN_PREVIEW_LONG_EDGE = 640
         private const val MIN_PREVIEW_SHORT_EDGE = 480
+        // Device callbacks must still run after a stopped capture retires its frame thread.
+        private val cameraStateHandler by lazy {
+            Handler(HandlerThread("TensorFlowFaceCameraState").apply { start() }.looper)
+        }
     }
 
     private var onFrame: ((Bitmap, List<Face>) -> Unit)? = null
@@ -220,6 +224,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider, Capture
                     synchronized(this@RealCameraProvider) {
                         camera.close()
                         if (cameraDevice === camera) cameraDevice = null
+                        if (imageReader === sessionReader) failCapture()
                     }
                 }
 
@@ -238,7 +243,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider, Capture
                         )
                     }
                 }
-            }, backgroundHandler)
+            }, cameraStateHandler)
 
         } catch (e: Exception) {
             LogCat.logException(e)
@@ -279,17 +284,33 @@ class RealCameraProvider(private val context: Context) : IFrameProvider, Capture
                                 )
                             } catch (e: Exception) {
                                 LogCat.logException(e)
+                                failCapture()
                             }
                         }
                     }
 
-                    override fun onConfigureFailed(session: CameraCaptureSession) {}
+                    override fun onConfigureFailed(session: CameraCaptureSession) {
+                        synchronized(this@RealCameraProvider) {
+                            session.close()
+                            if (imageReader === sessionReader) failCapture()
+                        }
+                    }
                 },
-                backgroundHandler
+                cameraStateHandler
             )
         } catch (e: Exception) {
             LogCat.logException(e)
+            failCapture()
         }
+    }
+
+    private fun failCapture() {
+        val notify = onError
+        stop()
+        notify?.invoke(
+            AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+            LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_error_generic)
+        )
     }
 
     @Synchronized

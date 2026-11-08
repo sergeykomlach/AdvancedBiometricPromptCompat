@@ -26,8 +26,8 @@ import java.util.concurrent.locks.ReentrantLock
 
 object BiometricCryptoObjectHelper {
     private val lock = ReentrantLock()
-    private val managerInterface: CryptographyManagerInterface =
-        HybridCryptographyManagerInterface()
+    private val managerInterface = HybridCryptographyManagerInterface()
+    private val biometricDelegate = managerInterface.biometricDelegate
 
     fun deleteCrypto(name: String) {
         managerInterface.deleteKey(name)
@@ -38,51 +38,48 @@ object BiometricCryptoObjectHelper {
         purpose: BiometricCryptographyPurpose?,
         isUserAuthRequired: Boolean = true
     ): BiometricCryptoObject? {
-        if (purpose == null)
-            return null
+        if (purpose == null) return null
+        if (!isUserAuthRequired) {
+            return try {
+                prepareAppFlowCryptoObject(name, purpose).also { AppFlowCryptoFacade.registerKeyForAppFlow(name) }
+            } catch (error: IllegalArgumentException) {
+                throw error
+            } catch (error: Exception) {
+                throw BiometricCryptoException(error)
+            }
+        }
+        val result = prepareBiometricCryptoObject(name, purpose)
+        AppFlowCryptoFacade.registerKeyForBiometric(name)
+        return result
+    }
+
+    internal fun prepareBiometricCryptoObject(name: String, purpose: BiometricCryptographyPurpose): BiometricCryptoObject {
         lock.lock()
         try {
-            prepareCryptoAccess(name, isUserAuthRequired, purpose)
-            val cipher =
-                when (purpose.purpose) {
-                    BiometricCryptographyPurpose.ENCRYPT -> getCipherForEncryption(
-                        name,
-                        isUserAuthRequired
-                    )
-
-                    BiometricCryptographyPurpose.DECRYPT -> managerInterface.getInitializedCipherForDecryption(
-                        name,
-                        isUserAuthRequired,
-                        purpose.initVector
-                    )
-
-                    else -> throw IllegalArgumentException("Cryptography purpose should be BiometricCryptographyPurpose.ENCRYPT or BiometricCryptographyPurpose.DECRYPT")
-                }
+            val cipher = when (purpose.purpose) {
+                BiometricCryptographyPurpose.ENCRYPT -> getCipherForEncryption(name, true)
+                BiometricCryptographyPurpose.DECRYPT ->
+                    biometricDelegate.getInitializedCipherForDecryption(name, true, purpose.initVector)
+                else -> throw IllegalArgumentException("Unsupported cryptography purpose")
+            }
             return BiometricCryptoObject(
-                signature = null,
-                cipher = cipher,
-                mac = null,
-                cryptoSecurityLevel = if (isUserAuthRequired) {
-                    CryptoSecurityLevel.HARDWARE_BACKED
-                } else {
-                    CryptoSecurityLevel.APP_FLOW_NOT_BIOMETRIC_BOUND
-                }
+                signature = null, cipher = cipher, mac = null,
+                cryptoSecurityLevel = CryptoSecurityLevel.HARDWARE_BACKED
             )
-        } catch (ex: IllegalArgumentException) {
-            throw ex
-        } catch (e: Throwable) {
-            throw BiometricCryptoException(e)
+        } catch (error: IllegalArgumentException) {
+            throw error
+        } catch (error: Exception) {
+            throw BiometricCryptoException(error)
         } finally {
             lock.unlock()
         }
-
     }
 
     private fun getCipherForEncryption(
         name: String,
         isUserAuthRequired: Boolean
     ) = try {
-        managerInterface.getInitializedCipherForEncryption(
+        biometricDelegate.getInitializedCipherForEncryption(
             name,
             isUserAuthRequired
         )
@@ -90,30 +87,29 @@ object BiometricCryptoObjectHelper {
         // Only a permanently invalidated auth key may be replaced for new encryption.
         // Provider outages, locked devices and storage failures must preserve existing keys.
         if (!isUserAuthRequired || !isPermanentlyInvalidatedKey(error)) throw error
-        managerInterface.deleteKey(name)
-        managerInterface.getInitializedCipherForEncryption(name, isUserAuthRequired)
+        biometricDelegate.deleteKey(name)
+        biometricDelegate.getInitializedCipherForEncryption(name, isUserAuthRequired)
     }
 
-    private fun prepareCryptoAccess(name: String, isUserAuthRequired: Boolean, purpose: BiometricCryptographyPurpose) {
-        if (!isUserAuthRequired) {
-            prepareAppFlowCrypto(name, purpose)
-        } else {
-            AppFlowCryptoFacade.registerKeyForBiometric(name)
-        }
-    }
-
-    private fun prepareAppFlowCrypto(name: String, purpose: BiometricCryptographyPurpose) {
+    /** Prepare an operation-local cipher without changing routing or holding the biometric key lock. */
+    internal fun prepareAppFlowCryptoObject(name: String, purpose: BiometricCryptographyPurpose): BiometricCryptoObject {
+        require(purpose.purpose == BiometricCryptographyPurpose.ENCRYPT || purpose.purpose == BiometricCryptographyPurpose.DECRYPT)
         val create = purpose.purpose == BiometricCryptographyPurpose.ENCRYPT
-        val allowLegacy = !create && AppFlowCipherFactory.isLegacyIv(
-            requireNotNull(purpose.initVector) { "Initialization vector is required for decryption" }
-        )
-        val secret = AppFlowCryptoStorage.getProtectedSecret(name, create, allowLegacy)
-        try {
-            AppFlowCryptoFacade.registerKeyForAppFlow(name)
-            AppFlowSessionStore.unlock(name, secret, allowLegacy)
+        val iv = if (create) null else requireNotNull(purpose.initVector) { "Initialization vector is required for decryption" }
+        val allowLegacy = iv != null && AppFlowCipherFactory.isLegacyIv(iv)
+        val (secret, salt) = AppFlowCryptoStorage.getKeyMaterial(name, create, allowLegacy)
+        val legacySecret = if (allowLegacy) name.toCharArray().reversedArray() else null
+        val cipher = try {
+            if (iv == null) AppFlowCipherFactory.encrypt(secret, salt)
+            else AppFlowCipherFactory.decrypt(secret, salt, iv, legacySecret)
         } finally {
             secret.fill('\u0000')
+            legacySecret?.fill('\u0000')
         }
+        return BiometricCryptoObject(
+            signature = null, cipher = cipher, mac = null,
+            cryptoSecurityLevel = CryptoSecurityLevel.APP_FLOW_NOT_BIOMETRIC_BOUND
+        )
     }
 
 }

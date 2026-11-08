@@ -5,7 +5,7 @@ import javax.crypto.Cipher
 
 class HybridCryptographyManagerInterface : CryptographyManagerInterface {
 
-    private val biometricDelegate: CryptographyManagerInterface =
+    internal val biometricDelegate: CryptographyManagerInterface =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             CryptographyManagerInterfaceMarshmallowImpl()
         } else {
@@ -38,8 +38,13 @@ class HybridCryptographyManagerInterface : CryptographyManagerInterface {
     }
 
     override fun deleteKey(keyName: String) {
-        runCatching { biometricDelegate.deleteKey(keyName) }
-        runCatching { appFlowDelegate.deleteKey(keyName) }
+        val biometricFailure = runCatching { biometricDelegate.deleteKey(keyName) }.exceptionOrNull()
+        val appFlowFailure = runCatching { appFlowDelegate.deleteKey(keyName) }.exceptionOrNull()
+        if (biometricFailure != null) {
+            if (appFlowFailure != null && appFlowFailure !== biometricFailure) biometricFailure.addSuppressed(appFlowFailure)
+            throw biometricFailure
+        }
+        if (appFlowFailure != null) throw appFlowFailure
         AppFlowCryptoRegistry.clear(keyName)
     }
 

@@ -29,3 +29,15 @@ fun SharedPreferences.editProtected(action: SharedPreferences.Editor.() -> Unit)
 /** Reading/deleting enrollment names must not unnecessarily decrypt all biometric samples. */
 fun SharedPreferences.protectedKeys(): Set<String> =
     if (this is EncryptedSharedPreferences) keySet().filterNotNull().toSet() else all.keys.toSet()
+
+@androidx.annotation.RestrictTo(androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP)
+fun SharedPreferences.visitProtectedStrings(prefix: String, visit: (String, String?) -> Boolean) {
+    if (this is EncryptedSharedPreferences) {
+        visitStrings(prefix, visit)
+    } else {
+        val snapshot = all
+        for (name in snapshot.keys.filter { it.startsWith(prefix) }.sorted()) {
+            if (!visit(name, snapshot[name] as? String)) return
+        }
+    }
+}

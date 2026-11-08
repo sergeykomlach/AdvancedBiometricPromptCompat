@@ -22,192 +22,66 @@ package dev.skomlach.biometric.compat.impl.credentials
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.KeyguardManager
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Context.KEYGUARD_SERVICE
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.common.contextprovider.AndroidContext
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.BroadcastTools
-import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.permissionui.OwnedResultFragment
 import dev.skomlach.common.translate.LocalizationHelper
 
-
-class CredentialsRequestFragment : Fragment() {
+class CredentialsRequestFragment : OwnedResultFragment<Boolean>() {
     companion object {
-
         private const val TAG = "CredentialsRequestFragment"
-        private const val INTENT_KEY = "CredentialsRequestFragment.intent_key"
 
         fun showFragment(
             activity: FragmentActivity,
             title: CharSequence?,
             description: CharSequence?,
-            validator: (Boolean) -> Unit?,
+            validator: (Boolean) -> Unit?
         ) {
-            val tag = TAG
-            if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
-                return
-            val fragment = CredentialsRequestFragment()
-            fragment.arguments = Bundle().apply {
-                this.putCharSequence("title", title)
-                this.putCharSequence("description", description)
-            }
-            BroadcastTools.registerGlobalBroadcastIntent(
-                appContext,
-                object : BroadcastReceiver() {
-                    override fun onReceive(context: Context, intent: Intent) {
-                        AndroidContext.resumedActivityLiveData.observeForever(object :
-                            Observer<Activity?> {
-                            private val observer = this
-                            private val action = Runnable {
-                                AndroidContext.activity?.let {
-                                    AndroidContext.resumedActivityLiveData.removeObserver(observer)
-                                    val result = intent.getBooleanExtra("success", false)
-                                    LogCat.logError("CredentialsRequestFragment", result)
-                                    if (result) {
-                                        BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-                                    }
-                                    validator.invoke(result)
-                                }
-                            }
-
-                            override fun onChanged(value: Activity?) {
-                                if (value != null) {
-                                    ExecutorHelper.removeCallbacks(action)
-                                    ExecutorHelper.postDelayed(action, 250)
-                                }
-                            }
-                        })
-                        try {
-                            BroadcastTools.unregisterGlobalBroadcastIntent(appContext, this)
-                        } catch (e: Throwable) {
-                            LogCat.logException(e)
-                        }
-                    }
-                },
-                IntentFilter(INTENT_KEY), ContextCompat.RECEIVER_NOT_EXPORTED
-            )
-            activity
-                .supportFragmentManager.beginTransaction()
-                .add(fragment, tag).commitAllowingStateLoss()
+            launchOwned(activity, title, description) { validator(it) }
         }
-    }
 
-    private var success = false
-    private val startForResult: ActivityResultLauncher<Intent> =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            LogCat.log("CredentialsRequestFragment", it)
-            if (it.resultCode == Activity.RESULT_OK) {
-                success = true
-                closeFragment()
-
-            } else { //workaround
-                success = false
-                val observer = object : Observer<Activity?> {
-                    private var waitForResume = false
-                    override fun onChanged(t: Activity?) {
-                        if (t == null) {
-                            waitForResume = true
-                            return
-                        }
-                        if (waitForResume && t == activity) {
-                            AndroidContext.resumedActivityLiveData.removeObserver(this)
-                            closeFragment()
-                        }
-
-
-                    }
+        internal fun launchOwned(
+            activity: FragmentActivity,
+            title: CharSequence?,
+            description: CharSequence?,
+            validator: (Boolean) -> Unit
+        ): () -> Unit {
+            val fragment = CredentialsRequestFragment().apply {
+                arguments = Bundle().apply {
+                    putCharSequence("title", title)
+                    putCharSequence("description", description)
                 }
-                AndroidContext.resumedActivityLiveData.observeForever(observer)
+            }
+            return launchOwnedResult(activity, fragment, TAG) { result ->
+                if (result == true) BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                validator(result == true)
             }
         }
-
-    override fun onDestroyView() {
-        LogCat.log("CredentialsRequestFragment", "onDestroyView")
-        super.onDestroyView()
-        startForResult.unregister()
     }
 
+    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        completeRequest(it.resultCode == Activity.RESULT_OK)
+    }
 
     @SuppressLint("PrivateResource")
-    override fun onAttach(context: Context) {
-        LogCat.log("CredentialsRequestFragment", "onAttach")
-        super.onAttach(context)
-        lifecycleScope.launchWhenResumed {
-            try {
-                //Create an intent to open device screen lock screen to authenticate
-                //Pass the Screen Lock screen Title and Description
-                val title = arguments?.getCharSequence("title")
-                    ?: try {
-                        resources.getString(androidx.biometric.R.string.use_screen_lock_label)
-                    } catch (_: Exception) {
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.biometriccompat_use_screen_lock_label
-                        )
-                    }
-                val description = arguments?.getCharSequence("description")
-                    ?: try {
-                        resources.getString(androidx.biometric.R.string.screen_lock_prompt_message)
-                    } catch (_: Exception) {
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.biometriccompat_screen_lock_prompt_message
-                        )
-                    }
-                val keyguardManager =
-                    requireActivity().getSystemService(KEYGUARD_SERVICE) as KeyguardManager?
-                val intent = keyguardManager?.createConfirmDeviceCredentialIntent(
-                    title,
-                    description
-                )
-                startForResult.launch(intent ?: run {
-                    closeFragment()
-                    return@launchWhenResumed
-                })
-            } catch (e: Throwable) {
-                LogCat.logException(
-                    e, "CredentialsRequestFragment", e.message
-                )
-                closeFragment()
-            }
+    override fun launchRequest() {
+        val context = requireContext()
+        val title = arguments?.getCharSequence("title") ?: runCatching {
+            resources.getString(androidx.biometric.R.string.use_screen_lock_label)
+        }.getOrElse {
+            LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_use_screen_lock_label)
         }
-
-    }
-
-    private fun closeFragment() {
-        val tag = TAG
-        activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
-        LogCat.log("CredentialsRequestFragment", "closeFragment")
-        try {
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.remove(this@CredentialsRequestFragment)
-                ?.commitNowAllowingStateLoss()
-        } catch (e: Throwable) {
-            LogCat.logException(
-                e, "CredentialsRequestFragment", e.message
-            )
-        } finally {
-            BroadcastTools.sendGlobalBroadcastIntent(
-                appContext, Intent(
-                    INTENT_KEY
-                ).apply {
-                    putExtra("success", success)
-                }
-            )
+        val description = arguments?.getCharSequence("description") ?: runCatching {
+            resources.getString(androidx.biometric.R.string.screen_lock_prompt_message)
+        }.getOrElse {
+            LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_screen_lock_prompt_message)
         }
+        val manager = context.getSystemService(KEYGUARD_SERVICE) as? KeyguardManager
+        val intent = manager?.createConfirmDeviceCredentialIntent(title, description)
+        if (intent == null) completeRequest(false) else startForResult.launch(intent)
     }
 }

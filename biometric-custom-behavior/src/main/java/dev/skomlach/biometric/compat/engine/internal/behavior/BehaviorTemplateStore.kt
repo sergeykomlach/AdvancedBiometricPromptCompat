@@ -2,9 +2,11 @@ package dev.skomlach.biometric.compat.engine.internal.behavior
 
 import dev.skomlach.common.storage.editProtected
 import dev.skomlach.common.storage.protectedKeys
+import dev.skomlach.common.storage.visitProtectedStrings
 import dev.skomlach.common.storage.ProtectedStorageUnavailableException
 import android.content.SharedPreferences
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkScope
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkSession
 import android.util.Base64
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
 import java.nio.charset.StandardCharsets.UTF_8
@@ -17,6 +19,8 @@ class BehaviorTemplateStore internal constructor(preferences: () -> SharedPrefer
 
     internal fun newWorkSession() = WORK_SCOPE.newSession()
 
+    internal fun updateLockout(action: () -> Unit) = synchronized(WORK_SCOPE.lock, action)
+
     internal fun checkAndRememberSample(sample: BehaviorSample, nowMs: Long, isEnrollment: Boolean) =
         REPLAY_HISTORY.checkAndRemember(sample, nowMs, isEnrollment)
 
@@ -24,24 +28,38 @@ class BehaviorTemplateStore internal constructor(preferences: () -> SharedPrefer
 
     fun templateNames(): Collection<String> {
         val keys = prefs.protectedKeys().filter { it.startsWith(TEMPLATE_PREFIX) }
-        if (keys.size > MAX_PROFILES) throw ProtectedStorageUnavailableException("Behavior profile capacity exceeded")
         return keys
             .map { it.removePrefix(TEMPLATE_PREFIX) }
             .sorted()
     }
 
-    fun loadTemplates(): List<Pair<String, BehaviorSample>> {
-        val records = templateNames().map { tag -> tag to prefs.getString(TEMPLATE_PREFIX + tag, null) }
-        if (records.sumOf { it.second?.length?.toLong() ?: 0L } > MAX_TOTAL_TEMPLATE_CHARS)
-            throw ProtectedStorageUnavailableException("Behavior storage capacity exceeded")
-        return records.flatMap { (tag, raw) ->
-            val samples = raw?.let { deserializeTemplates(it) }.orEmpty()
-            if (samples.isEmpty()) throw ProtectedStorageUnavailableException("Invalid behavior enrollment record")
-            samples.map { sample -> tag to sample }
+    fun loadTemplates(): List<Pair<String, BehaviorSample>> = buildList {
+        visitProfiles { tag, samples ->
+            samples.forEach { add(tag to it) }
+            true
         }
     }
 
-    fun save(tag: String?, sample: BehaviorSample): String = synchronized(WORK_SCOPE.lock) {
+    // Existing installations may be above the write limit. Authenticate every record in turn.
+    internal fun visitProfiles(visit: (String, List<BehaviorSample>) -> Boolean) {
+        prefs.visitProtectedStrings(TEMPLATE_PREFIX) { key, raw ->
+            val samples = raw?.let { deserializeTemplates(it) }.orEmpty()
+            if (samples.isEmpty()) throw ProtectedStorageUnavailableException("Invalid behavior enrollment record")
+            visit(key.removePrefix(TEMPLATE_PREFIX), samples)
+        }
+    }
+
+    fun save(tag: String?, sample: BehaviorSample): String {
+        val session = newWorkSession()
+        return try {
+            checkNotNull(save(tag, sample, session)) { "Behavior enrollment was canceled" }
+        } finally {
+            session.complete()
+        }
+    }
+
+    internal fun save(tag: String?, sample: BehaviorSample, session: SoftwareBiometricWorkSession): String? = synchronized(SAVE_LOCK) {
+        if (!session.isActive) return@synchronized null
         val normalized = sample.normalizedForMode().let { it.copy(
             keyDownTimesMs = ArrayList(it.keyDownTimesMs), keyUpTimesMs = ArrayList(it.keyUpTimesMs),
             strokePoints = ArrayList(it.strokePoints)) }
@@ -76,8 +94,10 @@ class BehaviorTemplateStore internal constructor(preferences: () -> SharedPrefer
         require(serialized.length <= MAX_SERIALIZED_TEMPLATE_CHARS) { "Behavior template exceeds storage limit" }
         val otherChars = records.filterKeys { it != storageKey }.values.sumOf { it.length.toLong() }
         require(otherChars + serialized.length <= MAX_TOTAL_TEMPLATE_CHARS) { "Behavior storage capacity exceeded" }
-        prefs.editProtected { putString(storageKey, serialized) }
-        normalizedTag
+        session.runIfActive {
+            prefs.editProtected { putString(storageKey, serialized) }
+            normalizedTag
+        }
     }
 
     fun remove(tag: String?) {
@@ -202,7 +222,8 @@ class BehaviorTemplateStore internal constructor(preferences: () -> SharedPrefer
 
     private companion object {
         // Revoke work across all managers and public store instances before deleting enrollment.
-        val WORK_SCOPE = SoftwareBiometricWorkScope()
+        val WORK_SCOPE = SoftwareBiometricWorkScope(nonBlockingCancellation = true)
+        val SAVE_LOCK = Any()
         val REPLAY_HISTORY = BehaviorReplayHistory()
         const val STORAGE_NAME = "behavior_templates"
         const val TEMPLATE_PREFIX = "template_"

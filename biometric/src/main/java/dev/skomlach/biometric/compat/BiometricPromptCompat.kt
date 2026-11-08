@@ -392,6 +392,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private var activeAuthCallback: AuthenticationCallback? = null
     private var implementationStarted = false
     private var awaitingSystemEnrollment = false
+    private var cancelOwnedUi: (() -> Unit)? = null
 
 
     fun setupBiometric(
@@ -506,13 +507,19 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         waitUntilReadyForAuth(callback, System.currentTimeMillis(), authFlowId) { _, _ ->
             if (requestSystemEnrollment) {
-                builder.getActivity()?.let {
-                    InitiateSystemBiometricEnrollFragment.showFragment(
-                        it,
-                        builder.getBiometricAuthRequest(),
-                        continueSetup
-                    )
-                } ?: continueSetup.invoke()
+                val activity = builder.getActivity()
+                if (activity == null) {
+                    cancelAuthentication()
+                } else {
+                    cancelOwnedUi = InitiateSystemBiometricEnrollFragment.launchOwned(
+                        activity, builder.getBiometricAuthRequest()
+                    ) { returned ->
+                        if (isCurrentAuthFlow(authFlowId)) {
+                            cancelOwnedUi = null
+                            if (returned) continueSetup() else cancelAuthentication()
+                        }
+                    }
+                }
             } else {
                 continueSetup.invoke()
             }
@@ -1001,9 +1008,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             builder.getActivity()?.requestedOrientation = lastKnownOrientation.get()
                         }
                         if (hadUi) appBackgroundDetector.detachListeners()
-                        builder.finishEnrollSession(
-                            succeeded = enrollmentSucceeded && !authCanceled.get()
-                        )
                         if (hadUi && !builder.isSilentAuthEnabled()) {
                             builder.getActivity()?.let {
                                 StatusBarTools.setNavBarAndStatusBarColors(
@@ -1017,7 +1021,22 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         }
                     },
                     release = { finishAuthFlow(authFlowId) },
-                    onClosed = { if (hadUi) callbackOuter.onUIClosed() }
+                    onClosed = { if (hadUi) callbackOuter.onUIClosed() },
+                    afterCleanup = { complete ->
+                        val succeeded = enrollmentSucceeded && !authCanceled.get()
+                        if (builder.hasTrackedEnrollments()) {
+                            ExecutorHelper.startOnBackground {
+                                try {
+                                    builder.finishEnrollSession(succeeded)
+                                } finally {
+                                    ExecutorHelper.post { complete() }
+                                }
+                            }
+                        } else {
+                            builder.finishEnrollSession(succeeded)
+                            complete()
+                        }
+                    }
                 )
                 activeCompletion = completion
                 val callback = object : AuthenticationCallback() {
@@ -1234,7 +1253,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
         }
         if (requestNotificationPermission) {
-            checkNotificationPermissions(runPreflight)
+            checkNotificationPermissions(authFlowId, runPreflight)
         } else {
             runPreflight.invoke()
         }
@@ -1295,27 +1314,23 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         return true
     }
 
-    private fun checkNotificationPermissions(authTask: () -> Unit) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.checkNotificationPermissions")
-        if (!builder.isSilentAuthEnabled()) {
-            if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
-                BiometricNotificationManager.initNotificationsPreferences()
-                builder.getActivity()?.let {
-                    NotificationPermissionsHelper.checkNotificationPermissions(
-                        it,
-                        BiometricNotificationManager.CHANNEL_ID,
-                        {
-                            authTask.invoke()
-                        },
-                        {
-                            authTask.invoke()
-                        })
-                } ?: run {
-                    authTask.invoke()
+    private fun checkNotificationPermissions(authFlowId: Long, authTask: () -> Unit) {
+        if (!builder.isSilentAuthEnabled() && DevicesWithKnownBugs.hasUnderDisplayFingerprint &&
+            builder.isNotificationEnabled()
+        ) {
+            BiometricNotificationManager.initNotificationsPreferences()
+            val host = builder.getActivity()
+            if (host != null) {
+                cancelOwnedUi = NotificationPermissionsHelper.checkOwned(host, BiometricNotificationManager.CHANNEL_ID) {
+                    if (isCurrentAuthFlow(authFlowId)) {
+                        cancelOwnedUi = null
+                        if (it) authTask() else cancelAuthentication()
+                    }
                 }
                 return
-            } else authTask.invoke()
-        } else authTask.invoke()
+            }
+        }
+        authTask()
     }
 
     private fun checkPermissions(
@@ -1339,31 +1354,34 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 "BiometricPromptCompat.checkPermissions - request permissions $permissionsMap"
             )
             builder.getActivity()?.let {
-                PermissionsFragment.askForPermissions(
+                cancelOwnedUi = PermissionsFragment.launchOwned(
                     it,
                     permissionsMap.flatMap { p -> p.second }
-                ) {
-                    if (!isCurrentAuthFlow(authFlowId)) {
-                        return@askForPermissions
+                ) { returned ->
+                    if (!isCurrentAuthFlow(authFlowId)) return@launchOwned
+                    cancelOwnedUi = null
+                    if (!returned) {
+                        cancelAuthentication()
+                        return@launchOwned
                     }
                     if (permissionsMap.any { p ->
                             PermissionUtils.INSTANCE.hasSelfPermissions(p.second)
                         }) {
                         disablePermissionDeniedModules(permissionsMap)
                         if (stopAfterPermissionDenied(callback, permissionsMap, authFlowId)) {
-                            return@askForPermissions
+                            return@launchOwned
                         }
                         authTask.invoke()
                     } else {
                         disablePermissionDeniedModules(permissionsMap)
                         if (stopAfterPermissionDenied(callback, permissionsMap, authFlowId)) {
-                            return@askForPermissions
+                            return@launchOwned
                         }
                         if (failIfNoActiveBiometrics(callback, authFlowId)) {
-                            return@askForPermissions
+                            return@launchOwned
                         }
                         authTask.invoke()
-                        return@askForPermissions
+                        return@launchOwned
                     }
                 }
             } ?: run {
@@ -1747,6 +1765,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private fun authenticateInternal(
         callback: AuthenticationCallback
     ) {
+        val authFlowId = ownedAuthFlowGeneration.get()
+        if (!isCurrentAuthFlow(authFlowId)) return
         BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal();  isDeviceCredentialFallbackAllowed=${builder.isDeviceCredentialFallbackAllowed()}; forceDeviceCredential=${builder.forceDeviceCredential()}")
         if (builder.getActivity() == null) {
             BiometricLoggerImpl.e(
@@ -1848,11 +1868,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 )
                             }.toSet())
                         } else {
-                            CredentialsRequestFragment.showFragment(
+                            cancelOwnedUi = CredentialsRequestFragment.launchOwned(
                                 activity,
                                 null,
                                 builder.getDescription()
                             ) {
+                                if (!isCurrentAuthFlow(authFlowId)) return@launchOwned
+                                cancelOwnedUi = null
                                 if (it) {
                                     callback.onSucceeded(
                                         mutableSetOf(
@@ -1879,7 +1901,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                 }
                 if (!A11yDetection.shouldWeTrustA11y(builder.getContext())) {
-                    UntrustedAccessibilityFragment.askForTrust(builder.getActivity() ?: return) {
+                    val host = builder.getActivity() ?: run {
+                        cancelAuthentication()
+                        return
+                    }
+                    cancelOwnedUi = UntrustedAccessibilityFragment.launchOwned(host) {
+                        if (!isCurrentAuthFlow(authFlowId)) return@launchOwned
+                        cancelOwnedUi = null
                         if (it) {
                             secureScreenDialog.invoke()
                         } else {
@@ -1942,6 +1970,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun finishAuthFlow(authFlowId: Long): Boolean {
+        if (ownedAuthFlowGeneration.get() == authFlowId) {
+            cancelOwnedUi?.invoke()
+            cancelOwnedUi = null
+            awaitingSystemEnrollment = false
+        }
         val finished = authFlowInProgress.finishAuthFlowIfCurrent(
             expectedGeneration = authFlowId,
             currentGeneration = authFlowGeneration.get()
@@ -2637,6 +2670,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             val module = selectedRoute(type)?.module as? SoftwareBiometricModule ?: return
             softwareEnrollments.track(module)
         }
+
+        internal fun hasTrackedEnrollments(): Boolean = softwareEnrollments.hasTrackedProviders()
 
         internal fun finishEnrollSession(succeeded: Boolean) {
             // Persistence can precede success delivery in every UI path, including staged

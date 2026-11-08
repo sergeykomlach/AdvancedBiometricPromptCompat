@@ -7,6 +7,28 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
 class SoftwareBiometricWorkScopeTest {
+    @Test fun nonBlockingCancelClosesDeliveryWhileAnAdmittedWriteWaits() {
+        val scope = SoftwareBiometricWorkScope(nonBlockingCancellation = true)
+        val session = scope.newSession()
+        val entered = CountDownLatch(1)
+        val finishWrite = CountDownLatch(1)
+        val cancelled = CountDownLatch(1)
+        val writer = Thread { session.runIfActive { entered.countDown(); finishWrite.await() } }
+        val canceller = Thread { if (session.cancel()) cancelled.countDown() }
+        writer.start()
+        try {
+            assertTrue(entered.await(5, TimeUnit.SECONDS))
+            canceller.start()
+            assertTrue(cancelled.await(5, TimeUnit.SECONDS))
+            assertFalse(session.complete())
+        } finally {
+            finishWrite.countDown()
+            writer.join(5_000)
+            canceller.join(5_000)
+        }
+        assertNull(session.runIfActive { "late write" })
+    }
+
     @Test fun failedRemovalStillRevokesAllSessionsAndDeliversOutsideTheLock() {
         val scope = SoftwareBiometricWorkScope()
         val events = mutableListOf<String>()

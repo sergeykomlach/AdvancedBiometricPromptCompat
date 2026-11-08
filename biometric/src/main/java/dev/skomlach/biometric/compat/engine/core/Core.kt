@@ -23,17 +23,16 @@ import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
-import dev.skomlach.biometric.compat.crypto.AppFlowCryptoRegistry
-import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
+import dev.skomlach.biometric.compat.crypto.AppFlowCryptoFacade
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
-import dev.skomlach.biometric.compat.crypto.CryptoAccessType
+import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.StatusAuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.onStatus
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
-import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.misc.ExecutorHelper
 import java.util.Collections
 import java.util.WeakHashMap
 
@@ -145,72 +144,27 @@ object Core {
         moduleTags: Set<Int>? = null,
         isActive: () -> Boolean = { true }
     ) {
-        var m: BiometricModule? = null
-        try {
-
-            val modules = synchronized(reprintModuleHashMap) { reprintModuleHashMap.values.toList() }
-            for (module in modules) {
-                if (!isActive()) return
-                if (moduleTags != null && module.tag() !in moduleTags) continue
-                m = module
-
-                var biometricCryptoObject: BiometricCryptoObject? = null
-                var isAppFlowCrypto = false
-                var cryptoPreparationFailed = false
-                purpose?.let {
-                    val keyName = "BiometricModule${module.tag()}"
-                    if (!m.isUserAuthCanByUsedWithCrypto && !allowCryptoFallback) {
-                        listener?.onFailure(
-                            m.tag(),
-                            AuthenticationFailureReason.CRYPTO_ERROR,
-                            "${module.javaClass.simpleName} cannot bind authentication to Android Keystore CryptoObject"
-                        )
-                        cryptoPreparationFailed = true
-                        return@let
-                    }
-                    val requireUserAuth = m.isUserAuthCanByUsedWithCrypto
-                    biometricCryptoObject =
-                        BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                            keyName,
-                            purpose,
-                            requireUserAuth
-                        )
-                    isAppFlowCrypto =
-                        AppFlowCryptoRegistry.getAccessType(keyName) == CryptoAccessType.APP_FLOW
-                }
-                if (cryptoPreparationFailed) continue
-
-                if (isAppFlowCrypto) {
-                    BiometricLoggerImpl.d(
-                        "Core.authenticate: app-flow crypto is prepared for ${module.javaClass.simpleName}; authenticate without module CryptoObject"
-                    )
-                }
-                authenticate(
-                    if (isAppFlowCrypto) null else biometricCryptoObject,
-                    module,
-                    if (isAppFlowCrypto) {
-                        listener.withPreparedCryptoObject(biometricCryptoObject)
+        val ownedPurpose = purpose?.copy(initVector = purpose.initVector?.copyOf())
+        val modules = synchronized(reprintModuleHashMap) { reprintModuleHashMap.values.toList() }
+        for (module in modules) {
+            if (!isActive()) return
+            if (moduleTags != null && module.tag() !in moduleTags) continue
+            if (ownedPurpose == null) {
+                startRequest(null, module, listener, restartPredicate, isActive = isActive)
+            } else {
+                val keyName = "BiometricModule${module.tag()}"
+                startRequest(null, module, listener, restartPredicate, isActive, keyName) {
+                    val appFlow = !module.isUserAuthCanByUsedWithCrypto
+                    if (appFlow) {
+                        check(allowCryptoFallback) { "This operation requires biometric-bound cryptography" }
+                        BiometricCryptoObjectHelper.prepareAppFlowCryptoObject(keyName, ownedPurpose)
                     } else {
-                        listener
-                    },
-                    restartPredicate
-                )
+                        BiometricCryptoObjectHelper.prepareBiometricCryptoObject(keyName, ownedPurpose)
+                    }
+                }
             }
-        } catch (e: BiometricCryptoException) {
-            BiometricLoggerImpl.e(e)
-            listener?.onFailure(
-                m?.tag() ?: DummyBiometricModule(null).tag(),
-                AuthenticationFailureReason.CRYPTO_ERROR, e.message
-            )
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-            listener?.onFailure(
-                m?.tag() ?: DummyBiometricModule(null).tag(),
-                AuthenticationFailureReason.INTERNAL_ERROR, e.message
-            )
         }
     }
-
 
     fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
@@ -218,33 +172,67 @@ object Core {
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        val cancellationSignal = CancellationSignal()
-        val owner = ModuleRequestOwner()
-        val requestListener = ModuleFeedbackListener(
-            listener, module.tag(), owner,
-            cancelRequest = { cancelAuthentication(module, cancellationSignal) }
-        ) { !cancellationSignal.isCanceled }
-        try {
-            // Reserve before cancellation: its synchronous callbacks may start a newer request.
-            val previous = synchronized(cancellationSignals) {
-                requestOwners.put(module, owner)?.supersede()
-                cancellationSignals.put(module, cancellationSignal)
-            }
-            previous?.let(::cancelSignal)
-            if (!requestListener.isAuthenticationActive()) return
-            module.authenticate(
-                biometricCryptoObject,
-                cancellationSignal,
-                requestListener,
-                restartPredicate
-            )
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-            cancelAuthentication(module, cancellationSignal)
-            requestListener.onFailure(module.tag(), AuthenticationFailureReason.INTERNAL_ERROR, e.message)
-        }
+        startRequest(biometricCryptoObject, module, listener, restartPredicate)
     }
 
+    private fun startRequest(
+        crypto: BiometricCryptoObject?,
+        module: BiometricModule,
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate?,
+        isActive: () -> Boolean = { true },
+        cryptoKeyName: String? = null,
+        prepare: (() -> BiometricCryptoObject)? = null
+    ) {
+        val signal = CancellationSignal()
+        val owner = ModuleRequestOwner()
+        fun ownsRequest() = owner.isCurrent() && !signal.isCanceled && isActive()
+        val previous = synchronized(cancellationSignals) {
+            requestOwners.put(module, owner)?.supersede()
+            cancellationSignals.put(module, signal)
+        }
+        previous?.let(::cancelSignal)
+        if (!ownsRequest()) return
+
+        fun launch(prepared: BiometricCryptoObject?) {
+            if (!ownsRequest()) return
+            val appFlow = prepare != null &&
+                prepared?.cryptoSecurityLevel == CryptoSecurityLevel.APP_FLOW_NOT_BIOMETRIC_BOUND
+            val requestListener = ModuleFeedbackListener(
+                if (appFlow) listener.withPreparedCryptoObject(prepared) else listener,
+                module.tag(), owner, cancelRequest = { cancelAuthentication(module, signal) },
+                isActive = { !signal.isCanceled && isActive() }
+            )
+            try {
+                if (cryptoKeyName != null) {
+                    if (appFlow) AppFlowCryptoFacade.registerKeyForAppFlow(cryptoKeyName)
+                    else AppFlowCryptoFacade.registerKeyForBiometric(cryptoKeyName)
+                }
+                module.authenticate(if (appFlow) null else prepared, signal, requestListener, restartPredicate)
+            } catch (error: Exception) {
+                BiometricLoggerImpl.e(error)
+                cancelAuthentication(module, signal)
+                requestListener.onFailure(module.tag(), AuthenticationFailureReason.INTERNAL_ERROR, error.message)
+            }
+        }
+
+        if (prepare == null) {
+            launch(crypto)
+        } else {
+            ExecutorHelper.startOnBackground {
+                if (!ownsRequest()) return@startOnBackground
+                val result = runCatching(prepare)
+                ExecutorHelper.post {
+                    if (!ownsRequest()) return@post
+                    result.onSuccess(::launch).onFailure { error ->
+                        BiometricLoggerImpl.e(error)
+                        cancelAuthentication(module, signal)
+                        listener?.onFailure(module.tag(), AuthenticationFailureReason.CRYPTO_ERROR, error.message)
+                    }
+                }
+            }
+        }
+    }
 
     fun cancelAuthentication() {
         val requests = synchronized(cancellationSignals) { cancellationSignals.toMap() }

@@ -6,6 +6,8 @@ import android.media.MediaRecorder
 import android.os.Handler
 import android.os.Process
 import android.os.SystemClock
+import dev.skomlach.biometric.compat.custom.newSoftwareBiometricWorker
+import dev.skomlach.common.misc.ExecutorHelper
 import kotlin.math.max
 
 internal sealed interface VoiceCaptureOutcome {
@@ -34,15 +36,31 @@ internal class VoiceCaptureOrchestrator(
     private val streamChunkSize: Int = DEFAULT_STREAM_CHUNK_SIZE,
     private val maxCaptureWindowMs: Long = DEFAULT_MAX_CAPTURE_WINDOW_MS
 ) {
+    @Volatile
     private var activeCapture: Any? = null
     private var recordingLifetime: VoiceRecordingLifetime? = null
 
     @Synchronized
-    fun start(step: Int, total: Int) {
+    fun start() {
         if (activeCapture != null || !isPromptActive()) {
             return
         }
         val capture = Any().also { activeCapture = it }
+        recorderWorker.execute {
+            try {
+                record(capture)
+            } catch (_: Exception) {
+                dispatch(capture, recorderFailureOutcome())
+            }
+        }
+    }
+
+    private fun record(capture: Any) {
+        if (activeCapture !== capture) return
+        if (!isPromptActive()) {
+            dispatch(capture, recorderFailureOutcome())
+            return
+        }
 
         val minBufferSize = AudioRecord.getMinBufferSize(
             sampleRateHz,
@@ -74,68 +92,68 @@ internal class VoiceCaptureOrchestrator(
             stopRecording = { runCatching { audioRecord.stop() } },
             releaseRecorder = { runCatching { audioRecord.release() } }
         )
-        recordingLifetime = lifetime
-        val worker = Thread {
-            val shortBuffer = ShortArray(max(minBufferSize / 2, streamChunkSize))
-            val chunks = ArrayList<FloatArray>()
-            val detector = VoiceStreamingDetector(sampleRateHz = sampleRateHz)
-            var detection = VoiceStreamingDetection(false, false, null, null)
-            var captureFailed = false
-            val startedAt = SystemClock.elapsedRealtime()
-
-            try {
-                Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO)
-                if (!lifetime.start()) return@Thread
-                while (lifetime.isActive && isPromptActive()) {
-                    val read = audioRecord.read(shortBuffer, 0, shortBuffer.size)
-                    if (read <= 0) {
-                        captureFailed = true
-                        break
-                    }
-                    val chunk = FloatArray(read) { index ->
-                        (shortBuffer[index] / PCM_SCALE).coerceIn(-1f, 1f)
-                    }
-                    chunks += chunk
-
-                    detection = detector.detect(chunks, materializeActiveSample = false)
-                    if (detection.isComplete) {
-                        break
-                    }
-                    if (SystemClock.elapsedRealtime() - startedAt >= maxCaptureWindowMs) {
-                        break
-                    }
-                }
-            } catch (_: Throwable) {
-                captureFailed = true
-            } finally {
-                lifetime.finish()
+        val admitted = synchronized(this) {
+            if (activeCapture !== capture) false else {
+                recordingLifetime = lifetime
+                true
             }
-
-            val outcome = if (captureFailed) {
-                recorderFailureOutcome(hadSpeechActivity = detection.detectedSpeech)
-            } else {
-                if (detection.detectedSpeech && !detection.isComplete) {
-                    detection = detector.detect(chunks, materializeActiveSample = true)
-                }
-                decideVoiceCaptureSample(detection, sampleRateHz).toOutcome()
-            }
-            dispatch(capture, outcome)
-        }.apply {
-            name = "VoiceCaptureOrchestrator-$step-$total"
         }
-        try {
-            worker.start()
-        } catch (_: Throwable) {
+        if (!admitted) {
             lifetime.finish()
-            dispatch(capture, recorderFailureOutcome())
+            return
         }
+        val shortBuffer = ShortArray(max(minBufferSize / 2, streamChunkSize))
+        val chunks = ArrayList<FloatArray>()
+        val detector = VoiceStreamingDetector(sampleRateHz = sampleRateHz)
+        var detection = VoiceStreamingDetection(false, false, null, null)
+        var captureFailed = false
+        val startedAt = SystemClock.elapsedRealtime()
+
+        try {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO)
+            if (activeCapture !== capture || !lifetime.start()) return
+            while (activeCapture === capture && lifetime.isActive && isPromptActive()) {
+                val read = audioRecord.read(shortBuffer, 0, shortBuffer.size)
+                if (read <= 0) {
+                    captureFailed = true
+                    break
+                }
+                val chunk = FloatArray(read) { index ->
+                    (shortBuffer[index] / PCM_SCALE).coerceIn(-1f, 1f)
+                }
+                chunks += chunk
+
+                detection = detector.detect(chunks, materializeActiveSample = false)
+                if (detection.isComplete) {
+                    break
+                }
+                if (SystemClock.elapsedRealtime() - startedAt >= maxCaptureWindowMs) {
+                    break
+                }
+            }
+        } catch (_: Throwable) {
+            captureFailed = true
+        } finally {
+            lifetime.finish()
+        }
+
+        val outcome = if (captureFailed) {
+            recorderFailureOutcome(hadSpeechActivity = detection.detectedSpeech)
+        } else {
+            if (detection.detectedSpeech && !detection.isComplete) {
+                detection = detector.detect(chunks, materializeActiveSample = true)
+            }
+            decideVoiceCaptureSample(detection, sampleRateHz).toOutcome()
+        }
+        dispatch(capture, outcome)
     }
 
-    @Synchronized
     fun cancel() {
-        activeCapture = null
-        recordingLifetime?.cancel()
-        recordingLifetime = null
+        val lifetime = synchronized(this) {
+            activeCapture = null
+            recordingLifetime.also { recordingLifetime = null }
+        }
+        if (lifetime != null) ExecutorHelper.startOnBackground { lifetime.cancel() }
     }
 
     private fun dispatch(capture: Any, outcome: VoiceCaptureOutcome) {
@@ -173,6 +191,7 @@ internal class VoiceCaptureOrchestrator(
     }
 
     private companion object {
+        val recorderWorker = newSoftwareBiometricWorker("VoiceCaptureRecorder")
         const val DEFAULT_STREAM_CHUNK_SIZE = 320
         const val DEFAULT_MAX_CAPTURE_WINDOW_MS = 8_000L
         const val PCM_SCALE = 32768f

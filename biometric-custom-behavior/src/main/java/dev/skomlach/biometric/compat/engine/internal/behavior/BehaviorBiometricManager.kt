@@ -1,7 +1,5 @@
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
-import dev.skomlach.common.storage.ProtectedStorageUnavailableException
-
 import android.content.Context
 import android.os.Bundle
 import android.os.CancellationSignal
@@ -18,11 +16,24 @@ import dev.skomlach.biometric.custom.behavior.R
 import dev.skomlach.common.translate.LocalizationHelper
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkSession
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkerCallback
+import dev.skomlach.biometric.compat.custom.newSoftwareBiometricWorker
+import java.util.concurrent.Executor
 
-class BehaviorBiometricManager(
+class BehaviorBiometricManager internal constructor(
     private val context: Context,
-    private val store: BehaviorTemplateStore = BehaviorTemplateStore()
+    private val store: BehaviorTemplateStore,
+    private val worker: Executor
 ) : AbstractSoftwareBiometricManager() {
+    constructor(context: Context, store: BehaviorTemplateStore = BehaviorTemplateStore()) :
+        this(context, store, WORKER)
+
+    private data class Capture(
+        val sample: BehaviorSample?,
+        val enrollment: Boolean,
+        val tag: String?,
+        val requiresSeal: Boolean,
+        val captureUptimeMs: Long?
+    )
 
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_BEHAVIOR
     override val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
@@ -30,8 +41,6 @@ class BehaviorBiometricManager(
         SoftwareBiometricSecurityProfile.passiveCompatibility(BiometricType.BIOMETRIC_BEHAVIOR)
 
     private var activeSession: SoftwareBiometricWorkSession? = null
-    private var currentHandler: Handler = Handler(Looper.getMainLooper())
-    private var resultRunnable: Runnable? = null
     private val prefs by lazy {
         dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences(
             LOCKOUT_STORAGE_NAME
@@ -42,11 +51,11 @@ class BehaviorBiometricManager(
         localized(R.string.biometriccompat_behavior_help_timeout)
 
     override fun resetLockOut() {
-        resetTemporaryLockoutState(prefs)
+        store.updateLockout { resetTemporaryLockoutState(prefs) }
     }
 
     override fun resetPermanentLockOut() {
-        resetPermanentLockoutState(prefs)
+        store.updateLockout { resetPermanentLockoutState(prefs) }
     }
 
     override fun getPermissions(): List<String> = emptyList()
@@ -84,10 +93,12 @@ class BehaviorBiometricManager(
         handler: Handler?,
         extra: Bundle?
     ) {
-        cancelActiveSession()
-        currentHandler = handler ?: Handler(Looper.getMainLooper())
+        activeSession?.cancel()
+        val resultHandler = handler ?: Handler(Looper.getMainLooper())
         val session = store.newWorkSession().also { activeSession = it }
-        val ownedCallback = SoftwareBiometricWorkerCallback(session, currentHandler, callback)
+        val ownedCallback = SoftwareBiometricWorkerCallback(session, resultHandler, callback) {
+            synchronized(this) { if (activeSession === session) activeSession = null }
+        }
         cancel?.setOnCancelListener { ownedCallback.onAuthenticationCancelled() }
         if (!session.isActive) return
         if (BiometricPromptCompat.hasDetectedRuntimeHooks()) {
@@ -95,49 +106,50 @@ class BehaviorBiometricManager(
                 localized(R.string.biometriccompat_behavior_help_unavailable))
             return
         }
-        try {
-            authenticateWithStorage(crypto, ownedCallback, extra, session)
-        } catch (error: ProtectedStorageUnavailableException) {
-            e(error, "Behavior protected storage unavailable")
-            finishWithError(ownedCallback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                localized(R.string.biometriccompat_behavior_help_unavailable))
+
+        // Callers may clear their Bundle and arrays as soon as authenticate returns.
+        val capture = snapshotCapture(extra)
+        worker.execute {
+            if (!session.isActive) return@execute
+            try {
+                check(!BiometricPromptCompat.hasDetectedRuntimeHooks()) { "Behavior authentication rejected by runtime hook policy" }
+                authenticateWithStorage(crypto, ownedCallback, capture, session, resultHandler)
+            } catch (error: Exception) {
+                e(error, "Behavior authentication unavailable")
+                finishWithError(ownedCallback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    localized(R.string.biometriccompat_behavior_help_unavailable))
+            }
         }
     }
 
-    // Keep the authentication checks together under the caller's storage error boundary.
+    private fun snapshotCapture(extra: Bundle?): Capture {
+        val enrollment = extra?.getBoolean(IS_ENROLLMENT_KEY, false) == true
+        val nonce = extra?.takeIf { it.containsKey(EXTRA_BEHAVIOR_SESSION_NONCE) }?.getLong(EXTRA_BEHAVIOR_SESSION_NONCE)
+        val token = nonce?.let(BehaviorCaptureSessionRegistry::token)
+        // A sealed handle always resolves to its private snapshot, never to caller-modified arrays.
+        val sample = if (nonce == null) BehaviorSample.fromBundle(extra) else
+            BehaviorCaptureSessionRegistry.consumeSample(nonce, SystemClock.elapsedRealtime(), enrollment)
+        return Capture(sample, enrollment, extra?.getString(ENROLLMENT_TAG_KEY), nonce != null,
+            token?.relativeUptime(SystemClock.uptimeMillis()))
+    }
+
     @Suppress("CyclomaticComplexMethod", "LongMethod", "ReturnCount")
     private fun authenticateWithStorage(
         crypto: CryptoObject?,
-        callback: AuthenticationCallback?,
-        extra: Bundle?,
-        session: SoftwareBiometricWorkSession
+        callback: AuthenticationCallback,
+        capture: Capture,
+        session: SoftwareBiometricWorkSession,
+        resultHandler: Handler
     ) {
+        val lockoutError = session.runIfActive(::getLockoutError)
         if (!session.isActive) return
-
-        val lockoutError = getLockoutError()
         if (lockoutError != null) {
             finishWithError(callback, lockoutError, lockoutMessage(lockoutError))
             return
         }
 
-        if (!isHardwareDetected()) {
-            finishWithError(
-                callback,
-                CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
-                localized(R.string.biometriccompat_behavior_help_unavailable)
-            )
-            return
-        }
-
-        val isEnrollment = extra?.getBoolean(IS_ENROLLMENT_KEY, false) == true
-        val sessionNonce = extra
-            ?.takeIf { it.containsKey(EXTRA_BEHAVIOR_SESSION_NONCE) }
-            ?.getLong(EXTRA_BEHAVIOR_SESSION_NONCE)
-        val captureToken = sessionNonce?.let(BehaviorCaptureSessionRegistry::token)
-        // A sealed handle always resolves to its private snapshot, never to caller-modified arrays.
-        val sample = if (sessionNonce != null) {
-            BehaviorCaptureSessionRegistry.consumeSample(sessionNonce, SystemClock.elapsedRealtime(), isEnrollment)
-        } else BehaviorSample.fromBundle(extra)
+        val isEnrollment = capture.enrollment
+        val sample = capture.sample
         if (sample == null) {
             e("BehaviorBiometricManager.authenticate sample=missing_or_incomplete")
             finishWithError(
@@ -147,8 +159,9 @@ class BehaviorBiometricManager(
             )
             return
         }
-        if (sessionNonce != null) {
-            if (captureToken == null) {
+        if (capture.requiresSeal) {
+            val captureUptimeMs = capture.captureUptimeMs
+            if (captureUptimeMs == null) {
                 finishWithError(
                     callback,
                     CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
@@ -157,7 +170,7 @@ class BehaviorBiometricManager(
                 return
             }
             val inputDecision = evaluateBehaviorSampleIntegrity(
-                sample, 0L, captureToken.relativeUptime(SystemClock.uptimeMillis()), MAX_INTER_EVENT_GAP_MS)
+                sample, 0L, captureUptimeMs, MAX_INTER_EVENT_GAP_MS)
             if (inputDecision != BehaviorInputIntegrityDecision.ACCEPT) {
                 finishWithError(
                     callback,
@@ -191,28 +204,36 @@ class BehaviorBiometricManager(
 
         if (isEnrollment) {
             val tag = try {
-                session.runIfActive {
-                    store.save(extra?.getString(ENROLLMENT_TAG_KEY), sample).also {
-                        resetTemporaryLockoutState(prefs)
-                    }
-                } ?: return
+                store.save(capture.tag, sample, session) ?: return
             } catch (_: IllegalArgumentException) {
                 // A single externally supplied capture can exceed the bounded storage format.
                 finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
                     localized(R.string.biometriccompat_behavior_error_capture_invalid))
                 return
             }
+            session.runIfActive { resetTemporaryLockoutState(prefs) } ?: return
             e("BehaviorBiometricManager.enroll quality=OK metrics=$metrics")
             finishWithSuccess(
                 callback,
                 crypto,
+                session,
+                resultHandler,
                 localized(R.string.biometriccompat_behavior_help_enrolled, tag)
             )
             return
         }
 
-        val templates = store.loadTemplates()
-        if (templates.isEmpty()) {
+        var templateCount = 0
+        var bestMatch = TemplateMatch(0f)
+        store.visitProfiles { _, samples ->
+            if (!session.isActive) return@visitProfiles false
+            templateCount += samples.size
+            val match = matchTemplates(samples, sample)
+            if (match.score > bestMatch.score) bestMatch = match
+            true
+        }
+        if (!session.isActive) return
+        if (templateCount == 0) {
             e("BehaviorBiometricManager.authenticate mode=${sample.mode} templates=0")
             finishWithError(
                 callback,
@@ -222,16 +243,9 @@ class BehaviorBiometricManager(
             return
         }
 
-        val bestMatch = templates
-            .groupBy({ it.first }, { it.second })
-            .values
-            .map { enrolledSamples -> matchTemplates(enrolledSamples, sample) }
-            .maxByOrNull { it.score }
-            ?: TemplateMatch(0f)
-
         val threshold = thresholdFor(sample.mode)
         e(
-            "BehaviorBiometricManager.authenticate templates=${templates.size} " +
+            "BehaviorBiometricManager.authenticate templates=$templateCount " +
                 "score=${bestMatch.score} threshold=$threshold metrics=$metrics"
         )
         if (bestMatch.score >= threshold) {
@@ -239,17 +253,22 @@ class BehaviorBiometricManager(
             finishWithSuccess(
                 callback,
                 crypto,
+                session,
+                resultHandler,
                 localized(R.string.biometriccompat_behavior_help_accepted)
             )
         } else {
-            session.runIfActive { recordFailedAttempt(prefs, LOCKOUT_POLICY) } ?: return
-            val updatedLockout = getLockoutError()
+            val updatedLockout = session.runIfActive {
+                recordFailedAttempt(prefs, LOCKOUT_POLICY)
+                getLockoutError()
+            }
+            if (!session.isActive) return
             if (updatedLockout != null) {
                 finishWithError(callback, updatedLockout, lockoutMessage(updatedLockout))
             } else {
                 finishWithError(
                     callback,
-                    CUSTOM_BIOMETRIC_ERROR_VENDOR,
+                    CUSTOM_BIOMETRIC_ERROR_NOT_MATCHED,
                     localized(R.string.biometriccompat_behavior_help_not_matched)
                 )
             }
@@ -310,39 +329,30 @@ class BehaviorBiometricManager(
     }
 
     private fun finishWithSuccess(
-        callback: AuthenticationCallback?,
+        callback: AuthenticationCallback,
         crypto: CryptoObject?,
+        session: SoftwareBiometricWorkSession,
+        resultHandler: Handler,
         helpMessage: CharSequence
     ) {
-        val session = activeSession ?: return
-        resultRunnable = Runnable {
-            if (session.isActive) {
-                if (BiometricPromptCompat.hasDetectedRuntimeHooks()) {
-                    finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                        localized(R.string.biometriccompat_behavior_help_unavailable))
-                    return@Runnable
-                }
-                callback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_GOOD, helpMessage)
-                callback?.onAuthenticationSucceeded(AuthenticationResult(crypto))
+        resultHandler.postDelayed({
+            if (!session.isActive) return@postDelayed
+            if (BiometricPromptCompat.hasDetectedRuntimeHooks()) {
+                finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    localized(R.string.biometriccompat_behavior_help_unavailable))
+            } else {
+                callback.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_GOOD, helpMessage)
+                callback.onAuthenticationSucceeded(AuthenticationResult(crypto))
             }
-        }.also {
-            currentHandler.postDelayed(it, RESULT_DELAY_MS)
-        }
+        }, RESULT_DELAY_MS)
     }
 
     private fun finishWithError(
-        callback: AuthenticationCallback?,
+        callback: AuthenticationCallback,
         error: Int,
         message: CharSequence
     ) {
-        callback?.onAuthenticationError(error, message)
-    }
-
-    private fun cancelActiveSession() {
-        activeSession?.cancel()
-        activeSession = null
-        resultRunnable?.let { currentHandler.removeCallbacks(it) }
-        resultRunnable = null
+        callback.onAuthenticationError(error, message)
     }
 
     private fun lockoutMessage(error: Int): CharSequence {
@@ -361,6 +371,7 @@ class BehaviorBiometricManager(
     }
 
     private companion object {
+        val WORKER = newSoftwareBiometricWorker("BehaviorBiometricManager")
         const val IS_ENROLLMENT_KEY = "is_enrollment"
         const val ENROLLMENT_TAG_KEY = "enrollment_tag"
         const val LOCKOUT_STORAGE_NAME = "behavior_lockout"

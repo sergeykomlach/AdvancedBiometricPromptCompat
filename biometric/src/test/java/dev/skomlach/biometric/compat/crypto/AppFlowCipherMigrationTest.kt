@@ -39,6 +39,9 @@ class AppFlowCipherMigrationTest {
         val cipher = AppFlowCipherFactory.encrypt(protected, salt)
         val newData = cipher.doFinal(plaintext)
         assertEquals(20, cipher.iv.size)
+        assertTrue(AppFlowCipherFactory.isVersionedIv(cipher.iv))
+        assertFalse(AppFlowCipherFactory.isVersionedIv(cipher.iv.copyOf().apply { this[0] = 0 }))
+        assertFalse(AppFlowCipherFactory.isVersionedIv(intermediate.second))
         assertFalse(AppFlowCipherFactory.isLegacyIv(cipher.iv))
         val recreated = store().getSecret(name, false, allowLegacy = false)
         (old + intermediate).forEach { (data, iv) ->

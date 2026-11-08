@@ -6,7 +6,8 @@ internal class AuthFlowCompletion(
     private val ownsFlow: () -> Boolean,
     private val cleanup: () -> Unit,
     private val release: () -> Boolean,
-    private val onClosed: () -> Unit
+    private val onClosed: () -> Unit,
+    private val afterCleanup: ((() -> Unit) -> Unit) = { it() }
 ) {
     private var queued = false
     private var completed = false
@@ -30,11 +31,13 @@ internal class AuthFlowCompletion(
                 try {
                     cleanup()
                 } finally {
-                    if (release()) {
-                        try {
-                            dispatch?.invoke()
-                        } finally {
-                            onClosed()
+                    afterCleanup {
+                        if (ownsFlow() && release()) {
+                            try {
+                                dispatch?.invoke()
+                            } finally {
+                                onClosed()
+                            }
                         }
                     }
                 }

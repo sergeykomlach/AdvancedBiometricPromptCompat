@@ -8,12 +8,19 @@ import androidx.annotation.RestrictTo
  * callbacks under [lock]. This is not cross-process coordination.
  */
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-class SoftwareBiometricWorkScope {
+class SoftwareBiometricWorkScope(private val nonBlockingCancellation: Boolean = false) {
     val lock = Any()
-    private val sessions = mutableSetOf<SoftwareBiometricWorkSession>()
+    private val admission = if (nonBlockingCancellation) Any() else lock
+    private val sessionsLock = Any()
+    private val sessions = LinkedHashSet<SoftwareBiometricWorkSession>()
+    private var removing = false
 
-    fun newSession(): SoftwareBiometricWorkSession = synchronized(lock) {
-        SoftwareBiometricWorkSession(lock) { sessions.remove(it) }.also(sessions::add)
+    fun newSession(): SoftwareBiometricWorkSession = synchronized(admission) {
+        val session = SoftwareBiometricWorkSession(lock, { ended ->
+            synchronized(sessionsLock) { sessions.remove(ended) }
+        }, nonBlockingCancellation)
+        if (removing) session.revoke() else synchronized(sessionsLock) { sessions.add(session) }
+        session
     }
 
     /** Even a failed deletion revokes previously admitted work, without swallowing its error. */
@@ -21,8 +28,16 @@ class SoftwareBiometricWorkScope {
         val deliveries = mutableListOf<() -> Unit>()
         var failure = runCatching {
             synchronized(lock) {
-                sessions.toList().forEach { session -> session.revoke()?.let(deliveries::add) }
-                remove()
+                val current = synchronized(admission) {
+                    removing = true
+                    synchronized(sessionsLock) { sessions.toList() }
+                }
+                try {
+                    current.forEach { session -> session.revoke()?.let(deliveries::add) }
+                    remove()
+                } finally {
+                    synchronized(admission) { removing = false }
+                }
             }
         }.exceptionOrNull()
         deliveries.forEach { deliver ->

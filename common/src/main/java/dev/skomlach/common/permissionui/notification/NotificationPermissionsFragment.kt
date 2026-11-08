@@ -19,45 +19,31 @@
 
 package dev.skomlach.common.permissionui.notification
 
-import android.app.Activity
 import android.app.Dialog
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build.VERSION
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import dev.skomlach.common.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.BroadcastTools
-import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
-import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
-import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
+import dev.skomlach.common.permissionui.OwnedResultFragment
 import dev.skomlach.common.permissionui.resolveApplicationTitle
 import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.launch
 import java.lang.reflect.Field
 
-class NotificationPermissionsFragment : Fragment() {
+class NotificationPermissionsFragment : OwnedResultFragment<Unit>() {
     companion object {
         private const val TAG = "NotificationPermissionsFragment"
         private const val PERMISSION_KEY = "permissions_type"
         private const val CHANNEL_ID = "channelId"
-        private const val INTENT_KEY = "NotificationPermissionsFragment.intent_key"
         private val semPlatformIntField: Field? by lazy {
             runCatching {
                 VERSION::class.java.getDeclaredField("SEM_PLATFORM_INT").apply {
@@ -99,48 +85,22 @@ class NotificationPermissionsFragment : Fragment() {
             channelId: String?,
             callback: Runnable?,
         ) {
-            LogCat.log("NotificationPermissionsFragment.askForPermissions()")
+            launchOwned(activity, type, channelId) { callback?.run() }
+        }
 
-            val tag = TAG
-            val oldFragment = activity.supportFragmentManager.findFragmentByTag(tag)
-            val fragment = NotificationPermissionsFragment()
-            val bundle = Bundle()
-            bundle.putString(PERMISSION_KEY, type.name)
-            bundle.putString(CHANNEL_ID, channelId)
-            fragment.arguments = bundle
-            registerGlobalBroadcastIntent(AndroidContext.appContext, object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    AndroidContext.resumedActivityLiveData.observeForever(object :
-                        Observer<Activity?> {
-                        private val observer = this
-                        private val action = Runnable {
-                            AndroidContext.activity?.let {
-                                AndroidContext.resumedActivityLiveData.removeObserver(observer)
-                                callback?.run()
-                            }
-                        }
-                        override fun onChanged(value: Activity?) {
-                            if (value != null) {
-                                ExecutorHelper.removeCallbacks(action)
-                                ExecutorHelper.postDelayed(action, 250)
-                            }
-                        }
-                    })
-                    try {
-                        unregisterGlobalBroadcastIntent(AndroidContext.appContext, this)
-                    } catch (e: Throwable) {
-                        LogCat.logException(e)
-                    }
+        internal fun launchOwned(
+            activity: FragmentActivity,
+            type: PermissionRequestController.PermissionType,
+            channelId: String?,
+            callback: (Boolean) -> Unit
+        ): () -> Unit {
+            val fragment = NotificationPermissionsFragment().apply {
+                arguments = Bundle().apply {
+                    putString(PERMISSION_KEY, type.name)
+                    putString(CHANNEL_ID, channelId)
                 }
-            }, IntentFilter(INTENT_KEY))
-            activity
-                .supportFragmentManager.beginTransaction()
-                .apply {
-                    if (oldFragment != null)
-                        this.remove(oldFragment)
-                }
-                .add(fragment, tag).commitAllowingStateLoss()
-
+            }
+            return launchOwnedResult(activity, fragment, TAG) { callback(it != null) }
         }
     }
 
@@ -158,29 +118,7 @@ class NotificationPermissionsFragment : Fragment() {
 
         }
     private val startForResult: ActivityResultLauncher<Intent> =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == Activity.RESULT_OK) {
-                closeFragment()
-
-            } else { //workaround
-                val observer = object : Observer<Activity?> {
-                    private var waitForResume = false
-                    override fun onChanged(t: Activity?) {
-                        if (t == null) {
-                            waitForResume = true
-                            return
-                        }
-                        if (waitForResume && t == activity) {
-                            AndroidContext.resumedActivityLiveData.removeObserver(this)
-                            closeFragment()
-                        }
-
-
-                    }
-                }
-                AndroidContext.resumedActivityLiveData.observeForever(observer)
-            }
-        }
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { closeFragment() }
 
     private val generalNotification = {
         val activity = requireActivity()
@@ -314,58 +252,30 @@ class NotificationPermissionsFragment : Fragment() {
 
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        startForResult.unregister()
-        startForResultForPermissions.unregister()
+    override fun launchRequest() {
+        val type = PermissionRequestController.PermissionType.entries.firstOrNull {
+            it.name == arguments?.getString(PERMISSION_KEY)
+        }
+        when (type) {
+            PermissionRequestController.PermissionType.GENERAL_PERMISSION -> when {
+                !PermissionUtils.INSTANCE.hasSelfPermissions("android.permission.POST_NOTIFICATIONS") ->
+                    startForResultForPermissions.launch(arrayOf("android.permission.POST_NOTIFICATIONS"))
+                !PermissionUtils.INSTANCE.isAllowedNotificationsPermission -> generalNotification()
+                else -> closeFragment()
+            }
+            PermissionRequestController.PermissionType.CHANNEL_PERMISSION -> channelNotification()
+            null -> closeFragment()
+        }
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                val type = PermissionRequestController.PermissionType.entries.firstOrNull {
-                    it.name == arguments?.getString(PERMISSION_KEY)
-                }
-
-                when (type) {
-                    PermissionRequestController.PermissionType.GENERAL_PERMISSION -> {
-                        if (!PermissionUtils.INSTANCE.hasSelfPermissions("android.permission.POST_NOTIFICATIONS")) {
-                            startForResultForPermissions.launch(listOf("android.permission.POST_NOTIFICATIONS").toTypedArray())
-                            return@repeatOnLifecycle
-                        } else if (!PermissionUtils.INSTANCE.isAllowedNotificationsPermission) {
-                            generalNotification.invoke()
-                            return@repeatOnLifecycle
-                        }
-                    }
-
-                    PermissionRequestController.PermissionType.CHANNEL_PERMISSION -> {
-                        channelNotification.invoke()
-                        return@repeatOnLifecycle
-                    }
-
-                    else -> {
-                        closeFragment()
-                    }
-                }
-            }
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        alert?.dismiss()
+        alert = null
     }
 
     private fun closeFragment() {
-        val tag = TAG
-        alert?.dismiss()
-        alert = null
-        activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
-        try {
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.remove(this@NotificationPermissionsFragment)
-                ?.commitNowAllowingStateLoss()
-        } catch (e: Throwable) {
-            LogCat.logException(e)
-        } finally {
-            BroadcastTools.sendGlobalBroadcastIntent(AndroidContext.appContext, Intent(INTENT_KEY))
-        }
+        completeRequest(Unit)
     }
 
     private fun safeStartActivity(
@@ -373,7 +283,7 @@ class NotificationPermissionsFragment : Fragment() {
     ): Boolean {
         try {
             if (intentCanBeResolved(intent)) {
-                startForResult.launch(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                startForResult.launch(intent)
                 return true
             }
         } catch (throwable: Throwable) {
