@@ -1,11 +1,43 @@
 #include <jni.h>
 #include <link.h>
+#include <stdint.h>
 #include <string.h>
 
-static int matches_library(const char *name, const char *expected) {
-    const size_t length = strlen(expected);
-    return strncmp(name, expected, length) == 0 &&
-           (name[length] == '\0' || strcmp(name + length, " (deleted)") == 0);
+// FNV-1a fingerprints of normalized ASCII basenames. This keeps marker literals out
+// of the ELF and avoids decoding names into memory. Keep in sync with HookDetection.kt.
+static const struct {
+    size_t length;
+    uint64_t fingerprint;
+} loader_markers[] = {
+    {14, UINT64_C(0xf361f7b83177dcd9)},
+    {15, UINT64_C(0x23ffd26eb03642ae)},
+    {17, UINT64_C(0x274e5fe4c829aff1)},
+    {17, UINT64_C(0xe517093fa14c877c)},
+    {18, UINT64_C(0xd3fa34aef3623a10)},
+    {20, UINT64_C(0xcc4a252c9ee8d802)},
+};
+
+static int matches_loader_marker(const char *name) {
+    static const char deleted_suffix[] = " (deleted)";
+    const size_t suffix_length = sizeof(deleted_suffix) - 1;
+    size_t length = strlen(name);
+    if (length >= suffix_length &&
+        memcmp(name + length - suffix_length, deleted_suffix, suffix_length) == 0) {
+        length -= suffix_length;
+    }
+    if (length < 14 || length > 20) return 0;
+
+    uint64_t fingerprint = UINT64_C(14695981039346656037);
+    for (size_t i = 0; i < length; ++i) {
+        const unsigned char byte = (unsigned char)name[i];
+        if (byte > 0x7f) return 0;
+        fingerprint = (fingerprint ^ byte) * UINT64_C(1099511628211);
+    }
+    for (size_t i = 0; i < sizeof(loader_markers) / sizeof(loader_markers[0]); ++i) {
+        if (loader_markers[i].length == length &&
+            loader_markers[i].fingerprint == fingerprint) return 1;
+    }
+    return 0;
 }
 
 static int find_instrumentation(struct dl_phdr_info *info, size_t size, void *data) {
@@ -19,12 +51,13 @@ static int find_instrumentation(struct dl_phdr_info *info, size_t size, void *da
 
     if (strncmp(name, "memfd:", 6) == 0) name += 6;
     if (strncmp(name, "lib", 3) == 0) name += 3;
-    return matches_library(name, "frida-gadget.so") ||
-           matches_library(name, "frida-agent.so") ||
-           matches_library(name, "frida-agent-32.so") ||
-           matches_library(name, "frida-agent-64.so") ||
-           matches_library(name, "frida-agent-arm.so") ||
-           matches_library(name, "frida-agent-arm64.so");
+    if (!matches_loader_marker(name) || info->dlpi_phdr == NULL) return 0;
+    for (size_t i = 0; i < info->dlpi_phnum; ++i) {
+        const ElfW(Phdr) *segment = &info->dlpi_phdr[i];
+        if (segment->p_type == PT_LOAD && (segment->p_flags & PF_X) != 0 &&
+            segment->p_memsz != 0) return 1;
+    }
+    return 0;
 }
 
 JNIEXPORT jboolean JNICALL

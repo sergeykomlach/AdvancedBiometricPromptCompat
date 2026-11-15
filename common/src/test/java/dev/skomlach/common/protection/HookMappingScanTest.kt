@@ -31,10 +31,29 @@ class HookMappingScanTest {
     }
 
     @Test
+    fun detectsEverySupportedMarkerAndRejectsLookalikeBasenames() {
+        val names = listOf(
+            "frida-agent.so", "frida-agent-32.so", "frida-agent-64.so", "frida-gadget.so",
+            "frida-agent-arm.so", "frida-agent-arm64.so",
+            "libxposed_art.so", "libxposed.so", "libsubstrate.so"
+        )
+        for (name in names) {
+            val mapping = "1000-2000 r-xp 00000000 00:00 1 /data/$name"
+            assertTrue(name, isExecutableHookMapping(mapping))
+            assertTrue(name, isExecutableHookMapping("$mapping (deleted)"))
+            assertFalse(name, isExecutableHookMapping("$mapping (deleted) (deleted)"))
+            assertFalse(name, isExecutableHookMapping(mapping.dropLast(1) + "é"))
+        }
+    }
+
+    @Test
     fun recognizesHookDispatchWithoutBlockingOrdinaryBridgeFrames() {
         val bridge = "de.robv.android.xposed.XposedBridge"
         assertTrue(isHookDispatchFrame(StackTraceElement(bridge, "handleHookedMethod", null, -1)))
         assertFalse(isHookDispatchFrame(StackTraceElement(bridge, "log", null, -1)))
         assertFalse(isHookDispatchFrame(StackTraceElement("app.$bridge", "handleHookedMethod", null, -1)))
+        val substrate = "com.saurik.substrate.MS\$2"
+        assertTrue(isHookDispatchFrame(StackTraceElement(substrate, "invoked", null, -1)))
+        assertFalse(isHookDispatchFrame(StackTraceElement(substrate, "invokeD", null, -1)))
     }
 }
