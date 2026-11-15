@@ -2,8 +2,38 @@ package dev.skomlach.biometric.compat.engine.internal.fingerprint.zk
 
 import org.junit.Assert.*
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class ZkFingerCaptureSessionTest {
+    @Test fun cancellationRevokesDeliveryWhileAnAdmittedCommitIsBlocked() {
+        val session = ZkFingerCaptureSession { it() }
+        val enteredCommit = CountDownLatch(1)
+        val releaseCommit = CountDownLatch(1)
+        val canceled = CountDownLatch(1)
+        val results = ArrayDeque<() -> Unit>()
+        var delivered = false
+        session.postCallback({ results.addLast(it) }, terminal = true) { delivered = true }
+        val worker = Thread { session.commit {
+            enteredCommit.countDown()
+            check(releaseCommit.await(5, TimeUnit.SECONDS))
+        } }
+        val cancel = Thread { session.invalidate(); canceled.countDown() }
+        worker.start()
+        try {
+            assertTrue(enteredCommit.await(5, TimeUnit.SECONDS))
+            cancel.start()
+            assertTrue("Cancellation waited for the worker's commit", canceled.await(2, TimeUnit.SECONDS))
+            results.removeFirst().invoke()
+            assertFalse(delivered)
+        } finally {
+            releaseCommit.countDown()
+            worker.join(5_000)
+            cancel.join(5_000)
+        }
+        assertNull(session.commit { error("must not accept another commit") })
+    }
+
     @Test fun canceledNativeResultCannotCommitEnrollmentOrLockout() {
         val session = ZkFingerCaptureSession { it() }
         val enteredNative = java.util.concurrent.CountDownLatch(1)

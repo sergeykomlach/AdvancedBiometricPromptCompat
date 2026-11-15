@@ -73,6 +73,27 @@ class EncryptedPreferencesMigrationTest {
         assertEquals(1, f.raw.all.size) // authenticated header is retained
     }
 
+    @Test fun literalSentinelValuesStayDistinctFromNullAcrossReopen() {
+        val fixture = ProtectedPreferenceFixture()
+        fixture.legacyString("legacy-null", "__NULL__")
+        assertTrue(fixture.open().edit()
+            .putString("literal", "__NULL__")
+            .putString("null", null)
+            .putStringSet("literal-set", mutableSetOf("__NULL__"))
+            .putStringSet("null-set", null)
+            .commit())
+
+        val snapshot = fixture.raw.all.toMap()
+        fixture.simulateProcessRestart()
+        val reopened = fixture.open()
+        assertEquals("__NULL__", reopened.getString("literal", "fallback"))
+        assertEquals(setOf("__NULL__"), reopened.getStringSet("literal-set", setOf("fallback")))
+        assertEquals("fallback", reopened.getString("null", "fallback"))
+        assertEquals(setOf("fallback"), reopened.getStringSet("null-set", setOf("fallback")))
+        assertNull(reopened.all["legacy-null"])
+        assertEquals(snapshot, fixture.raw.all)
+    }
+
     @Test fun malformedLegacyAbortsWithoutChangingDataOrBeginningMigration() {
         val f = ProtectedPreferenceFixture()
         f.legacyString("valid", "keep")

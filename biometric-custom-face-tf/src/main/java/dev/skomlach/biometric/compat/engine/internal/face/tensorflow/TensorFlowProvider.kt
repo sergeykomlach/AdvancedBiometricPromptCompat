@@ -23,6 +23,7 @@ import android.content.Context
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptFactory
+import dev.skomlach.biometric.compat.custom.withRuntimeCleanup
 
 class TensorFlowProvider : SoftwareBiometricProvider() {
     companion object {
@@ -35,6 +36,7 @@ class TensorFlowProvider : SoftwareBiometricProvider() {
 
     override fun getCustomManager(context: Context): AbstractSoftwareBiometricManager {
         return TensorFlowFaceUnlockManager(context.applicationContext)
+            .withRuntimeCleanup(TensorFlowFaceUnlockManager::closeRuntime)
     }
 
     override fun getPromptFactory(): SoftwareBiometricPromptFactory {

@@ -19,22 +19,22 @@
 
 package dev.skomlach.common.device
 
+import android.util.JsonReader
+import android.util.JsonToken
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.network.LibraryNetworkPolicy
 import dev.skomlach.common.network.NetworkApi
+import dev.skomlach.common.translate.BoundedWebResponse
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.OutputStreamWriter
+import java.io.StringReader
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -130,10 +130,10 @@ object DataProviders {
     private suspend fun refreshCache(url: String): Boolean {
         val fileName = extractFileNameFromUrl(url)
         try {
-            val file = File(AndroidContext.appContext.cacheDir, fileName)
-            val fresh = file.exists() && kotlin.math.abs(System.currentTimeMillis() - file.lastModified()) <
+            val file = cacheFile(fileName)
+            val fresh = file.isFile && kotlin.math.abs(System.currentTimeMillis() - file.lastModified()) <
                 TimeUnit.DAYS.toMillis(DeviceInfoManager.OUTDATE_TIME_DAYS_FILES)
-            if (fresh) return true
+            if (fresh && readCache(fileName) != null) return true
             // CHECKING is unknown, not a confirmed offline result. Suspend without blocking
             // a worker until the first verdict; no success timestamp is written on a skip.
             if (!DeviceCacheRefresh.awaitInternet(NetworkApi.networkState)) return false
@@ -147,80 +147,136 @@ object DataProviders {
         }
     }
 
-    fun getOrCacheJSON(url: String): String? {
+    fun getOrCacheJSON(url: String): String? = findInCacheOrAsset(url) { it }
+
+    internal fun <T> findInCacheOrAsset(
+        url: String,
+        acceptCached: (T) -> Boolean = { true },
+        find: (String) -> T?
+    ): T? {
         val fileName = extractFileNameFromUrl(url)
-        try {
-            val file = File(AndroidContext.appContext.cacheDir, fileName)
-            if (file.exists()) {
-                FileInputStream(file).use { fis ->
-                    val out = ByteArrayOutputStream()
-                    NetworkApi.fastCopy(fis, out)
-                    return String(out.toByteArray(), StandardCharsets.UTF_8)
-                }
+        readCache(fileName)?.let { cached ->
+            try {
+                find(cached)?.takeIf(acceptCached)?.let { return it }
+            } catch (error: Exception) {
+                LogCat.logError("Device dataset cache lookup failed: ${error.javaClass.simpleName}")
             }
-        } catch (e: Throwable) {
-            LogCat.logException(e)
         }
         try {
             return AndroidContext.appContext.assets.open("devices/$fileName").use { stream ->
-                val out = ByteArrayOutputStream()
-                NetworkApi.fastCopy(stream, out)
-                String(out.toByteArray(), StandardCharsets.UTF_8)
+                BoundedWebResponse.readUtf8(stream)?.let(find)
             }
-        } catch (e: Throwable) {
-            LogCat.logException(e)
+        } catch (error: Exception) {
+            LogCat.logError("Bundled device dataset lookup failed: ${error.javaClass.simpleName}")
         }
         return null
     }
 
-    private fun saveToCache(data: String, name: String): Boolean {
+    private fun readCache(name: String): String? {
         try {
-            validateJson(data)
-            val cacheDir = AndroidContext.appContext.cacheDir
-            val file = File(cacheDir, name)
-            val canonicalCacheDir = cacheDir.canonicalFile
-            val canonicalFile = file.canonicalFile
-            if (canonicalFile.parentFile != canonicalCacheDir) {
-                throw SecurityException("Unsafe cache file path")
-            }
-            val parent = file.parentFile
-            if (parent != null && !parent.exists()) {
-                parent.mkdirs()
-            }
-
-            val tmpFile = File(file.absolutePath + ".tmp")
-
-            FileOutputStream(tmpFile).use { fos ->
-                OutputStreamWriter(fos, StandardCharsets.UTF_8).buffered(512 * 1024).use { writer ->
-                    writer.write(data)
-                    writer.flush()
-                }
-                //fos.fd.sync()
-            }
-
-            if (!tmpFile.renameTo(file)) {
-                tmpFile.delete()
-                throw IllegalStateException("Failed to rename ${tmpFile.absolutePath} to ${file.absolutePath}")
-            }
-            return true
-        } catch (e: Throwable) {
-            // JSON exceptions may contain the downloaded response, not just an error code.
-            LogCat.logError("Device dataset cache write failed: ${e.javaClass.simpleName}")
-            return false
+            val file = cacheFile(name)
+            if (!file.isFile) return null
+            val data = file.inputStream().use(BoundedWebResponse::readUtf8) ?: return null
+            return data.takeIf { isUsableCatalogue(name, it) }
+        } catch (error: Exception) {
+            LogCat.logError("Device dataset cache read failed: ${error.javaClass.simpleName}")
         }
+        return null
     }
 
-    private fun validateJson(data: String) {
-        val trimmed = data.trimStart()
-        if (trimmed.startsWith("{")) {
-            JSONObject(data)
-        } else if (trimmed.startsWith("[")) {
-            JSONArray(data)
-        } else {
-            throw IllegalArgumentException("Unexpected JSON root")
+    private fun cacheFile(name: String): File {
+        val directory = AndroidContext.appContext.cacheDir.canonicalFile
+        val file = File(directory, name)
+        check(file.canonicalFile == file) { "Unsafe device dataset cache path" }
+        return file
+    }
+
+    private fun saveToCache(data: String, name: String): Boolean {
+        if (!isUsableCatalogue(name, data)) return false
+        return try {
+            val file = cacheFile(name)
+            val temporary = File.createTempFile("device-dataset-", ".tmp", file.parentFile)
+            try {
+                temporary.bufferedWriter(StandardCharsets.UTF_8).use { it.write(data) }
+                temporary.renameTo(file)
+            } finally {
+                temporary.delete()
+            }
+        } catch (e: Exception) {
+            // JSON exceptions may contain the downloaded response, not just an error code.
+            LogCat.logError("Device dataset cache write failed: ${e.javaClass.simpleName}")
+            false
         }
     }
 
     private const val MAX_CACHE_FILE_NAME_LENGTH = 128
+}
 
+internal fun isUsableCatalogue(name: String, data: String): Boolean = try {
+    JsonReader(StringReader(data)).use { reader ->
+        val usable = when (name) {
+            "by_model.json" -> {
+                var found = false
+                reader.beginObject()
+                while (reader.hasNext()) {
+                    val model = reader.nextName()
+                    val hasName = reader.hasNamedDevice("name")
+                    found = found || (model.isNotBlank() && hasName)
+                }
+                reader.endObject()
+                found
+            }
+            "devices.json" -> reader.hasNamedDevice("name", requireBrand = true, sensorSection = { it == "specs" })
+            "specifications.json" -> reader.hasNamedDevice("phone_name", sensorSection = { it != "_metadata" })
+            else -> {
+                // The public cache also accepts other JSON files supplied by consuming apps.
+                val root = reader.peek()
+                reader.skipValue()
+                root == JsonToken.BEGIN_ARRAY || root == JsonToken.BEGIN_OBJECT
+            }
+        }
+        usable && reader.peek() == JsonToken.END_DOCUMENT
+    }
+} catch (_: Exception) {
+    false
+}
+
+private fun JsonReader.hasNamedDevice(
+    nameField: String,
+    requireBrand: Boolean = false,
+    sensorSection: ((String) -> Boolean)? = null
+): Boolean {
+    var found = false
+    beginArray()
+    while (hasNext()) {
+        var hasName = false
+        var hasBrand = false
+        var hasSensors = sensorSection == null
+        beginObject()
+        while (hasNext()) {
+            val field = nextName()
+            when {
+                field == nameField && peek() == JsonToken.STRING -> hasName = nextString().isNotBlank()
+                requireBrand && field == "brand" && peek() == JsonToken.STRING -> hasBrand = nextString().isNotBlank()
+                sensorSection?.invoke(field) == true && peek() == JsonToken.BEGIN_OBJECT -> {
+                    beginObject()
+                    while (hasNext()) {
+                        val key = nextName()
+                        if (key.equals("sensors", ignoreCase = true) && peek() == JsonToken.STRING) {
+                            val sensors = nextString()
+                            hasSensors = hasSensors || (sensors.isNotBlank() && !sensors.equals("Not found", ignoreCase = true))
+                        } else {
+                            skipValue()
+                        }
+                    }
+                    endObject()
+                }
+                else -> skipValue()
+            }
+        }
+        endObject()
+        found = found || (hasName && hasSensors && (!requireBrand || hasBrand))
+    }
+    endArray()
+    return found
 }

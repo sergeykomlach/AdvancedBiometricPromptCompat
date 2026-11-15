@@ -37,6 +37,7 @@
     <string name="biometriccompat_tf_face_help_too_many_attempts_try_later">Face Unlock is locked out. Try again later</string>
     <string name="biometriccompat_tf_face_help_too_many_attempts_permanent">Face Unlock is locked out permanently</string>
     <string name="biometriccompat_tf_face_help_model_already_registered">This face is already registered</string>
+    <string name="biometriccompat_tf_face_help_enrollment_limit">Remove a saved face before enrolling another one</string>
     <string name="biometriccompat_tf_face_help_model_not_detected">Can\u2019t see your face. Hold your phone at eye level</string>
     <string name="biometriccompat_tf_face_help_camera_error">Camera error (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">Face camera is unavailable</string>

@@ -49,7 +49,7 @@ object LogCat {
             this.log2ViewCallback = log2ViewCallback
             pending.clear()
             if (log2ViewCallback == null) return
-            cache.filter(::matchesFilter).joinToString("\n")
+            snapshot()
         }
         log2ViewCallback?.log(snapshot)
     }
@@ -58,6 +58,9 @@ object LogCat {
     fun clearLog2ViewCallback(owner: Log2ViewCallback) {
         if (log2ViewCallback === owner) setLog2ViewCallback(null)
     }
+
+    @Synchronized
+    internal fun snapshot(): String = cache.filter(::matchesFilter).joinToString("\n")
 
     fun start() {
         if (!started.compareAndSet(false, true)) return

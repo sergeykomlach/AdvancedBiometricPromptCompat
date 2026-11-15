@@ -24,6 +24,7 @@ import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricEnrollment
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricAssuranceLevel
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricSecurityProfile
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkScope
 import dev.skomlach.biometric.zkfinger.R
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
@@ -72,6 +73,7 @@ class ZkFingerUnlockManager(
 
         private val activeSessionLock = Any()
         private val operationOwner = ZkFingerOperationOwner()
+        private val templateOperations = SoftwareBiometricWorkScope(nonBlockingCancellation = true)
 
         @Volatile
         private var currentActiveManager: WeakReference<ZkFingerUnlockManager>? = null
@@ -129,6 +131,8 @@ class ZkFingerUnlockManager(
     private var isEnrolling = false
     private var enrollmentTag = ""
     private var enrollmentSamples = mutableListOf<ByteArray>()
+    // Set only on the native worker after this session has successfully loaded its templates.
+    private var loadedTemplateIds: Set<String> = emptySet()
     private val isSessionActive = AtomicBoolean(false)
     private val isOpening = AtomicBoolean(false)
 
@@ -239,12 +243,15 @@ class ZkFingerUnlockManager(
     override fun remove(extra: Bundle?) {
         val tag = extra?.getString(ENROLLMENT_TAG_KEY)
         operationOwner.revoke {
-            if (tag.isNullOrBlank()) {
-                getEnrolls().forEach { removeTemplate(it) }
-                nativeHandler.post { runCatching { sdkOrNull()?.clear() } }
-            } else {
-                removeTemplate(tag)
-                nativeHandler.post { runCatching { sdkOrNull()?.delete(tag) } }
+            templateOperations.revoke {
+                if (tag.isNullOrBlank()) {
+                    val ids = getEnrolls()
+                    prefs.editProtected { ids.forEach { remove(TEMPLATE_PREFIX + it) } }
+                    nativeHandler.post { runCatching { sdkOrNull()?.clear() } }
+                } else {
+                    removeTemplate(tag)
+                    nativeHandler.post { runCatching { sdkOrNull()?.delete(tag) } }
+                }
             }
         }
     }
@@ -276,12 +283,12 @@ class ZkFingerUnlockManager(
         // Own the request before posting it. A remove must also revoke a queued start,
         // and a different manager must not keep using the process-wide template cache.
         val session = operationOwner.start {
-            ZkFingerCaptureSession(onInvalidated = { retired ->
+            ZkFingerCaptureSession(operation = templateOperations.newSession(), onInvalidated = { retired ->
                 resultHandler.post { callback?.onAuthenticationCancelled() }
                 nativeHandler.post {
                     if (captureSession === retired) stopAuthentication()
+                    operationOwner.release(retired)
                 }
-                operationOwner.release(retired)
             }) { action -> nativeHandler.post { action() } }
         }
         cancel?.setOnCancelListener { session.invalidate() }
@@ -557,8 +564,7 @@ class ZkFingerUnlockManager(
         if (!isSessionActive.get()) return
         try {
             val sdk = requireSdk()
-            ensureTemplateEngine(sdk)
-            loadTemplatesIntoEngine(sdk)
+            loadedTemplateIds = loadTemplatesIntoEngine(sdk)
             val sensor = sdk.createSensor(context, device)
             fingerprintSensor = sensor
             sdk.setCaptureListener(
@@ -713,29 +719,20 @@ class ZkFingerUnlockManager(
         val parts = payload.split('\t')
         val id = parts.firstOrNull()?.trim().orEmpty()
         val parsedScore = parts.getOrNull(1)?.trim()?.toIntOrNull() ?: score
-        return if (id.isNotEmpty()) id to parsedScore else null
+        check(id in loadedTemplateIds) { "ZKFinger returned a template outside the current session" }
+        return id to parsedScore
     }
 
-    private fun ensureTemplateEngine(sdk: ZkFingerSdkBridge) {
-        runCatching { sdk.init() }
-            .onFailure { LogCat.logException(it) }
-    }
-
-    private fun loadTemplatesIntoEngine(sdk: ZkFingerSdkBridge) {
-        runCatching { sdk.clear() }
-        prefs.all.forEach { (key, value) ->
+    private fun loadTemplatesIntoEngine(sdk: ZkFingerSdkBridge): Set<String> {
+        check(sdk.init() == 0) { "ZKFinger template engine did not initialize" }
+        check(sdk.clear() == 0) { "ZKFinger template engine could not clear its cache" }
+        return prefs.all.entries.filter { it.key.startsWith(TEMPLATE_PREFIX) }.mapTo(HashSet()) { (key, value) ->
             val id = key.removePrefix(TEMPLATE_PREFIX)
-            if (id == key) return@forEach
-            val encoded = value as? String ?: return@forEach
-            val template = runCatching {
-                Base64.decode(encoded, Base64.NO_WRAP)
-            }.getOrNull() ?: return@forEach
-            if (template.isNotEmpty()) {
-                val ret = sdk.save(template, id)
-                if (ret != 0) {
-                    LogCat.log(TAG, "Failed to load ZK template for $id: $ret")
-                }
+            val template = Base64.decode(value as String, Base64.NO_WRAP)
+            check(id.isNotEmpty() && template.isNotEmpty() && sdk.save(template, id) == 0) {
+                "ZKFinger could not load a stored template"
             }
+            id
         }
     }
 
@@ -808,7 +805,9 @@ class ZkFingerUnlockManager(
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
-        runCatching { sdk?.free() }
+        runCatching { sdk?.free()?.let { check(it == 0) { "ZKFinger template engine cleanup failed" } } }
+            .onFailure { LogCat.logException(it) }
+        loadedTemplateIds = emptySet()
         authCallback = null
         enrollmentSamples.clear()
         isEnrolling = false

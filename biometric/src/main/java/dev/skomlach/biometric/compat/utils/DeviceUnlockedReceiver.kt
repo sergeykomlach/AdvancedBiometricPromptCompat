@@ -71,25 +71,27 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action ?: return
+        val isBoot = action in BOOT_ACTIONS
+        val isUnlock = action == Intent.ACTION_USER_PRESENT || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+            (action == Intent.ACTION_MANAGED_PROFILE_UNLOCKED || action == Intent.ACTION_USER_UNLOCKED))
+        if (!isBoot && !isUnlock) return
+        val pending = goAsync()
         ExecutorHelper.startOnBackground {
-            if (BOOT_ACTIONS.contains(action)) {
-                d("Device boot event received: $action")
-                if (PROTECTED_BOOT_ACTIONS.contains(action)) {
-                    BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-                } else if (!BiometricErrorLockoutPermanentFix.resetIfRebooted()) {
-                    d("Ignoring boot event without reboot evidence")
-                }
-            } else if (
-                action == Intent.ACTION_USER_PRESENT ||
-                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
-                        (
-                                action == Intent.ACTION_MANAGED_PROFILE_UNLOCKED ||
-                                        action == Intent.ACTION_USER_UNLOCKED
-                                ))
-            ) {
+            try {
+                if (isBoot) {
+                    d("Device boot event received: $action")
+                    if (action in PROTECTED_BOOT_ACTIONS) {
+                        BiometricErrorLockoutPermanentFix.resetAfterBoot()
+                    } else if (!BiometricErrorLockoutPermanentFix.resetIfRebooted()) {
+                        d("Ignoring boot event without reboot evidence")
+                    }
+                } else {
                     d("Device unlocked completed")
                     if (!BiometricErrorLockoutPermanentFix.resetIfRebooted())
                         BiometricLockoutFix.reset()
+                }
+            } finally {
+                pending?.finish()
             }
         }
     }

@@ -18,7 +18,7 @@ class SherpaOnnxVoiceEngine internal constructor(
 ) : VoiceEngine, VoiceTemplateIdentityProvider, PreparingVoiceEngine,
     SoftwareBiometricDeferredInitialization {
     private val preparationLock = Any()
-    private var runtime: SherpaOnnxEmbeddingRuntime? = null
+    @Volatile private var runtime: SherpaOnnxEmbeddingRuntime? = null
     @Volatile private var runtimeHealthy = false
     @Volatile override var templateIdentity: String? = null
         private set
@@ -39,8 +39,9 @@ class SherpaOnnxVoiceEngine internal constructor(
         }
         initializationState = SoftwareBiometricInitializationState.PREPARING
         var ready = false
+        var prepared: SherpaOnnxEmbeddingRuntime? = null
         try {
-            val prepared = createRuntime()
+            prepared = createRuntime()
             if (prepared.prepare() && prepared.isAvailable()) {
                 val identity = prepared.templateIdentity
                 if (!identity.isNullOrBlank()) {
@@ -57,12 +58,21 @@ class SherpaOnnxVoiceEngine internal constructor(
         } finally {
             initializationState = if (ready) SoftwareBiometricInitializationState.READY
                 else SoftwareBiometricInitializationState.FAILED
+            if (!ready) prepared?.close()
         }
         ready
     }
 
     override fun isAvailable(): Boolean =
         initializationState == SoftwareBiometricInitializationState.READY && runtimeHealthy
+
+    internal fun closeRuntime() = synchronized(preparationLock) {
+        val current = runtime
+        runtime = null
+        runtimeHealthy = false
+        initializationState = SoftwareBiometricInitializationState.FAILED
+        current?.close()
+    }
 
     override fun extractEmbedding(sample: VoiceSample): VoiceEmbeddingResult? {
         val pcm = sample.pcmFloat ?: return invalidEmbedding(VoiceQualityIssue.SAMPLE_MISSING)
@@ -106,6 +116,7 @@ internal interface SherpaOnnxEmbeddingRuntime {
     fun isAvailable(): Boolean
 
     fun extractEmbedding(pcm: FloatArray, sampleRateHz: Int): FloatArray?
+    fun close() {}
 }
 
 /**
@@ -127,6 +138,21 @@ private class DirectSherpaOnnxEmbeddingRuntime(
     @Volatile private var extractor: SpeakerEmbeddingExtractor? = null
 
     override fun isAvailable(): Boolean = !permanentlyUnavailable && extractor != null
+
+    override fun close() {
+        synchronized(this) {
+            permanentlyUnavailable = true
+            val current = extractor
+            extractor = null
+            try {
+                current?.release()
+            } catch (_: LinkageError) {
+                // Optional runtime may omit a usable native destructor.
+            } catch (_: RuntimeException) {
+                // Already retired; never retry through a released handle.
+            }
+        }
+    }
 
     override fun extractEmbedding(pcm: FloatArray, sampleRateHz: Int): FloatArray? = synchronized(this) {
         if (permanentlyUnavailable) return@synchronized null

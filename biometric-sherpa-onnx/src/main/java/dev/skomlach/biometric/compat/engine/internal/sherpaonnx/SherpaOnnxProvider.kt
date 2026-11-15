@@ -4,6 +4,7 @@ import android.content.Context
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptFactory
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
+import dev.skomlach.biometric.compat.custom.withRuntimeCleanup
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 
 /**
@@ -27,7 +28,7 @@ class SherpaOnnxProvider : SoftwareBiometricProvider() {
             context = context.applicationContext,
             engine = SherpaOnnxVoiceEngine(context.applicationContext),
             modulePriority = MODULE_PRIORITY
-        )
+        ).withRuntimeCleanup(SherpaOnnxBiometricManager::closeRuntime)
 
     override fun getPromptFactory(): SoftwareBiometricPromptFactory = SherpaOnnxPromptFactory()
 }

@@ -111,6 +111,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     IBiometricPromptImpl, AuthCallback {
     companion object {
         private const val PROMPT_CRYPTO_KEY = "BiometricPromptCompat"
+        private const val PROMPT_VERIFICATION_KEY = "BiometricPromptCompatCallbackVerification"
     }
 
     @Volatile private var legacySessionOwner = Any()
@@ -137,7 +138,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (builder.forceDeviceCredential()) {
                     true
                 } else {
-                    builder.getCryptographyPurpose() == null
+                    builder.getAuthenticationCryptographyPurpose() == null
                 }
             } else {
                 builder.forceDeviceCredential()
@@ -191,7 +192,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     if (builder.forceDeviceCredential())
                         BiometricManager.Authenticators.DEVICE_CREDENTIAL
                     else
-                        if (builder.getCryptographyPurpose() != null)
+                        if (builder.getAuthenticationCryptographyPurpose() != null)
                             BiometricManager.Authenticators.BIOMETRIC_STRONG
                         else
                             (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
@@ -826,11 +827,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 ) { authSessionState.owns(sessionToken) }
             }
             systemPromptCancellation?.observe()
-            val requestedPurpose = builder.getCryptographyPurpose()
+            val requestedPurpose = builder.getAuthenticationCryptographyPurpose()
             if (requestedPurpose?.purpose == BiometricCryptographyPurpose.DECRYPT &&
                 requestedPurpose.initVector?.let(AppFlowCipherFactory::isVersionedIv) == true
             ) {
-                if (builder.isCryptoFallbackAllowed()) {
+                if (builder.allowsAuthenticationCryptoFallback()) {
                     prepareAppFlowCrypto(biometricPrompt, activity, sessionToken, requestedPurpose)
                 } else {
                     checkAuthResult(AuthResult.AuthResultState.FATAL_ERROR, AuthenticationResult(
@@ -848,8 +849,14 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
 
             val purpose = requestedPurpose.copy(initVector = requestedPurpose.initVector?.copyOf())
+            val automaticVerification = builder.shouldVerifyAutomaticCrypto()
             preparePromptCrypto(activity, sessionToken, {
-                BiometricCryptoObjectHelper.getBiometricCryptoObject(PROMPT_CRYPTO_KEY, purpose, true)?.cipher
+                val cryptoObject = if (automaticVerification) {
+                    BiometricCryptoObjectHelper.prepareBiometricCryptoObject(PROMPT_VERIFICATION_KEY, purpose)
+                } else {
+                    BiometricCryptoObjectHelper.getBiometricCryptoObject(PROMPT_CRYPTO_KEY, purpose, true)
+                }
+                cryptoObject?.cipher
                     ?: throw BiometricCryptoException("Missing biometric cipher")
             }) { prepared ->
                 val cipher = prepared.getOrElse { error ->
@@ -868,7 +875,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 } catch (error: Throwable) {
                     e(error, "BiometricPromptApi28Impl.authenticate with CryptoObject failed")
                     pendingPromptCryptoObject.set(null)
-                    if (builder.isCryptoFallbackAllowed()) {
+                    if (builder.allowsAuthenticationCryptoFallback()) {
                         prepareAppFlowCrypto(biometricPrompt, activity, sessionToken, purpose)
                     } else {
                         checkAuthResult(
@@ -1114,7 +1121,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 val onlySuccess = authFinished.filter {
                     completionTypes.contains(it.key) && it.value.authResultState == AuthResult.AuthResultState.SUCCESS
                 }
-                val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
+                val fixCryptoObjects = builder.getAuthenticationCryptographyPurpose()?.purpose == null
                 d("BiometricPromptApi28Impl.checkAuthResult() -> onSucceeded")
 
                 callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
@@ -1189,7 +1196,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         authResult: AuthResult.AuthResultState
     ): AuthenticationResult? {
         if (authResult != AuthResult.AuthResultState.SUCCESS ||
-            builder.getCryptographyPurpose() == null ||
+            builder.getAuthenticationCryptographyPurpose() == null ||
             isAcceptedCryptoResult(module)
         ) {
             return module
@@ -1204,7 +1211,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private fun isAcceptedCryptoResult(module: AuthenticationResult?): Boolean {
         return module?.cryptoSecurityLevel == CryptoSecurityLevel.HARDWARE_BACKED ||
                 (
-                        builder.isCryptoFallbackAllowed() &&
+                        builder.allowsAuthenticationCryptoFallback() &&
                                 module?.cryptoSecurityLevel == CryptoSecurityLevel.APP_FLOW_NOT_BIOMETRIC_BOUND
                         )
     }

@@ -122,6 +122,12 @@ object LegacyBiometric {
         maintainSoftwareModules { it.resetPermanentLockOut() }
     }
 
+    @Synchronized
+    internal fun resetSoftwarePermanentLockOutForDevice(onlyIfDiscovered: Boolean): Boolean =
+        SoftwareBiometricPromptRegistry.maintain(AndroidContext.appContext, onlyIfDiscovered) {
+            it.resetPermanentLockOutDurably()
+        }
+
     fun resetSoftwareLockOut() {
         maintainSoftwareModules { it.resetLockOut() }
     }
@@ -168,8 +174,11 @@ object LegacyBiometric {
         }
     }
 
+    @Synchronized
     fun unregisterAllNonHardwareBiometrics() {
-        maintainSoftwareModules { it.remove(null) }
+        SoftwareBiometricPromptRegistry.maintain(AndroidContext.appContext, onlyIfDiscovered = false) {
+            it.remove(null)
+        }
     }
 
     @Synchronized
@@ -183,12 +192,13 @@ object LegacyBiometric {
                 customModuleHashMap.clear()
                 keys
             }
-            synchronized(moduleHashMap) {
-                keysToRemove.forEach {
-                    moduleHashMap.remove(it.key)
-                }
+            val modules = synchronized(moduleHashMap) {
+                keysToRemove.keys.mapNotNull { moduleHashMap.remove(it) }
             }
-            SoftwareBiometricPromptRegistry.reset()
+            val runtimes = SoftwareBiometricPromptRegistry.retireRuntimes()
+            Core.retireSoftwareModules(modules) {
+                runtimes.forEach { runtime -> runCatching(runtime::close).onFailure { e(it) } }
+            }
         } catch (e: Throwable) {
             e("BiometricAuthentication", "resetSoftwareModules failure", e)
         } finally {
@@ -497,6 +507,7 @@ object LegacyBiometric {
         val isEnroll = bundle?.getBoolean(BundleBuilder.ENROLL, false) == true
         (selected ?: selectAuthenticationModules(requestedMethods, provider, isEnroll, excludedModuleTags))
             .forEach { (type, module) ->
+                if ((module as? SoftwareBiometricModule)?.runtime?.isRetired == true) return@forEach
                 selectedAnyModule = true
                 if (owner != null && !joinedSession.add(owner, module.tag())) return@forEach
                 Core.registerSelectedModule(module)

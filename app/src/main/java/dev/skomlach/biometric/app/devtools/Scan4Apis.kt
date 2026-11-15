@@ -31,10 +31,8 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.FileWriter
 import java.io.IOException
 import java.io.OutputStream
-import java.io.StringWriter
 import java.util.Arrays
 import java.util.Locale
 import java.util.UUID
@@ -63,9 +61,7 @@ class Scan4Apis {
         val scanContext = currentCoroutineContext()
         try {
             val context = AndroidContext.appContext
-            val file = File(context.cacheDir, "deviceapi.log")
             val cache = File(context.cacheDir, UUID.randomUUID().toString())
-            val writer = StringWriter()
             check(cache.mkdir()) { "Could not create diagnostic scratch directory" }
             try {
                 val paths = HashSet<String>()
@@ -148,12 +144,6 @@ class Scan4Apis {
                                                 type.substring(1, type.length - 1).replace("/", ".")
                                             Class.forName(clzName, false, javaClass.classLoader)
                                             sb.append(type).append("\n")
-                                            if (counter == 0) {
-                                                writer.write("\n-------------------------\n")
-                                                writer.write(s)
-                                                writer.write("\n")
-                                            }
-                                            writer.write(type + "\n")
                                             counter++
                                         } catch (ignore: Throwable) {
 
@@ -170,7 +160,6 @@ class Scan4Apis {
                             stringBuilder.append("\n")
                             stringBuilder.append(sb.toString())
                             stringBuilder.append("\n")
-                            writer.write("\n")
                         }
                     } catch (e: CancellationException) {
                         throw e
@@ -181,11 +170,7 @@ class Scan4Apis {
                     }
                 }
                 scanContext.ensureActive()
-                val report = File(cache, "deviceapi.log")
-                FileWriter(report).use { it.write(writer.toString()) }
-                scanContext.ensureActive()
-                if (!report.renameTo(file)) throw IOException("Could not publish the diagnostic report")
-                return stringBuilder.toString()
+                return stringBuilder.toString().takeIf { it.isNotBlank() }
             } finally {
                 deleteRecursive(cache)
             }

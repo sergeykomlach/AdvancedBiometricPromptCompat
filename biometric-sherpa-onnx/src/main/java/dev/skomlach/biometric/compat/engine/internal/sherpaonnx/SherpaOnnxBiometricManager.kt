@@ -47,6 +47,10 @@ class SherpaOnnxBiometricManager(
     override val trustedCaptureForAuthentication: Boolean = false
 
     private val worker = newSoftwareBiometricWorker("SherpaOnnxBiometricManager")
+
+    internal fun closeRuntime() {
+        worker.execute { (engine as? SherpaOnnxVoiceEngine)?.closeRuntime() }
+    }
     @Volatile private var activeOperation: SoftwareBiometricWorkSession? = null
     private var activeCallback: SoftwareBiometricWorkerCallback? = null
     private var lastProbeFingerprint: Long? = null

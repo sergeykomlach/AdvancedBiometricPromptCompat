@@ -60,7 +60,9 @@ class FaceAntiSpoofing private constructor(
         }
     }
 
-    private var interpreter: Interpreter? = null
+    @Volatile private var interpreter: Interpreter? = null
+    private val interpreterLock = Any()
+    private var closed = false
     private val imgData: ByteBuffer = ByteBuffer.allocateDirect(
         1 * INPUT_IMAGE_SIZE * INPUT_IMAGE_SIZE * 3 * 4
     ).apply {
@@ -98,12 +100,18 @@ class FaceAntiSpoofing private constructor(
     private fun startModelInitialization() {
         ExecutorHelper.startOnBackground {
             try {
-                interpreter = Interpreter(
+                val created = Interpreter(
                     loadModelFile(assetManager, MODEL_FILE),
                     TfLiteBackendHelper.createOptions(selection)
                 )
-                outputs[outputIndex0] = clssPred
-                outputs[outputIndex1] = leafNodeMask
+                synchronized(interpreterLock) {
+                    if (closed) created.close()
+                    else {
+                        interpreter = created
+                        outputs[outputIndex0] = clssPred
+                        outputs[outputIndex1] = leafNodeMask
+                    }
+                }
             } catch (t: Throwable) {
                 initializationError = t
                 LogCat.logException(t)
@@ -129,7 +137,7 @@ class FaceAntiSpoofing private constructor(
      * @param bitmap Input face image
      * @return Score (Low score = Real face, High score = Spoof)
      */
-    fun antiSpoofing(bitmap: Bitmap): Float {
+    @Synchronized fun antiSpoofing(bitmap: Bitmap): Float {
         val bitmapScale = bitmap.scale(INPUT_IMAGE_SIZE, INPUT_IMAGE_SIZE)
         try {
             convertBitmapToByteBuffer(bitmapScale)
@@ -229,13 +237,15 @@ class FaceAntiSpoofing private constructor(
         return (0.299 * r + 0.587 * g + 0.114 * b).toInt()
     }
 
-    fun close() {
+    @Synchronized fun close() {
+        val current = synchronized(interpreterLock) {
+            closed = true
+            interpreter.also { interpreter = null }
+        }
         try {
-            interpreter?.close()
+            current?.close()
         } catch (t: Throwable) {
             LogCat.logException(t)
-        } finally {
-            interpreter = null
         }
     }
 }

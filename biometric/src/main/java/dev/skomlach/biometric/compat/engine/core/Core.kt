@@ -39,8 +39,10 @@ import java.util.WeakHashMap
 
 object Core {
 
+    private data class ActiveRequest(val signal: CancellationSignal, val onProviderRetired: (() -> Unit)?)
+
     private val cancellationSignals =
-        Collections.synchronizedMap(HashMap<BiometricModule, CancellationSignal>())
+        Collections.synchronizedMap(HashMap<BiometricModule, ActiveRequest>())
     // Values deliberately contain no module/signal references, including after local teardown.
     private val requestOwners = WeakHashMap<BiometricModule, ModuleRequestOwner>()
     private val reprintModuleHashMap = Collections.synchronizedMap(HashMap<Int, BiometricModule>())
@@ -52,7 +54,7 @@ object Core {
                 requestOwners.clear()
                 cancellationSignals.toMap()
             }
-            requests.forEach { (module, signal) -> cancelAuthentication(module, signal) }
+            requests.forEach { (module, request) -> cancelAuthentication(module, request.signal) }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
@@ -198,12 +200,22 @@ object Core {
     ) {
         val signal = CancellationSignal()
         val owner = ModuleRequestOwner()
-        fun ownsRequest() = owner.isCurrent() && !signal.isCanceled && isActive()
-        val previous = synchronized(cancellationSignals) {
+        val runtime = (module as? dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule)?.runtime
+        fun ownsRequest() = owner.isCurrent() && !signal.isCanceled && runtime?.isRetired != true && isActive()
+        val onProviderRetired: (() -> Unit)? = if (runtime != null) {
+            { if (isActive()) listener?.onCanceled(module.tag(), AuthenticationFailureReason.CANCELED, null) }
+        } else null
+        val request = ActiveRequest(signal, onProviderRetired)
+        val (admitted, previous) = synchronized(cancellationSignals) {
+            if (runtime?.isRetired == true) return@synchronized false to null
             requestOwners.put(module, owner)?.supersede()
-            cancellationSignals.put(module, signal)
+            true to cancellationSignals.put(module, request)
         }
-        previous?.let(::cancelSignal)
+        previous?.signal?.let(::cancelSignal)
+        if (!admitted) {
+            request.onProviderRetired?.invoke()
+            return
+        }
         if (!ownsRequest()) return
 
         fun launch(prepared: BiometricCryptoObject?) {
@@ -213,7 +225,7 @@ object Core {
             val requestListener = ModuleFeedbackListener(
                 if (appFlow) listener.withPreparedCryptoObject(prepared) else listener,
                 module.tag(), owner, cancelRequest = { cancelAuthentication(module, signal) },
-                isActive = { !signal.isCanceled && isActive() }
+                isActive = { !signal.isCanceled && runtime?.isRetired != true && isActive() }
             )
             try {
                 if (cryptoKeyName != null) {
@@ -250,20 +262,40 @@ object Core {
         val requests = synchronized(cancellationSignals) { cancellationSignals.toMap() }
         // Keep later origins discoverable until their own teardown. A reentrant start
         // must finish its predecessor's SDK cancellation before starting new capture.
-        requests.forEach { (module, signal) -> cancelAuthentication(module, signal) }
+        requests.forEach { (module, request) -> cancelAuthentication(module, request.signal) }
     }
 
+    internal fun retireSoftwareModules(modules: List<BiometricModule>, close: () -> Unit) {
+        synchronized(reprintModuleHashMap) {
+            modules.forEach { module ->
+                if (reprintModuleHashMap[module.tag()] === module) reprintModuleHashMap.remove(module.tag())
+            }
+        }
+        val retired = synchronized(cancellationSignals) {
+            modules.mapNotNull { module ->
+                requestOwners.remove(module)?.supersede()
+                cancellationSignals.remove(module)
+            }
+        }
+        ExecutorHelper.post {
+            retired.forEach { request ->
+                cancelSignal(request.signal)
+                runCatching { request.onProviderRetired?.invoke() }.onFailure { BiometricLoggerImpl.e(it) }
+            }
+            ExecutorHelper.startOnBackground { close() }
+        }
+    }
 
     fun cancelAuthentication(module: BiometricModule) {
-        val signal = synchronized(cancellationSignals) { cancellationSignals.remove(module) }
-        signal?.let(::cancelSignal)
+        val request = synchronized(cancellationSignals) { cancellationSignals.remove(module) }
+        request?.signal?.let(::cancelSignal)
     }
 
     private fun cancelAuthentication(module: BiometricModule, expected: CancellationSignal) {
-        val signal = synchronized(cancellationSignals) {
-            if (cancellationSignals[module] !== expected) null else cancellationSignals.remove(module)
+        val request = synchronized(cancellationSignals) {
+            if (cancellationSignals[module]?.signal !== expected) null else cancellationSignals.remove(module)
         }
-        signal?.let(::cancelSignal)
+        request?.signal?.let(::cancelSignal)
     }
 
     private fun cancelSignal(signal: CancellationSignal) {

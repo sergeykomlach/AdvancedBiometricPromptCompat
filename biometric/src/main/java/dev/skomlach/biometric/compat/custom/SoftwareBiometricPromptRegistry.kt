@@ -19,6 +19,8 @@ private val SOFTWARE_RUNTIME_ORDER = compareByDescending<SoftwareBiometricRuntim
  */
 internal object SoftwareBiometricPromptRegistry {
     private val lock = Any()
+    private var enabled = true
+    private var discoveryFailures = emptyList<Throwable>()
 
     @Volatile
     private var cachedRuntimes: List<SoftwareBiometricRuntime>? = null
@@ -26,43 +28,85 @@ internal object SoftwareBiometricPromptRegistry {
     @Volatile
     private var cachedSelection: SoftwareBiometricRuntimeSelection? = null
 
-    fun discover(context: Context): List<SoftwareBiometricRuntime> {
+    private fun discover(context: Context): List<SoftwareBiometricRuntime> {
         cachedRuntimes?.let { return it }
-        return synchronized(lock) {
-            cachedRuntimes ?: try {
-                load(context).also { cachedRuntimes = it }
-            } catch (error: java.util.ServiceConfigurationError) {
-                BiometricLoggerImpl.e(error, "SoftwareBiometricPromptRegistry.load")
-                // An incomplete traversal must not become a cached partial provider set.
-                emptyList()
-            }
+        val failures = mutableListOf<Throwable>()
+        val runtimes = mutableListOf<SoftwareBiometricRuntime>()
+        val complete = load(context, runtimes, failures)
+        discoveryFailures = failures.toList()
+        // A traversal that could not complete must not become a cached partial provider set.
+        if (!complete) {
+            runtimes.forEach { runCatching(it::close).onFailure { error -> BiometricLoggerImpl.e(error) } }
+            return emptyList()
         }
+        cachedRuntimes = runtimes
+        return runtimes
     }
 
-    fun reset() {
+    fun retireRuntimes(): List<SoftwareBiometricRuntime> = synchronized(lock) {
+        enabled = false
+        cachedSelection = null
+        val retired = cachedRuntimes.orEmpty()
+        cachedRuntimes = null
+        discoveryFailures = emptyList()
+        retired.onEach(SoftwareBiometricRuntime::retire)
+    }
+
+    private fun selection(context: Context): SoftwareBiometricRuntimeSelection? =
         synchronized(lock) {
-            cachedRuntimes = null
-            cachedSelection = null
-        }
-    }
-
-    private fun selection(context: Context): SoftwareBiometricRuntimeSelection =
-        cachedSelection ?: synchronized(lock) {
+            if (!enabled) return null
             cachedSelection ?: SoftwareBiometricRuntimeSelection(discover(context))
                 .also { if (cachedRuntimes != null) cachedSelection = it }
         }
 
-    fun registeredRuntimes(context: Context): List<SoftwareBiometricRuntime> = selection(context).runtimes
+    fun registeredRuntimes(context: Context): List<SoftwareBiometricRuntime> = synchronized(lock) {
+        enabled = true
+        selection(context)?.runtimes.orEmpty()
+    }
+
+    // Run against every installed provider, including inactive alternatives sharing a modality.
+    // LegacyBiometric serializes maintenance with load/unload.
+    fun maintain(
+        context: Context,
+        onlyIfDiscovered: Boolean,
+        action: (AbstractSoftwareBiometricManager) -> Unit
+    ): Boolean {
+        val (known, initialFailures) = synchronized(lock) { cachedRuntimes to discoveryFailures }
+        if (known == null && onlyIfDiscovered) return false
+        val failures = if (known == null) mutableListOf() else initialFailures.toMutableList()
+        val temporary = mutableListOf<SoftwareBiometricRuntime>()
+        if (known == null) load(context, temporary, failures)
+        (known ?: temporary).forEach { runtime ->
+            attemptMaintenance(failures) { action(runtime.manager) }
+        }
+        temporary.forEach { runtime -> attemptMaintenance(failures, runtime::close) }
+        if (failures.isNotEmpty()) {
+            val error = IllegalStateException("Software biometric maintenance failed for one or more providers")
+            failures.forEach(error::addSuppressed)
+            throw error
+        }
+        return true
+    }
+
+    private inline fun attemptMaintenance(failures: MutableList<Throwable>, action: () -> Unit) {
+        try { action() }
+        catch (error: Exception) { failures.add(error) }
+        catch (error: LinkageError) { failures.add(error) }
+    }
 
     fun prepareInitial(
         type: BiometricType,
         context: Context,
         isActive: () -> Boolean,
         onComplete: () -> Unit
-    ) = selection(context).prepareInitial(type, isActive, onComplete)
+    ) {
+        val selection = selection(context)
+        if (selection != null) selection.prepareInitial(type, isActive, onComplete)
+        else if (isActive()) onComplete()
+    }
 
     fun resolve(type: BiometricType, context: Context): SoftwareBiometricRuntime? =
-        selection(context).resolve(type)
+        selection(context)?.resolve(type)
 
     internal fun select(
         type: BiometricType,
@@ -83,11 +127,27 @@ internal object SoftwareBiometricPromptRegistry {
             ?: matches.firstOrNull().takeIf { allowUnavailable }
     }
 
-    private fun load(context: Context): List<SoftwareBiometricRuntime> {
-        return SoftwareBiometricServices.collect(
-            ServiceLoader.load(SoftwareBiometricProvider::class.java),
-            { error -> BiometricLoggerImpl.e(error, "SoftwareBiometricPromptRegistry.provider") }
-        ) { it.createRuntime(context) }
+    private fun load(
+        context: Context,
+        result: MutableList<SoftwareBiometricRuntime>,
+        failures: MutableList<Throwable>
+    ): Boolean {
+        val onError = { error: Throwable ->
+            failures.add(error)
+            BiometricLoggerImpl.e(error, "SoftwareBiometricPromptRegistry.provider")
+        }
+        return try {
+            SoftwareBiometricServices.collect(
+                ServiceLoader.load(SoftwareBiometricProvider::class.java), onError
+            ) { provider ->
+                result.add(provider.createRuntime(context))
+                Unit
+            }
+            true
+        } catch (error: java.util.ServiceConfigurationError) {
+            onError(error)
+            false
+        }
     }
 
     internal fun isAvailable(manager: AbstractSoftwareBiometricManager, allowLockedOut: Boolean = false): Boolean =
@@ -118,7 +178,7 @@ internal class SoftwareBiometricRuntimeSelection(candidates: Iterable<SoftwareBi
     }
 
     fun resolve(type: BiometricType): SoftwareBiometricRuntime? = byType[type]?.current()?.takeIf {
-        it.initialState() != SoftwareBiometricInitializationState.FAILED &&
+        !it.isRetired && it.initialState() != SoftwareBiometricInitializationState.FAILED &&
             it.promptFactory?.biometricType == type && SoftwareBiometricPromptRegistry.isAvailable(it.manager)
     }
 
@@ -130,7 +190,7 @@ internal class SoftwareBiometricRuntimeSelection(candidates: Iterable<SoftwareBi
             if (index == choices.size) { onComplete(); return }
             val choice = choices[index]
             val runtime = choice.current()
-            if (!runtime.needsInitialPreparation() || !canPrepareInitial(runtime)) {
+            if (runtime.isRetired || !runtime.needsInitialPreparation() || !canPrepareInitial(runtime)) {
                 prepareNext(index + 1)
                 return
             }
@@ -138,7 +198,7 @@ internal class SoftwareBiometricRuntimeSelection(candidates: Iterable<SoftwareBi
             val finish = {
                 if (completed.compareAndSet(false, true) && isActive()) {
                     // Only the provider's confirmed FAILED state can authorize another runtime.
-                    prepareNext(if (choice.current() !== runtime) index else index + 1)
+                    prepareNext(if (!runtime.isRetired && choice.current() !== runtime) index else index + 1)
                 }
             }
             try {

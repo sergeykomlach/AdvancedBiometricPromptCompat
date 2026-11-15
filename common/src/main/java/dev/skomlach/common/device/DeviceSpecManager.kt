@@ -34,33 +34,15 @@ object DeviceSpecManager {
 
     //tools
     fun getDeviceSpecCompat(deviceModel: DeviceModel): DeviceSpec? {
-        var timestamp = System.currentTimeMillis()
+        val timestamp = System.currentTimeMillis()
         try {
-            var ts = System.currentTimeMillis()
-            DataProviders.getOrCacheJSON(
-                "https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true"
-            )?.let { json ->
-                LogCat.log("getDeviceSpecCompat findGsmarenaSpec load time ${System.currentTimeMillis() - ts}ms")
-                ts = System.currentTimeMillis()
-                findGsmarenaSpec(json, deviceModel).also {
-                    LogCat.log("getDeviceSpecCompat findGsmarenaSpec lookup time ${System.currentTimeMillis() - ts}ms")
-                }?.let {
-                    return it
-                }
-            }
-            ts = System.currentTimeMillis()
-            DataProviders.getOrCacheJSON(
-                "https://github.com/nowrom/devices/blob/main/devices.json?raw=true"
-            )?.let { json ->
-                LogCat.log("getDeviceSpecCompat findDeviceSpecInJson load time ${System.currentTimeMillis() - ts}ms")
-                ts = System.currentTimeMillis()
-                DeviceParser.findDeviceSpecInJson(json, deviceModel).also {
-                    LogCat.log("getDeviceSpecCompat findDeviceSpecInJson lookup time ${System.currentTimeMillis() - ts}ms")
-                }?.let {
-                    return it
-                }
-            }
-            return null
+            return DataProviders.findInCacheOrAsset<DeviceSpec>(
+                "https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true",
+                acceptCached = { it.getSensors().isNotEmpty() }
+            ) { findGsmarenaSpec(it, deviceModel) } ?: DataProviders.findInCacheOrAsset<DeviceSpec>(
+                "https://github.com/nowrom/devices/blob/main/devices.json?raw=true",
+                acceptCached = { it.getSensors().isNotEmpty() }
+            ) { DeviceParser.findDeviceSpecInJson(it, deviceModel) }
         } finally {
             LogCat.log("getDeviceSpecCompat time ${System.currentTimeMillis() - timestamp}ms")
         }

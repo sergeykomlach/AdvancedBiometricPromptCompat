@@ -1,14 +1,16 @@
 package dev.skomlach.biometric.compat.engine.internal.fingerprint.zk
 
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkSession
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricWorkScope
 import java.util.concurrent.atomic.AtomicReference
 
 /** Routes vendor callbacks to the native worker without carrying them into a later session. */
 internal class ZkFingerCaptureSession(
     onInvalidated: (ZkFingerCaptureSession) -> Unit = {},
+    private val operation: SoftwareBiometricWorkSession =
+        SoftwareBiometricWorkScope(nonBlockingCancellation = true).newSession(),
     private val enqueue: (() -> Unit) -> Unit
 ) {
-    private val operation = SoftwareBiometricWorkSession()
     private val delivery = SoftwareBiometricWorkSession()
     private val invalidationCallback = AtomicReference<((ZkFingerCaptureSession) -> Unit)?>(onInvalidated)
 

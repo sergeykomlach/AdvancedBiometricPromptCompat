@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity() {
                             Toast.LENGTH_LONG
                         ).show()
                     } else {
-                        MailTo.startMailClient(
+                        MailTo.startDeviceReport(
                             this@MainActivity,
                             "s.komlach@gmail.com",
                             getString(R.string.advanced_biometric_report_subject),
@@ -203,18 +203,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun sendLogs() {
-        LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback {
-            override fun log(log: String) {
-                LogCat.setLog2ViewCallback(null)
-                MailTo.startMailClient(
-                    this@MainActivity,
-                    "s.komlach@gmail.com",
-                    getString(R.string.advanced_biometric_logs_subject),
-                    log
-                )
-            }
-        })
-
+        MailTo.startMailClient(
+            this,
+            "s.komlach@gmail.com",
+            getString(R.string.advanced_biometric_logs_subject),
+            LogCat.snapshot()
+        )
     }
 
     private fun hideSystemUI() {

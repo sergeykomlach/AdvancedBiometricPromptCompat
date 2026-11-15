@@ -174,9 +174,13 @@ def getSonatypeCredentials() {
     def auth = "${username}:${password}".bytes.encodeBase64().toString()
     return "Bearer ${auth}"
 }
-def callSonatypeApi(String method, String url, Closure responseHandler = null) {
+def callSonatypeApi(String method, String url) {
+    HttpURLConnection connection = null
     try {
-        def connection = new URL("https://ossrh-staging-api.central.sonatype.com" + url).openConnection() as HttpURLConnection
+        connection = new URL("https://ossrh-staging-api.central.sonatype.com" + url).openConnection() as HttpURLConnection
+        connection.connectTimeout = 15_000
+        connection.readTimeout = 30_000
+        connection.instanceFollowRedirects = false
         connection.requestMethod = method
         connection.setRequestProperty("Authorization", getSonatypeCredentials())
 
@@ -187,29 +191,18 @@ def callSonatypeApi(String method, String url, Closure responseHandler = null) {
 
         def responseCode = connection.responseCode
         def responseMessage = connection.responseMessage
-
-        if (responseHandler) {
-            responseHandler.call(connection, responseCode, responseMessage)
-        } else {
-            if (responseCode >= 200 && responseCode < 300) {
-                println "Sonatype API call successful: ${responseCode} ${responseMessage}"
-                def inputStream = connection.inputStream
-                if (inputStream) {
-                    println "${inputStream.text}"
-                }
-            } else {
-                println "Sonatype API call failed: ${responseCode} ${responseMessage}"
-                def errorStream = connection.errorStream
-                if (errorStream) {
-                    def errorText = errorStream.text
-                    println "Error details: ${errorText}"
-                }
-            }
+        if (responseCode < 200 || responseCode >= 300) {
+            throw new GradleException("Sonatype Staging API returned ${responseCode} ${responseMessage}")
         }
-
-        return responseCode
+        println "Successfully notified Sonatype Staging API: ${responseCode} ${responseMessage}"
+    } catch (java.net.SocketTimeoutException e) {
+        throw new GradleException("Sonatype Staging API timed out. Check the transfer status before retrying.", e)
+    } catch (GradleException e) {
+        throw e
     } catch (Exception e) {
         throw new GradleException("Failed to call Sonatype API: ${e.message}", e)
+    } finally {
+        connection?.disconnect()
     }
 }
 // Only one namespace-wide transfer; the root coordinator adds the upload barrier.
@@ -218,21 +211,6 @@ if (project.name == libArtifactId_common) tasks.register('postRelease') {
     description = 'Uploads the complete release batch, then requests Central publication.'
     doLast {
         def url ="/manual/upload/defaultRepository/${project.group}?publishing_type=automatic"
-        callSonatypeApi("POST", url) { connection, responseCode, responseMessage ->
-            if (responseCode >= 200 && responseCode < 300) {
-                println "Successfully notified Sonatype Staging API: ${responseCode} ${responseMessage}"
-            } else {
-                println "Failed to notify Sonatype Staging API: ${responseCode} ${responseMessage}"
-                def errorText
-                def errorStream = connection.errorStream
-                if (errorStream) {
-                    errorText = errorStream.text
-                    println "Error details: ${errorText}"
-                } else {
-                    errorText = "No error details available"
-                }
-                throw new GradleException("Failed to notify Sonatype Staging API: ${responseCode} ${responseMessage}\nError details: ${errorText}")
-            }
-        }
+        callSonatypeApi("POST", url)
     }
 }

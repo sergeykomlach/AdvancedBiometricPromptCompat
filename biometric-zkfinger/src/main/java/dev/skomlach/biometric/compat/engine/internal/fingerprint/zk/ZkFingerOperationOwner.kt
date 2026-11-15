@@ -15,8 +15,7 @@ internal class ZkFingerOperationOwner {
         val retired = current
         current = null
         retired?.invalidate()
-        // Invalidation waits for a short in-flight commit before storage is removed.
-        // Queue native cleanup here too, before a new operation can be submitted.
+        // Keep admission closed while the caller settles persisted state and queues native cleanup.
         remove(retired)
     }
 

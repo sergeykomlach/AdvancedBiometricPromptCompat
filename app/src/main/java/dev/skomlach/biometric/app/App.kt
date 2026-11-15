@@ -26,6 +26,7 @@ import dev.skomlach.biometric.app.BuildConfig
 import androidx.multidex.MultiDexApplication
 import dev.skomlach.biometric.app.devtools.AppMonitoringDevTools
 import dev.skomlach.biometric.app.devtools.LogCat
+import dev.skomlach.biometric.app.utils.MailTo
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import kotlinx.coroutines.CoroutineScope
@@ -52,6 +53,7 @@ class App : MultiDexApplication() {
     private var ts = System.currentTimeMillis()
     override fun onCreate() {
         super.onCreate()
+        MailTo.resumeArchiveCleanup(this)
         Security.insertProviderAt(Conscrypt.newProvider(), 1)
         if (BuildConfig.DEBUG) {
             AppMonitoringDevTools(this).enableMonitoringTools(true)

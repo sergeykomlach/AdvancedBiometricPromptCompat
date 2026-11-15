@@ -29,6 +29,7 @@ import kotlin.concurrent.withLock
 
 object BiometricErrorLockoutPermanentFix {
     private const val TS_PREF = "user_unlock_device"
+    private const val PENDING_RESET = "pending_provider_reset"
     private val sharedPreferences: SharedPreferences =
         getPreferences("BiometricCompat_ErrorLockoutPermanentFix")
     private val lock = ReentrantLock()
@@ -54,23 +55,48 @@ object BiometricErrorLockoutPermanentFix {
 
     fun resetBiometricSensorPermanentlyLocked() {
         resetLock.withLock {
-            lock.withLock { sharedPreferences.edit().clear().apply() }
-            resetProviderLockouts()
+            persistResetLocked()
+            finishResetLocked(onlyIfDiscovered = false)
         }
+    }
+
+    // BOOT_COMPLETED may cold-start only our receiver, before the providers have been discovered.
+    internal fun resetAfterBoot() = resetLock.withLock {
+        persistResetLocked()
+        finishResetLocked(onlyIfDiscovered = true)
     }
 
     internal fun resetIfRebooted(): Boolean = resetLock.withLock {
-        lock.withLock {
-            if (!isRebootDetectedLocked()) return false
-            sharedPreferences.edit().clear().apply()
+        val needsReset = lock.withLock {
+            sharedPreferences.getBoolean(PENDING_RESET, false) || isRebootDetectedLocked()
         }
-        resetProviderLockouts()
+        if (!needsReset) return false
+        persistResetLocked()
+        finishResetLocked(onlyIfDiscovered = true)
         true
     }
 
-    private fun resetProviderLockouts() {
-        LegacyBiometric.resetSoftwarePermanentLockOut()
-        BiometricLockoutFix.reset()
+    private fun persistResetLocked() = lock.withLock {
+        check(sharedPreferences.edit().putBoolean(PENDING_RESET, true).commit()) {
+            "Could not persist biometric lockout reset"
+        }
+    }
+
+    private fun finishResetLocked(onlyIfDiscovered: Boolean) {
+        val before = lock.withLock { sharedPreferences.all }
+        if (!LegacyBiometric.resetSoftwarePermanentLockOutForDevice(onlyIfDiscovered)) return
+        BiometricLockoutFix.clearDeviceLockout()
+        lock.withLock {
+            val current = sharedPreferences.all
+            val editor = sharedPreferences.edit()
+            before.forEach { (key, value) -> if (current[key] == value) editor.remove(key) }
+            if (!editor.commit()) {
+                // SharedPreferences can publish failed writes in-memory. Retain a retry marker
+                // in this process as well as the persisted reset request.
+                sharedPreferences.edit().putBoolean(PENDING_RESET, true).apply()
+                error("Could not complete biometric lockout reset")
+            }
+        }
     }
 
     fun isBiometricSensorPermanentlyLocked(type: BiometricType): Boolean {

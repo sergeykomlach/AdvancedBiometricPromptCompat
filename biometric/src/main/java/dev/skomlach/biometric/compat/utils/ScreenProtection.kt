@@ -48,7 +48,7 @@ object ScreenProtection {
         val importantForAccessibility: Int,
         val importantForAutofill: Int?,
         val originalAccessibilityDelegate: View.AccessibilityDelegate?,
-        val accessibilityDataSensitive: Int?
+        val obscuredTouchFilterAcquired: Boolean
     )
 
     // Main-thread state. The process observer never owns a View or Activity.
@@ -264,6 +264,14 @@ object ScreenProtection {
                     protectedViews.keys.forEach { view ->
                         val state = view.getTag(R.id.bio_tag_screen_protection_state) as? ProtectedViewState
                             ?: return@forEach
+                        // An explicit NO overrides the platform's AUTO inference.
+                        val sensitive = invokeAccessibilityDataSensitiveApiOrNull(supportsAccessibilityDataSensitiveApi()) {
+                            view.isAccessibilityDataSensitive
+                        }
+                        if (sensitive == false) {
+                            restrictAccessibility(view)
+                            return@forEach
+                        }
                         ViewCompat.setImportantForAccessibility(view, state.importantForAccessibility)
                         view.accessibilityDelegate = state.originalAccessibilityDelegate
                     }
@@ -288,7 +296,20 @@ object ScreenProtection {
             view.getTag(R.id.bio_tag_screen_protection_applied) as? Boolean ?: false
 
         if (!alreadyApplied) {
-            saveOriginalState(view)
+            val state = ProtectedViewState(
+                importantForAccessibility = view.importantForAccessibility,
+                importantForAutofill = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    view.importantForAutofill
+                } else null,
+                originalAccessibilityDelegate = AccessibilityDelegateAccess.get(view),
+                obscuredTouchFilterAcquired = supportsAccessibilityDataSensitiveApi() && !view.filterTouchesWhenObscured
+            )
+            view.setTag(R.id.bio_tag_screen_protection_state, state)
+            if (state.obscuredTouchFilterAcquired) {
+                // Android infers sensitivity for AUTO from this reversible touch policy.
+                // There is no public getter for the explicit YES, NO or AUTO setting.
+                view.filterTouchesWhenObscured = true
+            }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -299,10 +320,6 @@ object ScreenProtection {
         }
 
         restrictAccessibility(view)
-
-        invokeAccessibilityDataSensitiveApiOrNull(supportsAccessibilityDataSensitiveApi()) {
-            view.setAccessibilityDataSensitive(View.ACCESSIBILITY_DATA_SENSITIVE_YES)
-        }
 
         view.setTag(R.id.bio_tag_screen_protection_applied, true)
     }
@@ -327,10 +344,8 @@ object ScreenProtection {
             }
         }
 
-        state.accessibilityDataSensitive?.let {
-            invokeAccessibilityDataSensitiveApiOrNull(supportsAccessibilityDataSensitiveApi()) {
-                view.setAccessibilityDataSensitive(it)
-            }
+        if (state.obscuredTouchFilterAcquired) {
+            view.filterTouchesWhenObscured = false
         }
 
         view.accessibilityDelegate = state.originalAccessibilityDelegate
@@ -339,24 +354,6 @@ object ScreenProtection {
         view.setTag(R.id.bio_tag_screen_protection_state, null)
     }
 
-    private fun saveOriginalState(view: View) {
-        val state = ProtectedViewState(
-            importantForAccessibility = view.importantForAccessibility,
-            importantForAutofill = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                view.importantForAutofill
-            } else {
-                null
-            },
-            originalAccessibilityDelegate = AccessibilityDelegateAccess.get(view),
-            accessibilityDataSensitive = invokeAccessibilityDataSensitiveApiOrNull(
-                supportsAccessibilityDataSensitiveApi()
-            ) {
-                if (view.isAccessibilityDataSensitive) View.ACCESSIBILITY_DATA_SENSITIVE_YES else View.ACCESSIBILITY_DATA_SENSITIVE_NO
-            }
-        )
-
-        view.setTag(R.id.bio_tag_screen_protection_state, state)
-    }
 }
 
 private fun supportsAccessibilityDataSensitiveApi(): Boolean =

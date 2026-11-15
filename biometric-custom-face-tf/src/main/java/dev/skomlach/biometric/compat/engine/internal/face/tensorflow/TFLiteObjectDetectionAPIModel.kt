@@ -46,6 +46,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.math.sqrt
 
+internal class FaceTemplateCapacityException : IllegalStateException("Face template limit reached")
+
 class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier {
     companion object {
         internal const val STORAGE_NAME = "tf_storage_v2"
@@ -58,6 +60,32 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         private const val MAX_DEBUG_CROP_BASE64_CHARS = 512 * 1024
         private const val MAX_TEMPLATE_NAME_LENGTH = 80
         private val templateStorageLock = Any()
+
+        internal fun deleteStoredTemplates(name: String?) {
+            synchronized(templateStorageLock) {
+                val prefs = getProtectedPreferences(STORAGE_NAME)
+                val templates = if (name == null && !BuildConfig.DEBUG) JSONObject() else {
+                    val stored = prefs.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
+                    if (name == null) runCatching { JSONObject(stored ?: "{}") }.getOrDefault(JSONObject())
+                    else JSONObject(stored ?: "{}")
+                }
+                val removed = if (name == null) {
+                    prefs.editProtected { clear() }
+                    templates.keys().asSequence().mapNotNull(templates::optJSONObject).toList()
+                } else {
+                    val entry = templates.remove(name) as? JSONObject
+                    prefs.editProtected { putString(REGISTERED_TEMPLATES_PREF_KEY, templates.toString()) }
+                    listOfNotNull(entry)
+                }
+                if (BuildConfig.DEBUG) removed.forEach { rec ->
+                    val title = rec.optString("title")
+                    val id = rec.optString("id")
+                    if (title.isNotBlank() && id.isNotBlank()) {
+                        ImageUtils.deleteBitmap(AndroidContext.appContext, "$title-$id.png")
+                    }
+                }
+            }
+        }
 
         @Throws(IOException::class)
         private fun loadModelFile(assets: AssetManager, modelFilename: String): MappedByteBuffer {
@@ -134,7 +162,9 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
     private var intValues: IntArray = IntArray(0)
     private var embeddings: Array<FloatArray> = emptyArray()
     private var imgData: ByteBuffer = ByteBuffer.allocate(0)
-    private var tfLite: Interpreter? = null
+    @Volatile private var tfLite: Interpreter? = null
+    private val interpreterLock = Any()
+    private var closed = false
     private val outputMap: MutableMap<Int, Any> = HashMap(1)
     private val initLatch = CountDownLatch(1)
 
@@ -148,7 +178,10 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
     ) {
         ExecutorHelper.startOnBackground {
             try {
-                tfLite = Interpreter(loadModelFile(assetManager, modelFilename), options)
+                val interpreter = Interpreter(loadModelFile(assetManager, modelFilename), options)
+                synchronized(interpreterLock) {
+                    if (closed) interpreter.close() else tfLite = interpreter
+                }
             } catch (t: Throwable) {
                 initializationError = t
                 LogCat.logException(t)
@@ -259,26 +292,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
     @Synchronized override fun getEnrolls(): Set<String> = registered.keys.filterNotNull().toSet()
 
     @Synchronized override fun delete(name: String?) {
-        synchronized(templateStorageLock) {
-            val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
-            val templates = registered
-            if (name == null) {
-                sharedPreferences.editProtected { clear() }
-                if (BuildConfig.DEBUG) templates.values.filterNotNull().forEach { rec ->
-                    ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
-                }
-                return
-            }
-            val jsonString = sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
-            val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
-            jsonObjectRoot.remove(name)
-            sharedPreferences.editProtected {
-                putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
-            }
-            templates[name]?.let { rec ->
-                if (BuildConfig.DEBUG) ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
-            }
-        }
+        deleteStoredTemplates(name)
     }
 
     @Synchronized override fun register(name: String, rec: SimilarityClassifier.Recognition) {
@@ -287,6 +301,15 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
             val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
             val jsonString = sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
             val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
+            val size = jsonObjectRoot.length()
+            val canRegister = when {
+                size < MAX_REGISTERED_TEMPLATES -> true
+                size == MAX_REGISTERED_TEMPLATES -> jsonObjectRoot.has(safeName)
+                // Preserve older excess records for explicit deletion. Only an already
+                // recognized ID can be replaced while the stored set remains over capacity.
+                else -> safeName in registered
+            }
+            if (!canRegister) throw FaceTemplateCapacityException()
             jsonObjectRoot.put(safeName, recognition2json(rec))
             sharedPreferences.editProtected {
                 putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
@@ -321,7 +344,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         return ret
     }
 
-    override fun recognizeImage(
+    @Synchronized override fun recognizeImage(
         bitmap: Bitmap,
         storeExtra: Boolean
     ): MutableList<SimilarityClassifier.Recognition> {
@@ -385,13 +408,15 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         return recognitions
     }
 
-    fun close() {
+    @Synchronized fun close() {
+        val interpreter = synchronized(interpreterLock) {
+            closed = true
+            tfLite.also { tfLite = null }
+        }
         try {
-            tfLite?.close()
+            interpreter?.close()
         } catch (t: Throwable) {
             LogCat.logException(t)
-        } finally {
-            tfLite = null
         }
     }
 }

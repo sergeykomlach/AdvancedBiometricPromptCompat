@@ -2,14 +2,17 @@ package dev.skomlach.biometric.compat.crypto
 
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import java.nio.CharBuffer
 import java.security.AlgorithmParameters
 import java.security.Key
+import java.security.NoSuchAlgorithmException
 import java.security.Provider
 import java.security.SecureRandom
 import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.AEADBadTagException
 import javax.crypto.Cipher
 import javax.crypto.CipherSpi
+import javax.crypto.Mac
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 import javax.crypto.ShortBufferException
@@ -59,11 +62,51 @@ internal object AppFlowCipherFactory {
     }
 
     private fun deriveKey(secret: CharArray, salt: ByteArray): SecretKey {
-        val spec = PBEKeySpec(secret, salt, 210_000, 256)
-        return try {
-            val encoded = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
-            try { SecretKeySpec(encoded, "AES") } finally { encoded.fill(0) }
-        } finally { spec.clearPassword() }
+        val factory = try {
+            SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+        } catch (_: NoSuchAlgorithmException) {
+            // Android 23–25 provide HmacSHA256 but may not expose this SecretKeyFactory.
+            null
+        }
+        val encoded = if (factory == null) {
+            deriveAppFlowKeyWithHmac(secret, salt)
+        } else {
+            val spec = PBEKeySpec(secret, salt, APP_FLOW_PBKDF2_ITERATIONS, 256)
+            try { factory.generateSecret(spec).encoded } finally { spec.clearPassword() }
+        }
+        return try { SecretKeySpec(encoded, "AES") } finally { encoded.fill(0) }
+    }
+}
+
+private const val APP_FLOW_PBKDF2_ITERATIONS = 210_000
+
+@JvmSynthetic
+internal fun deriveAppFlowKeyWithHmac(secret: CharArray, salt: ByteArray): ByteArray {
+    val utf8 = Charsets.UTF_8.encode(CharBuffer.wrap(secret))
+    val password = ByteArray(utf8.remaining().coerceAtLeast(1))
+    val mac = try {
+        utf8.get(password, 0, utf8.remaining())
+        Mac.getInstance("HmacSHA256").apply { init(SecretKeySpec(password, "HmacSHA256")) }
+    } finally {
+        if (utf8.hasArray()) utf8.array().fill(0)
+        password.fill(0)
+    }
+    // PBKDF2 needs one block for a 256-bit key with HMAC-SHA256.
+    mac.update(salt)
+    val block = mac.doFinal(byteArrayOf(0, 0, 0, 1))
+    val key = block.copyOf()
+    try {
+        repeat(APP_FLOW_PBKDF2_ITERATIONS - 1) {
+            mac.update(block)
+            mac.doFinal(block, 0)
+            for (i in key.indices) key[i] = (key[i].toInt() xor block[i].toInt()).toByte()
+        }
+        return key
+    } catch (failure: Exception) {
+        key.fill(0)
+        throw failure
+    } finally {
+        block.fill(0)
     }
 }
 

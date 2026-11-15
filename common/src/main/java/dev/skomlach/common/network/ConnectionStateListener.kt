@@ -44,7 +44,7 @@ class ConnectionStateListener {
     private val allNetworksRegistered = AtomicBoolean(false)
     private val defaultRegistered = AtomicBoolean(false)
     private val registeredCallbacks = mutableListOf<NetworkCallback>()
-    private val cm = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+    private val cm by lazy { appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager? }
 
     internal val networkState: StateFlow<NetworkState> get() = registry.states
     internal fun currentNetwork(state: NetworkState): Network? = registry.effectiveNetworkFor(state.networkId)
@@ -108,14 +108,15 @@ class ConnectionStateListener {
         var legacySuspended: Boolean? = null
         var legacyBlocked: Boolean? = null
         val route = try {
+            val manager = cm
             // Legacy SDKs have no public suspension/blocked callback for this Network.
-            val info = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) cm?.getNetworkInfo(network) else null
+            val info = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) manager?.getNetworkInfo(network) else null
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                 legacySuspended = info?.state?.let { it == NetworkInfo.State.SUSPENDED }
             }
             legacyBlocked = info?.detailedState?.let { it == NetworkInfo.DetailedState.BLOCKED }
-            cm?.getNetworkCapabilities(network)?.let {
-                describe(network, it).copy(linkProperties = cm.getLinkProperties(network)?.toString())
+            manager?.getNetworkCapabilities(network)?.let {
+                describe(network, it).copy(linkProperties = manager.getLinkProperties(network)?.toString())
             } ?: NetworkRoute(networkId = network.networkHandle, isKnown = false)
         } catch (e: Exception) {
             LogCat.log("ConnectionStateListener metadata unavailable:${e.javaClass.simpleName}")
@@ -183,6 +184,8 @@ class ConnectionStateListener {
     }
 
     internal fun startListeners() {
+        // Resolve Android's service on the caller's worker before publishing the active epoch.
+        val manager = cm
         synchronized(lifecycleLock) {
             if (!listenersStarted.compareAndSet(false, true)) return
             val epoch = session.incrementAndGet()
@@ -191,9 +194,9 @@ class ConnectionStateListener {
             try {
                 val request = NetworkRequest.Builder().clearCapabilities().build()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    cm?.registerNetworkCallback(request, all, ExecutorHelper.handler)
-                } else cm?.registerNetworkCallback(request, all)
-                if (cm != null) {
+                    manager?.registerNetworkCallback(request, all, ExecutorHelper.handler)
+                } else manager?.registerNetworkCallback(request, all)
+                if (manager != null) {
                     registeredCallbacks.add(all)
                     allNetworksRegistered.set(true)
                 }
@@ -204,9 +207,9 @@ class ConnectionStateListener {
                 val default = callback(epoch, tracksDefault = true)
                 try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        cm?.registerDefaultNetworkCallback(default, ExecutorHelper.handler)
-                    } else cm?.registerDefaultNetworkCallback(default)
-                    if (cm != null) {
+                        manager?.registerDefaultNetworkCallback(default, ExecutorHelper.handler)
+                    } else manager?.registerDefaultNetworkCallback(default)
+                    if (manager != null) {
                         registeredCallbacks.add(default)
                         defaultRegistered.set(true)
                     }

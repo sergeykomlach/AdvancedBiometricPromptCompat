@@ -320,16 +320,12 @@ class EncryptedSharedPreferences internal constructor(
         private val updates = LinkedHashMap<String?, ByteArray?>()
         private var clearRequested = false
         override fun putString(key: String?, value: String?): SharedPreferences.Editor {
-            var outValue = value
-            if (outValue == null) {
-                outValue = NULL_VALUE
-            }
-            val stringBytes = outValue.toByteArray(StandardCharsets.UTF_8)
+            val stringBytes = (value ?: NULL_VALUE).toByteArray(StandardCharsets.UTF_8)
             val stringByteLength = stringBytes.size
             val buffer = ByteBuffer.allocate(
                 (Integer.BYTES + Integer.BYTES + stringByteLength)
             )
-            buffer.putInt(EncryptedType.STRING.id)
+            buffer.putInt(if (value == NULL_VALUE) EncryptedType.LITERAL_STRING.id else EncryptedType.STRING.id)
             buffer.putInt(stringByteLength)
             buffer.put(stringBytes)
             putEncryptedObject(key, buffer.array())
@@ -339,11 +335,7 @@ class EncryptedSharedPreferences internal constructor(
         override fun putStringSet(
             key: String?, values: MutableSet<String>?
         ): SharedPreferences.Editor {
-            var localValues = values
-            if (localValues == null) {
-                localValues = ArraySet()
-                localValues.add(NULL_VALUE)
-            }
+            val localValues = values ?: setOf(NULL_VALUE)
             val byteValues: MutableList<ByteArray> = ArrayList(localValues.size)
             var totalBytes = localValues.size * Integer.BYTES
             for (strValue in localValues) {
@@ -353,7 +345,12 @@ class EncryptedSharedPreferences internal constructor(
             }
             totalBytes += Integer.BYTES
             val buffer = ByteBuffer.allocate(totalBytes)
-            buffer.putInt(EncryptedType.STRING_SET.id)
+            val type = if (values?.size == 1 && NULL_VALUE in values) {
+                EncryptedType.LITERAL_STRING_SET
+            } else {
+                EncryptedType.STRING_SET
+            }
+            buffer.putInt(type.id)
             for (bytes in byteValues) {
                 buffer.putInt(bytes.size)
                 buffer.put(bytes)
@@ -449,14 +446,18 @@ class EncryptedSharedPreferences internal constructor(
             return Charsets.UTF_8.newDecoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
                 .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString()
         }
-        val decoded: Any? = when (buffer.int) {
-            0 -> text().takeUnless { it == NULL_VALUE }
-            1 -> LinkedHashSet<String>().apply { while (buffer.hasRemaining()) add(text()) }
-                .takeUnless { it.size == 1 && it.single() == NULL_VALUE }
-            2 -> buffer.int
-            3 -> buffer.long
-            4 -> buffer.float
-            5 -> buffer.get().also { require(it == 0.toByte() || it == 1.toByte()) } == 1.toByte()
+        val type = buffer.int
+        val decoded: Any? = when (type) {
+            EncryptedType.STRING.id -> text().takeUnless { it == NULL_VALUE }
+            EncryptedType.LITERAL_STRING.id -> text()
+            EncryptedType.STRING_SET.id, EncryptedType.LITERAL_STRING_SET.id ->
+                LinkedHashSet<String>().apply { while (buffer.hasRemaining()) add(text()) }
+                    .takeUnless { type == EncryptedType.STRING_SET.id && it.size == 1 && it.single() == NULL_VALUE }
+            EncryptedType.INT.id -> buffer.int
+            EncryptedType.LONG.id -> buffer.long
+            EncryptedType.FLOAT.id -> buffer.float
+            EncryptedType.BOOLEAN.id ->
+                buffer.get().also { require(it == 0.toByte() || it == 1.toByte()) } == 1.toByte()
             else -> throw ProtectedStorageUnavailableException("Unknown protected preference value type")
         }
         require(!buffer.hasRemaining()) { "Trailing protected preference data" }
@@ -464,6 +465,8 @@ class EncryptedSharedPreferences internal constructor(
     }
 
     private enum class EncryptedType(val id: Int) {
-        STRING(0), STRING_SET(1), INT(2), LONG(3), FLOAT(4), BOOLEAN(5)
+        STRING(0), STRING_SET(1), INT(2), LONG(3), FLOAT(4), BOOLEAN(5),
+        // The original tags remain readable and still denote null for the old sentinel payload.
+        LITERAL_STRING(6), LITERAL_STRING_SET(7)
     }
 }

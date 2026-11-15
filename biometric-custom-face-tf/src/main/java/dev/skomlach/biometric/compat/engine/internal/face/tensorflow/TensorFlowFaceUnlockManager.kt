@@ -32,6 +32,7 @@ import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.IF
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.RealCameraProvider
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.custom.face.tf.R
+import dev.skomlach.biometric.custom.face.tf.BuildConfig
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
@@ -168,6 +169,7 @@ class TensorFlowFaceUnlockManager(
     private var frameTicket: Long? = null
     private var runningProvider: IFrameProvider? = null
     private val isSessionActive = AtomicBoolean(false)
+    private val retired = AtomicBoolean(false)
     private val spoofWindow by lazy {
         FaceAntiSpoofingWindow(
             effectiveConfig.antiSpoofingWindowSize,
@@ -187,7 +189,7 @@ class TensorFlowFaceUnlockManager(
     private var faceChallengeStepStartedAtMs = 0L
     private var faceChallengeRejectedAttempts = 0
 
-    private val faceDetector: FaceDetector? by lazy {
+    private val faceDetectorState = lazy {
         try {
             FaceDetection.getClient(
                 FaceDetectorOptions.Builder()
@@ -201,6 +203,7 @@ class TensorFlowFaceUnlockManager(
             null
         }
     }
+    private val faceDetector: FaceDetector? by faceDetectorState
 
     private val recognitionBackend: TfBackendSelection by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         val ts = System.currentTimeMillis()
@@ -231,7 +234,7 @@ class TensorFlowFaceUnlockManager(
         antiSpoofingRationality.antiSpoofingAllowed
     }
 
-    private val antiSpoofing: FaceAntiSpoofing? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    private val antiSpoofingState = lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         if (!antiSpoofingEnabled) {
             LogCat.log(TAG, "AntiSpoofingModel disabled: ${antiSpoofingRationality.reason}")
             return@lazy null
@@ -246,8 +249,9 @@ class TensorFlowFaceUnlockManager(
             null
         }
     }
+    private val antiSpoofing: FaceAntiSpoofing? by antiSpoofingState
 
-    private val detector: SimilarityClassifier? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    private val detectorState = lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         try {
             val ts = System.currentTimeMillis()
             TFLiteObjectDetectionAPIModel.create(
@@ -265,6 +269,20 @@ class TensorFlowFaceUnlockManager(
         } catch (e: Throwable) {
             LogCat.logException(e)
             null
+        }
+    }
+    private val detector: SimilarityClassifier? by detectorState
+
+    internal fun closeRuntime() {
+        if (!retired.compareAndSet(false, true)) return
+        synchronized(this) { cancelPendingOperation?.invoke() }
+        worker.execute {
+            stopAuthentication()
+            if (faceDetectorState.isInitialized()) {
+                runCatching { faceDetector?.close() }.onFailure { LogCat.logException(it) }
+            }
+            if (detectorState.isInitialized()) (detector as? TFLiteObjectDetectionAPIModel)?.close()
+            if (antiSpoofingState.isInitialized()) antiSpoofing?.close()
         }
     }
 
@@ -382,7 +400,11 @@ class TensorFlowFaceUnlockManager(
 
     override fun prepareForAuthentication(callback: PreparationCallback) {
         val mainHandler = Handler(Looper.getMainLooper())
-        ExecutorHelper.startOnBackground {
+        worker.execute {
+            if (retired.get()) {
+                mainHandler.post { callback.onPreparationCanceled() }
+                return@execute
+            }
             try {
                 if (!recognitionModelAvailable) {
                     mainHandler.post {
@@ -394,7 +416,7 @@ class TensorFlowFaceUnlockManager(
                             )
                         )
                     }
-                    return@startOnBackground
+                    return@execute
                 }
                 val recognition = detector
                 if (recognition == null || faceDetector == null || !frameProvider.isHardwareSupported()) {
@@ -407,7 +429,7 @@ class TensorFlowFaceUnlockManager(
                             )
                         )
                     }
-                    return@startOnBackground
+                    return@execute
                 }
 
                 val recognitionReady = (recognition as? TFLiteObjectDetectionAPIModel)
@@ -422,7 +444,7 @@ class TensorFlowFaceUnlockManager(
                             )
                         )
                     }
-                    return@startOnBackground
+                    return@execute
                 }
 
                 if (antiSpoofingEnabled) {
@@ -437,7 +459,7 @@ class TensorFlowFaceUnlockManager(
                                 )
                             )
                         }
-                        return@startOnBackground
+                        return@execute
                     }
                 }
 
@@ -473,7 +495,7 @@ class TensorFlowFaceUnlockManager(
 
     override fun remove(extra: Bundle?) {
         sessionOwner.revoke {}
-        workScope.revoke { detector?.delete(extra?.getString(ENROLLMENT_TAG_KEY)) }
+        workScope.revoke { TFLiteObjectDetectionAPIModel.deleteStoredTemplates(extra?.getString(ENROLLMENT_TAG_KEY)) }
     }
 
     override fun getEnrollBundle(name: String?): Bundle {
@@ -508,6 +530,10 @@ class TensorFlowFaceUnlockManager(
         handler: Handler?,
         extra: Bundle?
     ) {
+        if (retired.get()) {
+            (handler ?: Handler(Looper.getMainLooper())).post { callback?.onAuthenticationCancelled() }
+            return
+        }
         val operation = workScope.newSession().also { pendingOperation = it }
         val session = FaceCaptureSession(operation)
         val resultHandler = handler ?: Handler(Looper.getMainLooper())
@@ -531,6 +557,7 @@ class TensorFlowFaceUnlockManager(
         cancel?.setOnCancelListener(cancelAttempt)
         worker.execute {
             stopAuthentication()
+            if (retired.get()) workerCallback.onAuthenticationCancelled()
             if (!operation.isActive) {
                 sessionOwner.release(operation)
                 return@execute
@@ -1143,11 +1170,25 @@ class TensorFlowFaceUnlockManager(
                         ?.let { return it }
                 }
 
-                commitSessionState {
-                    result.crop = alignedFace.copy(alignedFace.config ?: Bitmap.Config.ARGB_8888, false)
-                    detector?.register(enrollmentTag, result)
-                    resetPermanentLockOut()
-                } ?: return FaceAttemptResult.FatalError
+                try {
+                    commitSessionState {
+                        val crop = if (BuildConfig.DEBUG) alignedFace.copy(
+                            alignedFace.config ?: Bitmap.Config.ARGB_8888, false
+                        ) else null
+                        try {
+                            result.crop = crop
+                            checkNotNull(detector).register(enrollmentTag, result)
+                            resetPermanentLockOut()
+                        } finally {
+                            crop?.recycle()
+                        }
+                    } ?: return FaceAttemptResult.FatalError
+                } catch (_: FaceTemplateCapacityException) {
+                    onAuthenticationError(CUSTOM_BIOMETRIC_ERROR_NO_SPACE, LocalizationHelper.getLocalizedString(
+                        context, R.string.biometriccompat_tf_face_help_enrollment_limit
+                    ))
+                    return FaceAttemptResult.FatalError
+                }
                 LogCat.logError(TAG, "processFaces onAuthenticationSucceeded (enroll)")
                 authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                 stopAuthentication()

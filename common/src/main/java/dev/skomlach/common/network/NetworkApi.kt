@@ -22,7 +22,9 @@ package dev.skomlach.common.network
 import android.net.TrafficStats
 import android.net.Network
 import dev.skomlach.common.misc.ExecutorHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
@@ -100,9 +102,15 @@ object NetworkApi {
         probe: EndpointProbe,
         timeoutMillis: Long = 5_000L,
         cacheMillis: Long = 10_000L
-    ): ReachabilityResult {
-        if (!LibraryNetworkPolicy.networkEnabled) return ReachabilityResult(ReachabilityStatus.BLOCKED, NetworkState())
-        return reachability.check(endpoint, probe, timeoutMillis, cacheMillis)
+    ): ReachabilityResult = withContext(Dispatchers.IO) {
+        if (!LibraryNetworkPolicy.networkEnabled) {
+            return@withContext ReachabilityResult(ReachabilityStatus.BLOCKED, NetworkState())
+        }
+        require(timeoutMillis in 1..60_000L) { "Probe timeout must be between 1 and 60000 ms" }
+        if (!Connection.awaitNetworkListeners(timeoutMillis)) {
+            return@withContext ReachabilityResult(ReachabilityStatus.UNKNOWN, Connection.osNetworkState.value)
+        }
+        reachability.check(endpoint, probe, timeoutMillis, cacheMillis)
     }
 
     /**
@@ -116,9 +124,15 @@ object NetworkApi {
         network: Network,
         timeoutMillis: Long = 5_000L,
         cacheMillis: Long = 10_000L
-    ): ReachabilityResult {
-        if (!LibraryNetworkPolicy.networkEnabled) return ReachabilityResult(ReachabilityStatus.BLOCKED, NetworkState())
-        return checkerFor(network).check(endpoint, probe, timeoutMillis, cacheMillis)
+    ): ReachabilityResult = withContext(Dispatchers.IO) {
+        if (!LibraryNetworkPolicy.networkEnabled) {
+            return@withContext ReachabilityResult(ReachabilityStatus.BLOCKED, NetworkState())
+        }
+        require(timeoutMillis in 1..60_000L) { "Probe timeout must be between 1 and 60000 ms" }
+        if (!Connection.awaitNetworkListeners(timeoutMillis)) {
+            return@withContext ReachabilityResult(ReachabilityStatus.UNKNOWN, Connection.osNetworkState.value)
+        }
+        checkerFor(network).check(endpoint, probe, timeoutMillis, cacheMillis)
     }
 
     /**

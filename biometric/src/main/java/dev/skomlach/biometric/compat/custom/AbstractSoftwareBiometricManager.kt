@@ -65,6 +65,7 @@ abstract class AbstractSoftwareBiometricManager {
         private const val KEY_FAILED_ATTEMPTS = "failed_attempts"
         private const val KEY_LOCKOUT_END_TIMESTAMP = "lockout_end_timestamp"
         private const val KEY_PERMANENT_LOCKOUT_COUNT = "permanent_lockout_count"
+        private val durableReset = ThreadLocal<Boolean>()
     }
 
     open val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
@@ -94,6 +95,16 @@ abstract class AbstractSoftwareBiometricManager {
     abstract fun getTimeoutMessage(): CharSequence?
     abstract fun resetLockOut()
     abstract fun resetPermanentLockOut()
+
+    internal fun resetPermanentLockOutDurably() {
+        val previous = durableReset.get()
+        durableReset.set(true)
+        try {
+            resetPermanentLockOut()
+        } finally {
+            if (previous == null) durableReset.remove() else durableReset.set(previous)
+        }
+    }
     abstract fun getPermissions(): List<String>
 
     open fun prepareForAuthentication(
@@ -116,7 +127,10 @@ abstract class AbstractSoftwareBiometricManager {
     }
 
     protected fun resetPermanentLockoutState(prefs: SharedPreferences): Unit = synchronized(prefs) {
-        runProtectedStorageMaintenance({ LogCat.logException(it) }) {
+        runProtectedStorageMaintenance({
+            if (durableReset.get() == true) throw it
+            LogCat.logException(it)
+        }) {
             prefs.editProtected {
                 remove(KEY_FAILED_ATTEMPTS)
                 remove(KEY_LOCKOUT_END_TIMESTAMP)

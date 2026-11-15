@@ -163,57 +163,30 @@ object DeviceModelManager {
 
     @WorkerThread
     private fun getNameFromAssets(): String? {
-        LogCat.log("DeviceModel.getNameFromAssets > ")
-        try {
-            var ts = System.currentTimeMillis()
-            val fullJson =
-                DataProviders.getOrCacheJSON("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")
-                    ?: return null
-
-            LogCat.log("DeviceModel.getNameFromAssets fullJson load time ${System.currentTimeMillis() - ts}ms")
-            ts = System.currentTimeMillis()
-            val list = mutableListOf<String>()
-
+        return DataProviders.findInCacheOrAsset(
+            "https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true"
+        ) { fullJson ->
             val searchKey = "$rawModel\":"
-            LogCat.log("DeviceModel.getNameFromAssets calculate searchKey time ${System.currentTimeMillis() - ts}ms")
-            ts = System.currentTimeMillis()
-
             val startIndex = fullJson.indexOf(searchKey)
-            LogCat.log("DeviceModel.getNameFromAssets find start index time ${System.currentTimeMillis() - ts}ms")
-            ts = System.currentTimeMillis()
-            if (startIndex == -1) return null
+            if (startIndex == -1) return@findInCacheOrAsset null
 
             val arrayStart = fullJson.indexOf("[", startIndex + searchKey.length)
-            if (arrayStart == -1) return null
-            LogCat.log("DeviceModel.getNameFromAssets find end index time ${System.currentTimeMillis() - ts}ms")
-            ts = System.currentTimeMillis()
-
-            val arrayContent = extractJsonFragment(fullJson, arrayStart, '[', ']') ?: return null
-
-            LogCat.log("DeviceModel.getNameFromAssets arrayContent time ${System.currentTimeMillis() - ts}ms")
-            ts = System.currentTimeMillis()
+            if (arrayStart == -1) return@findInCacheOrAsset null
+            val arrayContent = extractJsonFragment(fullJson, arrayStart, '[', ']')
+                ?: return@findInCacheOrAsset null
             val jsonArray = JSONArray(arrayContent)
+            var firstName: String? = null
             for (i in 0 until jsonArray.length()) {
                 val obj = jsonArray.getJSONObject(i)
+                val model = obj.optString("name")
+                if (model.isBlank()) continue
                 val brand = obj.optString("brand")
-                val name = getName(brand, obj.optString("name"))
-
-                if (rawBrand.equals(brand, ignoreCase = true)) {
-                    return name
-                } else {
-                    list.add(name)
-                }
+                val name = getName(brand, model)
+                if (rawBrand.equals(brand, ignoreCase = true)) return@findInCacheOrAsset name
+                if (firstName == null) firstName = name
             }
-            LogCat.log("DeviceModel.getNameFromAssets result ready time ${System.currentTimeMillis() - ts}ms")
-            ts = System.currentTimeMillis()
-            return list.firstOrNull().also {
-                LogCat.log("DeviceModel.getNameFromAssets< $it")
-            }
-        } catch (e: Throwable) {
-            LogCat.logException(e)
+            firstName
         }
-        LogCat.log("DeviceModel.getNameFromAssets < null")
-        return null
     }
 
     @WorkerThread

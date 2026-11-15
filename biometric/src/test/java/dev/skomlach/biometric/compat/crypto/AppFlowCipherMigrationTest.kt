@@ -16,6 +16,16 @@ class AppFlowCipherMigrationTest {
     private val salt = ByteArray(32) { (it + 1).toByte() }
     private val plaintext = "retained app-flow data".toByteArray()
 
+    @Test fun compatibilityKdfPreservesTheExistingUtf8KeyFormat() {
+        val password = "secret-\u043a\uD83D\uDD12".toCharArray()
+        val derived = deriveAppFlowKeyWithHmac(password, salt)
+
+        assertEquals(
+            "f542720b433918b910b5aecb53a78583fc6582720a45c555bb20df54abc18baa",
+            derived.joinToString("") { "%02x".format(it) }
+        )
+    }
+
     private fun historical(secret: CharArray, aad: ByteArray = byteArrayOf()): Pair<ByteArray, ByteArray> {
         val spec = PBEKeySpec(secret, salt, 210_000, 256)
         val key = try { SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded }

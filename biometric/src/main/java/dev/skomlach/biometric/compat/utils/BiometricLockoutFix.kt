@@ -43,6 +43,10 @@ object BiometricLockoutFix {
         LegacyBiometric.resetSoftwareLockOut()
     }
 
+    internal fun clearDeviceLockout() = lock.withLock {
+        check(preferences.edit().clear().commit()) { "Could not persist device lockout reset" }
+    }
+
     fun lockout(biometricType: BiometricType) {
         lock.withLock {
             BiometricLoggerImpl.d("BiometricLockoutFix.setLockout for " + biometricType.name)

@@ -20,6 +20,28 @@
 package dev.skomlach.biometric.compat.custom
 
 import android.content.Context
+import androidx.annotation.RestrictTo
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.misc.ExecutorHelper
+import java.util.Collections
+import java.util.WeakHashMap
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
+
+private val resourceCleanup = WeakHashMap<AbstractSoftwareBiometricManager, (AbstractSoftwareBiometricManager) -> Unit>()
+
+/** Registers native cleanup for an optional module without adding a provider lifecycle ABI method. */
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+@JvmSynthetic
+fun <T : AbstractSoftwareBiometricManager> T.withRuntimeCleanup(cleanup: (T) -> Unit): T {
+    synchronized(resourceCleanup) {
+        @Suppress("UNCHECKED_CAST")
+        resourceCleanup[this] = { manager -> cleanup(manager as T) }
+    }
+    return this
+}
 
 /**
  * Automatic discovery constructs managers and prompt factories on a background worker.
@@ -75,12 +97,81 @@ internal class SoftwareBiometricRuntime(
     val priority: Int
         get() = manager.priority
 
+    private val retired = AtomicBoolean()
+    private val prompts = Collections.newSetFromMap(ConcurrentHashMap<RuntimePrompt, Boolean>())
+    internal val isRetired: Boolean get() = retired.get()
+
     // A deferred fallback is registered but cannot participate until its whole runtime is selected.
     @Volatile internal var selectionIsActive: () -> Boolean = { true }
-    internal val isSelected: Boolean get() = selectionIsActive()
+    internal val isSelected: Boolean get() = !isRetired && selectionIsActive()
 
     fun createPrompt(host: SoftwareBiometricPromptHost): SoftwareBiometricPromptDelegate? {
-        return promptFactory?.create(host, manager)
+        if (isRetired) return null
+        val callbacks = host.callbacks
+        val guarded = object : SoftwareBiometricPromptHost.Callbacks {
+            override fun onHelp(message: CharSequence) {
+                if (!isRetired) callbacks.onHelp(message)
+            }
+            override fun onStatus(status: SoftwarePromptStatus) {
+                if (!isRetired) callbacks.onStatus(status)
+            }
+            override fun onReady(extras: android.os.Bundle?) {
+                if (!isRetired) callbacks.onReady(extras)
+            }
+            override fun onFailure(result: AuthenticationResult) {
+                if (!isRetired) callbacks.onFailure(result)
+            }
+            override fun isPromptActive(): Boolean = !isRetired && callbacks.isPromptActive()
+        }
+        val boundCallbacks = if (callbacks is SoftwareBiometricFragmentHost) {
+            object : SoftwareBiometricPromptHost.Callbacks by guarded, SoftwareBiometricFragmentHost by callbacks {}
+        } else guarded
+        val delegate = promptFactory?.create(host.copy(callbacks = boundCallbacks), manager) ?: return null
+        return RuntimePrompt(delegate, host).also {
+            prompts.add(it)
+            if (isRetired) ExecutorHelper.post(it::retire)
+        }
+    }
+
+    internal fun retire() {
+        if (retired.compareAndSet(false, true)) prompts.toList().forEach { prompt ->
+            ExecutorHelper.post(prompt::retire)
+        }
+    }
+
+    internal fun close() {
+        val cleanup = synchronized(resourceCleanup) { resourceCleanup.remove(manager) }
+        cleanup?.invoke(manager)
+    }
+
+    private inner class RuntimePrompt(
+        private val delegate: SoftwareBiometricPromptDelegate,
+        private val host: SoftwareBiometricPromptHost
+    ) : SoftwareBiometricPromptDelegate {
+        private var disposed = false
+
+        override fun shouldInstall() = !isRetired && !disposed && delegate.shouldInstall()
+        override fun install() { if (!isRetired && !disposed) delegate.install() }
+        override fun start() { if (!isRetired && !disposed) delegate.start() }
+        override fun cancel() { if (!disposed) delegate.cancel() }
+        override fun isReadyToStartAuth() = !isRetired && !disposed && delegate.isReadyToStartAuth()
+
+        override fun dispose() {
+            if (disposed) return
+            disposed = true
+            prompts.remove(this)
+            delegate.dispose()
+        }
+
+        fun retire() {
+            if (disposed) return
+            runCatching { cancel() }.onFailure { BiometricLoggerImpl.e(it) }
+            runCatching { dispose() }.onFailure { BiometricLoggerImpl.e(it) }
+            if (host.callbacks.isPromptActive()) {
+                host.callbacks.onFailure(AuthenticationResult(manager.biometricType,
+                    reason = AuthenticationFailureReason.CANCELED))
+            }
+        }
     }
 
     fun supportsBackgroundPreparation(enroll: Boolean): Boolean {

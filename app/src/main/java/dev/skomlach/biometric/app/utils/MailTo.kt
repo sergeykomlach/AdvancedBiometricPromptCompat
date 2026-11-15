@@ -19,8 +19,8 @@
 
 package dev.skomlach.biometric.app.utils
 
-import android.content.Context
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.os.Build
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
@@ -28,9 +28,14 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.app.R
+import dev.skomlach.biometric.app.devtools.LogCat as CapturedLog
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.logging.LogCat
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,17 +50,33 @@ import java.util.zip.ZipOutputStream
 
 
 object MailTo {
-    private val BUFFER = 1024 * 1024 * 8
+    private const val ARCHIVE_DIRECTORY = "zipfiles"
+    private const val ARCHIVE_PREFIX = "biometric-"
+    private const val ARCHIVE_TTL_MS = 60 * 60 * 1000L
+    private val archiveCleanup = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val credentialLog = Regex(
+        """(?i)\b(?:authorization|cookie|password|passcode|pin|(?:access|refresh|id)?[_-]?token|api[_-]?key)\b["']?\s*[:=]|\bbearer\s+"""
+    )
 
-    private fun zip(files: List<File>, destination: File, checkActive: () -> Unit) {
-        val buffer = ByteArray(BUFFER)
-        val entryNames = HashSet<String>()
+    private fun zip(
+        files: List<File>,
+        entryName: String,
+        report: String,
+        destination: File,
+        checkActive: () -> Unit
+    ) {
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        val entryNames = hashSetOf(entryName)
         ZipOutputStream(BufferedOutputStream(FileOutputStream(destination))).use { output ->
+            checkActive()
+            output.putNextEntry(ZipEntry(entryName))
+            output.write(report.toByteArray(Charsets.UTF_8))
+            output.closeEntry()
             for ((index, file) in files.withIndex()) {
                 checkActive()
                 BufferedInputStream(FileInputStream(file)).use { input ->
-                    val entryName = if (entryNames.add(file.name)) file.name else "$index/${file.name}"
-                    output.putNextEntry(ZipEntry(entryName))
+                    val name = if (entryNames.add(file.name)) file.name else "$index/${file.name}"
+                    output.putNextEntry(ZipEntry(name))
                     var count = input.read(buffer)
                     while (count != -1) {
                         checkActive()
@@ -116,55 +137,96 @@ object MailTo {
         return list
     }
 
-    @Suppress("UNUSED_PARAMETER")
     fun startMailClient(
         ctx: FragmentActivity,
         to: String,
         subject: String,
         logData: String
     ) {
+        shareArchive(ctx, to, subject, "biometric.log", { logAttachment(logData) }) { emptyList() }
+    }
+
+    internal fun logAttachment(logData: String): String {
+        val start = (logData.length - CapturedLog.MAX_TEXT_LENGTH).coerceAtLeast(0)
+        val tail = logData.substring(start)
+        val completeLines = if (start > 0 && logData[start - 1] != '\n') tail.substringAfter('\n', "") else tail
+        return completeLines.lineSequence().joinToString("\n") { line ->
+            if (credentialLog.containsMatchIn(line)) "[Redacted]" else line
+        }
+    }
+
+    internal fun startDeviceReport(
+        ctx: FragmentActivity,
+        to: String,
+        subject: String,
+        report: String
+    ) {
+        shareArchive(ctx, to, subject, "deviceapi.log", { report }, ::findServices)
+    }
+
+    internal fun resumeArchiveCleanup(context: Context) {
+        val appContext = context.applicationContext
+        archiveCleanup.launch {
+            File(appContext.cacheDir, "deviceapi.log").delete()
+            File(appContext.cacheDir, ARCHIVE_DIRECTORY).listFiles()?.forEach { file ->
+                if (file.isFile && file.name.startsWith(ARCHIVE_PREFIX) && file.extension == "zip") {
+                    val remaining = (ARCHIVE_TTL_MS - (System.currentTimeMillis() - file.lastModified()))
+                        .coerceIn(0L, ARCHIVE_TTL_MS)
+                    expireArchive(file, remaining)
+                }
+            }
+        }
+    }
+
+    private fun expireArchive(file: File, remaining: Long) {
+        archiveCleanup.launch {
+            delay(remaining)
+            file.delete()
+        }
+    }
+
+    private fun shareArchive(
+        ctx: FragmentActivity,
+        to: String,
+        subject: String,
+        entryName: String,
+        report: () -> String,
+        attachments: (Context) -> List<File>
+    ) {
         val appContext = ctx.applicationContext
         ctx.lifecycleScope.launch {
-            val fileUri = withContext(Dispatchers.IO) {
-                val report = File(appContext.cacheDir, "deviceapi.log")
-                val list = findServices(appContext).toMutableList()
-                if (report.isFile) list.add(report)
-                val dir = File(appContext.cacheDir, "zipfiles").apply { mkdirs() }
-                var archive: File? = null
-                var prepared = false
-                try {
-                    val file = File.createTempFile("biometric-", ".zip", dir)
+            var archive: File? = null
+            var shared = false
+            try {
+                val fileUri = withContext(Dispatchers.IO) {
+                    val dir = File(appContext.cacheDir, ARCHIVE_DIRECTORY).apply { mkdirs() }
+                    val file = File.createTempFile(ARCHIVE_PREFIX, ".zip", dir)
                     archive = file
-                    zip(list, file) { ensureActive() }
+                    zip(attachments(appContext), entryName, report(), file) { ensureActive() }
                     ensureActive()
                     FileProvider.getUriForFile(appContext, "dev.skomlach.biometric.fileprovider", file)
-                        .also { prepared = true }
-                } catch (e: IOException) {
-                    LogCat.logException(e, "Preparing biometric report")
-                    null
-                } catch (e: IllegalArgumentException) {
-                    LogCat.logException(e, "Preparing biometric report")
-                    null
-                } finally {
-                    if (!prepared) archive?.delete()
                 }
-            } ?: return@launch
-            if (ctx.isFinishing || !ctx.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@launch
-            val builder: ShareCompat.IntentBuilder = ShareCompat.IntentBuilder(ctx)
-            builder.setType("message/rfc822")
-            builder.addEmailTo(to)
-            builder.setText(ctx.getString(R.string.see_attachment))
-            builder.setStream(fileUri)
-            builder.setSubject(subject)
-
-            builder.setChooserTitle(ctx.getString(R.string.send_email))
-
-            try {
-                if (ctx.packageManager.queryIntentActivities(builder.intent, 0).isNotEmpty()) {
-                    builder.startChooser()
-                }
+                if (ctx.isFinishing || !ctx.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@launch
+                val builder = ShareCompat.IntentBuilder(ctx)
+                    .setType("message/rfc822")
+                    .addEmailTo(to)
+                    .setText(ctx.getString(R.string.see_attachment))
+                    .setStream(fileUri)
+                    .setSubject(subject)
+                    .setChooserTitle(ctx.getString(R.string.send_email))
+                builder.startChooser()
+                shared = true
             } catch (e: ActivityNotFoundException) {
                 LogCat.logException(e, "Opening report chooser")
+            } catch (e: IOException) {
+                LogCat.logException(e, "Preparing biometric report")
+            } catch (e: IllegalArgumentException) {
+                LogCat.logException(e, "Preparing biometric report")
+            } finally {
+                archive?.let { file ->
+                    if (shared) expireArchive(file, ARCHIVE_TTL_MS)
+                    else withContext(NonCancellable + Dispatchers.IO) { file.delete() }
+                }
             }
         }
     }

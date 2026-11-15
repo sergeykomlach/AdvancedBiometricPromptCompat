@@ -37,10 +37,12 @@ class AuthenticationTrustIntegrationTest {
             Boolean::class.javaPrimitiveType).invoke(context, bundle, profile, trusted) as Boolean
 
     private fun flow(method: String, id: Long) {
+        val hostDestroyed: () -> Unit = { error("Host should be absent in this policy test") }
+        val args = if (method == "beginAuthFlow") arrayOf(id, hostDestroyed) else arrayOf(id)
         builder.javaClass.declaredMethods.single {
-            it.name.substringBefore('$') == method && it.parameterTypes.contentEquals(arrayOf(Long::class.javaPrimitiveType))
+            it.name.substringBefore('$') == method && it.parameterCount == args.size
         }
-            .apply { isAccessible = true }.invoke(builder, id)
+            .apply { isAccessible = true }.invoke(builder, *args)
     }
 
     @Test fun callerAndPreparedExtrasCannotDowngradePolicyOrChangeEnrollmentRole() {
