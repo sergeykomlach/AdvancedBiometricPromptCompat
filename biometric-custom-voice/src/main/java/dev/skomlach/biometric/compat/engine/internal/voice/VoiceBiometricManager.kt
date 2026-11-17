@@ -228,6 +228,12 @@ class VoiceBiometricManager(
             return
         }
 
+        if (!isEnrollment && !store.hasTemplate()) {
+            finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
+                localized(R.string.biometriccompat_voice_help_not_registered))
+            return
+        }
+
         if (!prepareVoiceEngine(engine)) {
             finishWithError(callback, CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                 localized(R.string.biometriccompat_voice_help_unavailable))

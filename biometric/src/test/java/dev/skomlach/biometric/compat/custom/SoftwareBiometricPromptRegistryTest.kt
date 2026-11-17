@@ -121,6 +121,32 @@ class SoftwareBiometricPromptRegistryTest {
         assertFalse(voice.isSelected)
     }
 
+    @Test fun voiceAuthenticationSkipsEmptyProvidersButEnrollmentPreparesThePreferredProvider() {
+        val fallback = fakeRuntime(FakeFactory(BiometricType.BIOMETRIC_VOICE), -100, moduleId = 1)
+        val preferred = fakeRuntime(FakeFactory(BiometricType.BIOMETRIC_VOICE), -99, moduleId = 2)
+        val fallbackManager = (fallback.manager as FakeManager).apply { enrolled = false }
+        val preferredManager = (preferred.manager as FakeManager).apply {
+            enrolled = false
+            initializationState = SoftwareBiometricInitializationState.NEW
+        }
+        val selection = SoftwareBiometricRuntimeSelection(listOf(fallback, preferred))
+        var completed = 0
+
+        selection.prepareInitial(BiometricType.BIOMETRIC_VOICE, { true }) { completed++ }
+        selection.prepareInitial(BiometricType.BIOMETRIC_ANY, { true }) { completed++ }
+
+        assertEquals(2, completed)
+        assertEquals(0, preferredManager.preparationCalls)
+        assertEquals(0, fallbackManager.preparationCalls)
+        assertSame(preferred, selection.resolve(BiometricType.BIOMETRIC_VOICE))
+
+        selection.prepareInitial(BiometricType.BIOMETRIC_VOICE, { true }, enroll = true) { completed++ }
+
+        assertEquals(3, completed)
+        assertEquals(1, preferredManager.preparationCalls)
+        assertEquals(0, fallbackManager.preparationCalls)
+    }
+
     @Test fun lateInitialPreparationCannotContinueCanceledFlowOrDeliverTwice() {
         val sherpa = fakeRuntime(FakeFactory(BiometricType.BIOMETRIC_VOICE))
         val manager = sherpa.manager as FakeManager
@@ -449,11 +475,13 @@ class SoftwareBiometricPromptRegistryTest {
         override var initializationState = SoftwareBiometricInitializationState.READY
         var currentLockoutError: Int? = null
         var lockoutReadFailure: RuntimeException? = null
-        var snapshotValue: SoftwareBiometricEnrollment = SoftwareBiometricEnrollment.Available(emptyList())
+        var snapshotValue: SoftwareBiometricEnrollment? = null
         var enrollmentReadFailure: RuntimeException? = null
         override fun getEnrollmentSnapshot(): SoftwareBiometricEnrollment {
             enrollmentReadFailure?.let { throw it }
-            return snapshotValue
+            return snapshotValue ?: SoftwareBiometricEnrollment.Available(
+                if (enrolled) listOf("profile") else emptyList()
+            )
         }
         var enrolled = true
         var preparationCalls = 0

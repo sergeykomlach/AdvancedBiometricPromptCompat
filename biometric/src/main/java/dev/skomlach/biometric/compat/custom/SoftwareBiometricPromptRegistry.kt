@@ -98,10 +98,11 @@ internal object SoftwareBiometricPromptRegistry {
         type: BiometricType,
         context: Context,
         isActive: () -> Boolean,
+        enroll: Boolean = false,
         onComplete: () -> Unit
     ) {
         val selection = selection(context)
-        if (selection != null) selection.prepareInitial(type, isActive, onComplete)
+        if (selection != null) selection.prepareInitial(type, isActive, enroll, onComplete)
         else if (isActive()) onComplete()
     }
 
@@ -183,7 +184,12 @@ internal class SoftwareBiometricRuntimeSelection(candidates: Iterable<SoftwareBi
     }
 
     /** Resolve initial readiness before enrollment-based routing can hide an unprepared provider. */
-    fun prepareInitial(type: BiometricType, isActive: () -> Boolean, onComplete: () -> Unit) {
+    fun prepareInitial(
+        type: BiometricType,
+        isActive: () -> Boolean,
+        enroll: Boolean = false,
+        onComplete: () -> Unit
+    ) {
         val choices = byType.filterKeys { type == BiometricType.BIOMETRIC_ANY || it == type }.values.toList()
         fun prepareNext(index: Int) {
             if (!isActive()) return
@@ -191,6 +197,12 @@ internal class SoftwareBiometricRuntimeSelection(candidates: Iterable<SoftwareBi
             val choice = choices[index]
             val runtime = choice.current()
             if (runtime.isRetired || !runtime.needsInitialPreparation() || !canPrepareInitial(runtime)) {
+                prepareNext(index + 1)
+                return
+            }
+            if (!enroll && runtime.manager.biometricType == BiometricType.BIOMETRIC_VOICE &&
+                !choice.hasPotentialVoiceEnrollment(runtime)
+            ) {
                 prepareNext(index + 1)
                 return
             }
@@ -263,6 +275,15 @@ private class InitialRuntimeChoice(
 
     private fun canFallback(runtime: SoftwareBiometricRuntime): Boolean =
         canPrepareInitial(runtime)
+
+    // A legacy profile can still become reachable after the preferred runtime confirms failure.
+    fun hasPotentialVoiceEnrollment(runtime: SoftwareBiometricRuntime): Boolean =
+        registered.drop(registered.indexOf(runtime)).any { candidate ->
+            !candidate.isRetired && try {
+                !candidate.manager.getEnrollmentSnapshot().isConfirmedEmpty()
+            } catch (_: Exception) { true }
+            catch (_: LinkageError) { true }
+        }
 }
 
 private fun SoftwareBiometricRuntime.initialState(): SoftwareBiometricInitializationState =

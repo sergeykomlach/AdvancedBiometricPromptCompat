@@ -772,6 +772,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             continueAfterInitialSoftwarePreparation(callback, timeout, authFlowId, onReady)
             return
         }
+        val enroll = builder.enroll
         ExecutorHelper.startOnBackground {
             if (!isCurrentAuthFlow(authFlowId)) return@startOnBackground
             if (canStartNativeBeforeSoftwarePreparation()) {
@@ -785,7 +786,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             SoftwareBiometricPromptRegistry.prepareInitial(
                 builder.getBiometricAuthRequest().type,
                 builder.getContext(),
-                { isCurrentAuthFlow(authFlowId) }
+                { isCurrentAuthFlow(authFlowId) },
+                enroll = enroll
             ) {
                 ExecutorHelper.post {
                     if (isCurrentAuthFlow(authFlowId)) {

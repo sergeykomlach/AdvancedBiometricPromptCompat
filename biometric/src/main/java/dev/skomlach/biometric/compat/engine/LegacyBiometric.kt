@@ -35,6 +35,7 @@ import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptRegistry
+import dev.skomlach.biometric.compat.custom.isConfirmedEmpty
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.StatusAuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -774,8 +775,18 @@ object LegacyBiometric {
             val skippedTags = excludedModuleTags.toMutableSet()
             prepareSoftwareSequence(modules, { module, completion ->
                 val manager = module.manager
-                if (manager == null) completion.onPrepared()
-                else manager.prepareForAuthentication(completion)
+                when {
+                    manager == null -> completion.onPrepared()
+                    !enroll && manager.biometricType == BiometricType.BIOMETRIC_VOICE -> {
+                        readOwnedAuthStatus(ExecutorHelper::startOnBackground, ExecutorHelper::post, isActive, {
+                            manager.getEnrollmentSnapshot().isConfirmedEmpty()
+                        }) { snapshot ->
+                            if (snapshot.getOrDefault(false)) completion.onPrepared()
+                            else manager.prepareForAuthentication(completion)
+                        }
+                    }
+                    else -> manager.prepareForAuthentication(completion)
+                }
             }, onModuleSkipped, callback, isActive,
                 ExecutorHelper::startOnBackground, ExecutorHelper::post) { failed ->
                 skippedTags += failed.tag()

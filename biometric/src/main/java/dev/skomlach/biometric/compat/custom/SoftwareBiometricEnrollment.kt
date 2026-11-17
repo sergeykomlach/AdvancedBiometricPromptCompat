@@ -28,6 +28,9 @@ sealed class SoftwareBiometricEnrollment {
     }
 }
 
+internal fun SoftwareBiometricEnrollment.isConfirmedEmpty(): Boolean =
+    this is SoftwareBiometricEnrollment.Available && ids.isEmpty()
+
 /** The old boolean enrollment API cannot express unavailability; enforce it on the software route. */
 internal fun SoftwareBiometricEnrollment.requireReadable() {
     if (this is SoftwareBiometricEnrollment.Unavailable) {
