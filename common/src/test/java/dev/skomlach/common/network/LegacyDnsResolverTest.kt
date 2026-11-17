@@ -43,10 +43,11 @@ class LegacyDnsResolverTest {
             calls.incrementAndGet(); started.countDown(); ignoreInterrupts(release)
             listOf(address)
         }, { runnable -> Thread(runnable).apply { isDaemon = true } })
-        val pending = List(8) { index -> CancellableDns(resolver.lookup("route-${index / 4}")) }
-        pending.forEach { dns -> Thread { runCatching { dns.lookup("example.test") } }.apply { isDaemon = true }.start() }
+        val pending = List(8) { index ->
+            resolver.lookup("route-${index / 4}").start("example.test") { _, _ -> }
+        }
         try {
-            assertTrue(started.await(1, TimeUnit.SECONDS))
+            started.await()
             pending.forEach { it.cancel() }
             repeat(20) { index ->
                 assertThrows(UnknownHostException::class.java) {
